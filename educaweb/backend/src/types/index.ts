@@ -4,6 +4,9 @@ import { User } from '@prisma/client';
 // Extensão do Request para incluir usuário autenticado
 export interface AuthRequest extends Request {
   user?: User;
+  body: any;
+  query: any;
+  header: (name: string) => string | undefined;
 }
 
 // Tipos para autenticação
@@ -47,6 +50,10 @@ export interface CreateProfessorRequest {
   email: string;
   telefone?: string;
   especialidade: string;
+  aulasContratadas?: number;
+  salario?: number;
+  dataAdmissao?: string;
+  disciplinas?: number[];
   userId: number;
 }
 
@@ -55,6 +62,11 @@ export interface UpdateProfessorRequest {
   email?: string;
   telefone?: string;
   especialidade?: string;
+  aulasContratadas?: number;
+  salario?: number;
+  dataAdmissao?: string;
+  ativo?: boolean;
+  disciplinas?: number[];
 }
 
 // Tipos para turmas
@@ -84,6 +96,7 @@ export interface CreateSalaRequest {
   tipo: string;
   capacidade: number;
   recursos?: string[];
+  status?: string;
   userId: number;
 }
 
@@ -243,6 +256,14 @@ export interface CreateMensagemRequest {
 }
 
 // Tipos para grade
+export interface GradeHorariaRequest {
+  nome: string;
+  horariosInicio: string;
+  horariosFim: string;
+  diasSemana: string;
+  configuracoes: string;
+}
+
 export interface CreateGradeConfigRequest {
   nome: string;
   configuracao: any;
