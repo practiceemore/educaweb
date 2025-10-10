@@ -101,7 +101,7 @@ router.post('/', async (req: Request, res: Response) => {
       }
     });
 
-    const formattedConfig: GradeHorariaResponse = {
+    const formattedConfig = {
       id: configuracao.id,
       nome: configuracao.nome,
       horariosInicio,
