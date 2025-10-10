@@ -114,7 +114,7 @@ router.get('/school-context', async (req: AuthRequest, res: Response) => {
         totalSalas: salas.length,
         totalProfessores: professores.length,
         totalDisciplinas: disciplinas.length,
-        turmasAtivas: turmas.filter(t => t.ativa).length,
+        turmasAtivas: turmas.length,
         salasDisponiveis: salas.filter(s => s.status === 'disponivel').length
       }
     };
@@ -278,7 +278,7 @@ router.post('/send', async (req: AuthRequest, res: Response) => {
         totalSalas: salas.length,
         totalProfessores: professores.length,
         totalDisciplinas: disciplinas.length,
-        turmasAtivas: turmas.filter(t => t.ativa).length,
+        turmasAtivas: turmas.length,
         salasDisponiveis: salas.filter(s => s.status === 'disponivel').length
       }
     };
@@ -294,7 +294,7 @@ DADOS ATUAIS DA ESCOLA:
 
 TURMAS:
 ${schoolData.turmas.map(t => 
-  `- ${t.nome} (${t.serie}º ano, ${t.turno}): ${t.capacidade} alunos, ${t.alunosMatriculados} matriculados, Ano ${t.anoLetivo}${t.ativa ? '' : ' (INATIVA)'}
+  `- ${t.nome} (${t.serie}º ano, ${t.turno}): ${t.capacidade} alunos, ${t.alunosMatriculados} matriculados, Ano ${t.anoLetivo}
   Disciplinas: ${t.disciplinas.length > 0 ? t.disciplinas.map(d => `${d.nome} (${d.aulasPorSemana}a/sem)`).join(', ') : 'Nenhuma disciplina configurada'}`
 ).join('\n')}
 
@@ -310,7 +310,7 @@ ${schoolData.professores.map(p =>
 
 DISCIPLINAS:
 ${schoolData.disciplinas.map(d => 
-  `- ${d.nome}${d.descricao ? `: ${d.descricao}` : ''}${d.ativa ? '' : ' (INATIVA)'}`
+  `- ${d.nome}${d.descricao ? `: ${d.descricao}` : ''}`
 ).join('\n')}
 
 Contexto da conversa recente:

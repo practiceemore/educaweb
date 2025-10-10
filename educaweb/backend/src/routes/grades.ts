@@ -94,7 +94,10 @@ router.post('/', async (req: Request, res: Response) => {
         horariosFim: JSON.stringify(horariosFim),
         diasSemana: JSON.stringify(diasSemana),
         configuracoes: configuracoes ? JSON.stringify(configuracoes) : null,
-        ativa: true
+        ativa: true,
+        user: {
+          connect: { id: (req as any).user.id }
+        }
       }
     });
 
