@@ -1,0 +1,203 @@
+import { Request } from 'express';
+import { User } from '@prisma/client';
+
+// Extensão do Request para incluir usuário autenticado
+export interface AuthRequest extends Request {
+  user?: User;
+}
+
+// Tipos para autenticação
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name: string;
+  role?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    role: string;
+  };
+export interface CreateDisciplinaRequest {
+  nome: string;
+  cargaHoraria: number;
+  descricao?: string;
+  userId: number;
+}
+  nome: string;
+  cargaHoraria: number;
+  descricao?: string;
+}
+
+export interface UpdateDisciplinaRequest {
+  nome?: string;
+  cargaHoraria?: number;
+  descricao?: string;
+}
+
+// Tipos para professores
+export interface CreateProfessorRequest {
+  nome: string;
+  email: string;
+  telefone?: string;
+  especialidade: string;
+  aulasContratadas: number;
+  salario?: number;
+  dataAdmissao?: string;
+  disciplinas?: number[]; // IDs das disciplinas
+}
+
+export interface UpdateProfessorRequest {
+  nome?: string;
+  email?: string;
+  telefone?: string;
+  especialidade?: string;
+  aulasContratadas?: number;
+  salario?: number;
+  dataAdmissao?: string;
+  ativo?: boolean;
+  disciplinas?: number[]; // IDs das disciplinas
+}
+
+// Tipos para turmas
+export interface CreateTurmaRequest {
+  nome: string;
+  serie: string;
+  turno: string;
+  capacidade: number;
+  alunosMatriculados?: number;
+  anoLetivo: string;
+}
+
+export interface UpdateTurmaRequest {
+  nome?: string;
+  serie?: string;
+  turno?: string;
+  capacidade?: number;
+  alunosMatriculados?: number;
+  anoLetivo?: string;
+  ativa?: boolean;
+}
+
+// Tipos para salas
+export interface CreateSalaRequest {
+  nome: string;
+  capacidade: number;
+  tipo: string;
+  recursos?: string;
+  status?: string;
+}
+
+export interface UpdateSalaRequest {
+  nome?: string;
+  capacidade?: number;
+  tipo?: string;
+  recursos?: string;
+  status?: string;
+}
+
+// Tipos para aulas
+export interface CreateAulaRequest {
+  diaSemana: string;
+  horario: string;
+  disciplinaId: number;
+  professorId: number;
+  turmaId: number;
+  salaId: number;
+}
+
+export interface UpdateAulaRequest {
+  diaSemana?: string;
+  horario?: string;
+  disciplinaId?: number;
+  professorId?: number;
+  turmaId?: number;
+  salaId?: number;
+  ativa?: boolean;
+}
+
+// Tipos para chat
+export interface ChatMessageRequest {
+  mensagem: string;
+  metadata?: any;
+}
+
+export interface ChatMessageResponse {
+  id: number;
+  mensagem: string;
+  resposta: string;
+  timestamp: string;
+}
+
+// Tipos para grade horária
+export interface GradeHorariaRequest {
+  nome: string;
+  horariosInicio: string[];
+  horariosFim: string[];
+  diasSemana: string[];
+  configuracoes?: any;
+}
+
+export interface GradeHorariaResponse {
+  id: number;
+  nome: string;
+  horariosInicio: string[];
+  horariosFim: string[];
+  diasSemana: string[];
+  configuracoes: any;
+  ativa: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Tipos para respostas da API
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Tipos para estatísticas
+export interface DashboardStats {
+  totalDisciplinas: number;
+  totalProfessores: number;
+  totalTurmas: number;
+  totalSalas: number;
+  totalAlunos: number;
+  aulasAgendadas: number;
+  conflitos: number;
+  professoresAtivos: number;
+}
+
+// Tipos para relatórios
+export interface RelatorioRequest {
+  tipo: 'disciplinas' | 'professores' | 'turmas' | 'salas' | 'grade' | 'escola';
+  formato: 'html' | 'pdf' | 'json';
+  filtros?: any;
+}
+
+// Tipos para configurações
+export interface AppConfig {
+  horariosInicio: string[];
+  horariosFim: string[];
+  diasSemana: string[];
+  configuracoesGrade: any;
+}

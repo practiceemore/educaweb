@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomButtonView">
+        <attr name="buttonText" format="string" />
+        <attr name="showEditIcon" format="boolean" />    <!-- LINHA ADICIONADA -->
+        <attr name="showDeleteIcon" format="boolean" />  <!-- LINHA ADICIONADA -->
+    </declare-styleable>
+</resources>

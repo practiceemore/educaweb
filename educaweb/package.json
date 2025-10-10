@@ -1,0 +1,18 @@
+{
+  "name": "educaweb",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão Escolar com IA",
+  "main": "backend/dist/index.js",
+  "scripts": {
+    "start": "node backend/dist/index.js",
+    "build": "cd backend && npm run build",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": ["educacao", "escola", "gestao", "ia", "timetable"],
+  "author": "Conrado",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

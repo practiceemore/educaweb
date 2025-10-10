@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primaria">#21AF81</color>
+    <color name="primaria_variacao">#1B7156</color>
+    <color name="primaria_transparente">#3021AF81</color>
+
+<!--    cor botao-->
+    <color name="corBotaoFundo">#3D21AF81</color>
+    <color name="corTextoBotaoInicial">#255644</color>
+    <color name="m3_default_color_secundary_text">#255644</color>
+
+    <color name="cor_disponivel">#62F6AD</color> <!-- Um verde bem claro -->
+    <color name="cor_indisponivel">#FFCDD2</color> <!-- Um vermelho bem claro -->
+
+    <color name="cor_fundo_disciplinas">#CDFBE7</color>
+
+    <color name="fundo">#88F2D1</color>
+
+    <color name="color_icone_celula_normal">#1B7156</color>
+    <color name="color_icone_celula_selecionada">#FFFFFF</color>
+
+    <!-- Cor para seleção de mensagens (translúcida como WhatsApp) -->
+    <color name="selecao_translucida">#AB21AF81</color>
+
+    <color name="corIcone">#255644</color>
+    <color name="ic_launcher_background">#FF4CAF50</color>
+
+    <!-- Cores para Login -->
+    <color name="primary_color">#21AF81</color>
+    <color name="background_color">#F5F5F5</color>
+    <color name="text_secondary">#757575</color>
+    <color name="google_blue">#4285F4</color>
+
+</resources>

@@ -1,0 +1,1214 @@
+package com.example.educa1.activitys
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.os.Environment
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.educa1.R
+import com.example.educa1.adapters.GradeHorariaAdapter
+import com.example.educa1.adapters.ProgressoAdapter
+import com.example.educa1.adapters.ProgressoData
+import com.example.educa1.databinding.ActivityGradeHorariaBinding
+import com.example.educa1.models.CelulaHorario
+import com.example.educa1.models.Disciplina
+import com.example.educa1.models.Professor
+import com.example.educa1.models.RequisitoDisciplina
+import com.example.educa1.models.Sala
+import com.example.educa1.models.Turma
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.io.File
+import java.io.FileOutputStream
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
+import android.os.Build
+import android.util.Log
+import androidx.core.content.ContextCompat
+import com.example.educa1.GeminiManager
+import com.example.educa1.models.ConfiguracaoGrade
+import com.example.educa1.utils.ConfiguracaoGradeManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+
+// Em GradeHorariaActivity.kt
+
+data class ProfessorSimples(val id: Long, val nome: String, val disciplinas: List<String>, val indisponibilidades: List<String>)
+data class TurmaSimples(val id: Long, val nome: String)
+data class DisciplinaSimples(val id: Long, val nome: String)
+data class SalaSimples(val id: Long, val nome: String)
+data class RequisitoSimples(val nomeDisciplina: String, val aulasPorSemana: Int)
+data class GradeExistente(val turmaId: Long, val celulas: List<CelulaHorario>)
+
+data class DadosParaIA(
+    val turmaParaGerar: TurmaSimples,
+    val requisitos: List<RequisitoSimples>,
+    val professores: List<ProfessorSimples>,
+    val disciplinas: List<DisciplinaSimples>,
+    val salas: List<SalaSimples>,
+    val gradesDeOutrasTurmas: List<GradeExistente>
+)
+//
+//data class RespostaIA(
+//    val grade: List<Map<String, Any>>,
+//    // MUDE ESTA LINHA para aceitar um valor nulo
+//    val relatorio: String? // Adiciona '?' para tornar o campo opcional
+//)
+
+class GradeHorariaActivity : BaseActivity() {
+
+    private lateinit var binding: ActivityGradeHorariaBinding
+    private lateinit var adapter: GradeHorariaAdapter
+    private val listaDeCelulas = mutableListOf<CelulaHorario>()
+
+    // NOVO: Gerenciador de configuração
+    private lateinit var configuracaoManager: ConfiguracaoGradeManager
+    private var configuracaoGrade: ConfiguracaoGrade = ConfiguracaoGrade()
+
+    // Listas para armazenar todos os dados cadastrados
+    private var listaDeTurmas = listOf<Turma>()
+    private var listaDeProfessores = listOf<Professor>()
+    private var listaDeDisciplinas = listOf<Disciplina>()
+    private var listaDeSalas = listOf<Sala>()
+
+    private var listaDeRequisitos = listOf<RequisitoDisciplina>()
+    private val listaDeProgresso = mutableListOf<ProgressoData>()
+    private lateinit var progressoAdapter: ProgressoAdapter
+
+    // A turma que está sendo editada no momento
+    private var turmaSelecionada: Turma? = null
+
+    companion object {
+        private const val TAG = "GradeHorariaActivity"
+        private const val DIAS_NA_SEMANA = 5 // Sempre 5 dias
+        // REMOVIDO: private const val AULAS_POR_DIA = 5
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityGradeHorariaBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // NOVO: Inicializar configuração
+        configuracaoManager = ConfiguracaoGradeManager(this)
+        configuracaoGrade = configuracaoManager.carregarConfiguracao()
+        
+        Log.d(TAG, "Configuração carregada: ${configuracaoGrade.aulasPorDia} aulas por dia")
+
+        Log.d(TAG, "🔄 onCreate() iniciado")
+
+        setSupportActionBar(binding.toolbarGradeHoraria)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.toolbarGradeHoraria.setNavigationIcon(R.drawable.ic_arrow_back_white)
+
+        // Recupera a turma que foi passada pela tela anterior
+        recuperarTurma()
+
+        // Verificar se uma grade foi aplicada
+        val gradeAplicada = intent.getBooleanExtra("grade_aplicada", false)
+        if (gradeAplicada) {
+            Toast.makeText(this, "Grade aplicada com sucesso!", Toast.LENGTH_SHORT).show()
+        }
+
+        // Se a turma for válida, configura a tela inteira
+        turmaSelecionada?.let {
+            supportActionBar?.title = getString(R.string.horario_turma, it.nome)
+            carregarTodosOsDados() // Nova função que carrega tudo de uma vez
+            configurarRecyclerView()
+            configurarPainelProgresso()
+            atualizarPainelProgresso() // Atualização inicial
+            binding.gradeContainer.visibility = View.VISIBLE // Mostra a grade imediatamente
+            
+            // RECALCULAR CONFLITOS APÓS CONFIGURAR O ADAPTER
+            Log.d(TAG, "🔄 Chamando recalcularConflitosNaGrade() após configurar adapter")
+            recalcularConflitosNaGrade()
+        } ?: run {
+            // Caso de erro, se nenhuma turma for passada
+            Toast.makeText(this, "Erro: Nenhuma turma selecionada.", Toast.LENGTH_LONG).show()
+            finish()
+        }
+
+        // Botão de gerar grade será adicionado via menu da Toolbar
+        Log.d(TAG, "✅ onCreate() finalizado")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "🔄 onResume() iniciado")
+        
+        // Recarregar dados quando voltar do chat ou detalhes da turma
+        turmaSelecionada?.let {
+            Log.d(TAG, "📝 Recarregando dados da turma: ${it.nome}")
+            carregarRequisitosDaTurma() // Recarregar requisitos atualizados
+            carregarGradeDaTurma()
+            atualizarPainelProgresso()
+            adapter.notifyDataSetChanged()
+            
+            // RECALCULAR CONFLITOS NO ONRESUME TAMBÉM
+            Log.d(TAG, "🔄 Chamando recalcularConflitosNaGrade() no onResume")
+            recalcularConflitosNaGrade()
+        } ?: run {
+            Log.e(TAG, "❌ Turma selecionada é null no onResume")
+        }
+        
+        Log.d(TAG, "✅ onResume() finalizado")
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Infla o nosso arquivo de menu, adicionando o ícone à barra de ação.
+        menuInflater.inflate(R.menu.grade_horaria_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Lida com cliques nos itens do menu.
+        return when (item.itemId) {
+            R.id.action_detalhes -> {
+                abrirDetalhesTurma()
+                true
+            }
+            R.id.action_share -> {
+                gerarECompartilharPdf()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun mostrarDialogoOpcoesAula(celula: CelulaHorario, position: Int) {
+        // ADICIONA A NOVA OPÇÃO AO ARRAY
+        val opcoes = arrayOf("Editar Aula", "Remover Aula", "Declarar Ausência / Substituir")
+        val titulo = "${celula.disciplina?.nome}\n(${celula.professor?.nome})"
+
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle(titulo)
+            .setItems(opcoes) { _, which ->
+                when (which) {
+                    0 -> { // Editar Aula
+                        mostrarDialogoAlocarAula(position)
+                    }
+                    1 -> { // Remover Aula
+                        removerAula(position)
+                    }
+                    2 -> { // <<< A NOVA OPÇÃO >>>
+                        iniciarFluxoDeSubstituicao(celula, position)
+                    }
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun mostrarDialogoAlocarAula(position: Int) {
+        // PASSO 1: SELECIONAR DISCIPLINA
+        val nomesDasDisciplinas = listaDeDisciplinas.map { it.nome }.toTypedArray()
+        if (nomesDasDisciplinas.isEmpty()) {
+            Toast.makeText(this, "Nenhuma disciplina cadastrada.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle("Passo 1: Selecione a Disciplina")
+            .setItems(nomesDasDisciplinas) { _, whichDisciplina ->
+                val disciplinaSelecionada = listaDeDisciplinas[whichDisciplina]
+
+                // PASSO 2: PREPARAR E SELECIONAR PROFESSOR
+                val professoresCompativeis = listaDeProfessores
+                    .filter { it.disciplinas.contains(disciplinaSelecionada.nome) }
+
+                if (professoresCompativeis.isEmpty()) {
+                    Toast.makeText(this, "Nenhum professor cadastrado para esta disciplina.", Toast.LENGTH_SHORT).show()
+                    return@setItems
+                }
+
+                val professoresComStatus = professoresCompativeis.map { professor ->
+                    val turmaDoConflito = verificarConflitoDeProfessor(professor, position)
+                    Pair(professor, turmaDoConflito)
+                }
+
+                val adapterProfessores = object : ArrayAdapter<Pair<Professor, String?>>(
+                    this,
+                    R.layout.item_selecao_professor,
+                    R.id.tvNomeProfessorSelecao,
+                    professoresComStatus
+                ) {
+                    override fun getView(pos: Int, convertView: View?, parent: ViewGroup): View {
+                        val view = super.getView(pos, convertView, parent)
+                        val nomeProfessorTv = view.findViewById<TextView>(R.id.tvNomeProfessorSelecao)
+                        val statusProfessorTv = view.findViewById<TextView>(R.id.tvStatusProfessor)
+                        val (professor, turmaDoConflito) = getItem(pos)!!
+
+                        nomeProfessorTv.text = professor.nome
+                        if (turmaDoConflito != null) {
+                            statusProfessorTv.visibility = View.VISIBLE
+                            statusProfessorTv.text = "Ocupado (${turmaDoConflito})"
+                        } else {
+                            statusProfessorTv.visibility = View.GONE
+                        }
+                        return view
+                    }
+                }
+
+                AlertDialog.Builder(this, R.style.AlertDialogTheme)
+                    .setTitle("Passo 2: Selecione o Professor")
+                    .setAdapter(adapterProfessores) { _, whichProfessor ->
+                        val (professorSelecionado, turmaDoConflitoProfessor) = professoresComStatus[whichProfessor]
+
+                        // PASSO 3: SELECIONAR SALA
+                        fun alocarAula(sala: Sala? = null, turmaComConflitoDeSala: String? = null) {
+                            val celula = listaDeCelulas[position]
+                            celula.disciplina = disciplinaSelecionada
+                            celula.professor = professorSelecionado
+                            celula.sala = sala
+                            celula.temConflito = turmaDoConflitoProfessor != null
+                            celula.temConflitoDeSala = turmaComConflitoDeSala != null
+
+                            adapter.notifyItemChanged(position)
+                            salvarGradeDaTurma()
+                            atualizarPainelProgresso()
+                        }
+
+                        if (listaDeSalas.isEmpty()) {
+                            alocarAula()
+                            return@setAdapter
+                        }
+
+                        val salasComStatus = listaDeSalas.map { sala ->
+                            val turmaDoConflito = verificarConflitoDeSala(sala, position)
+                            Pair(sala, turmaDoConflito)
+                        }
+
+                        val adapterSalas = object : ArrayAdapter<Pair<Sala, String?>>(
+                            this, R.layout.item_selecao_professor, R.id.tvNomeProfessorSelecao, salasComStatus
+                        ) {
+                            override fun getView(pos: Int, convertView: View?, parent: ViewGroup): View {
+                                val view = super.getView(pos, convertView, parent)
+                                val nomeSalaTv = view.findViewById<TextView>(R.id.tvNomeProfessorSelecao)
+                                val statusSalaTv = view.findViewById<TextView>(R.id.tvStatusProfessor)
+                                val (sala, turmaDoConflito) = getItem(pos)!!
+
+                                nomeSalaTv.text = sala.nome
+                                if (turmaDoConflito != null) {
+                                    statusSalaTv.visibility = View.VISIBLE
+                                    statusSalaTv.text = "Ocupada (${turmaDoConflito})"
+                                } else {
+                                    statusSalaTv.visibility = View.GONE
+                                }
+                                return view
+                            }
+                        }
+
+                        AlertDialog.Builder(this, R.style.AlertDialogTheme)
+                            .setTitle("Passo 3: Selecione a Sala (Opcional)")
+                            .setAdapter(adapterSalas) { _, whichSala ->
+                                val (salaSelecionada, turmaComConflitoDeSala) = salasComStatus[whichSala]
+                                alocarAula(salaSelecionada, turmaComConflitoDeSala)
+                            }
+                            .setNeutralButton("Sem Sala") { _, _ -> alocarAula() }
+                            .setNegativeButton("Cancelar", null)
+                            .show()
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun configurarRecyclerView() {
+        Log.d(TAG, "🔄 configurarRecyclerView() iniciado")
+        
+        adapter = GradeHorariaAdapter(
+            listaDeCelulas = listaDeCelulas,
+            onItemClicked = { celula, position ->
+            // A LÓGICA AGORA SE DIVIDE AQUI:
+            if (celula.disciplina == null) {
+                // Se a célula está vazia, abre o diálogo para alocar uma nova aula.
+                mostrarDialogoAlocarAula(position)
+            } else {
+                // Se a célula já está preenchida, abre um diálogo com opções.
+                mostrarDialogoOpcoesAula(celula, position)
+            }
+            },
+            isProfessorView = false // Visão da turma (mostra professor)
+        )
+
+        val layoutManager = GridLayoutManager(this, DIAS_NA_SEMANA)
+        binding.rvGradeHoraria.adapter = adapter
+        binding.rvGradeHoraria.layoutManager = layoutManager
+        
+        Log.d(TAG, "✅ configurarRecyclerView() finalizado - adapter criado")
+    }
+
+    private fun carregarTodosOsDados() {
+        Log.d(TAG, "🔄 carregarTodosOsDados() iniciado")
+        
+        carregarProfessores()
+        carregarDisciplinas()
+        carregarSalas()
+        carregarTurmas() // ADICIONADO: Carregar turmas para verificação de conflitos
+        carregarRequisitosDaTurma()
+        carregarGradeDaTurma()
+        
+        Log.d(TAG, "✅ carregarTodosOsDados() finalizado")
+    }
+
+    private fun recuperarTurma() {
+        turmaSelecionada = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("TURMA_SELECIONADA", Turma::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("TURMA_SELECIONADA")
+        }
+    }
+
+    private fun carregarProfessores() {
+        val prefs = getSharedPreferences(GerenciarProfessoresActivity.PREFS_NAME, MODE_PRIVATE)
+        val json = prefs.getString(GerenciarProfessoresActivity.KEY_PROFESSORES, null)
+        if (json != null) {
+            val type = object : TypeToken<List<Professor>>() {}.type
+            listaDeProfessores = Gson().fromJson(json, type)
+        }
+    }
+
+    private fun carregarDisciplinas() {
+        val prefs = getSharedPreferences(GerenciarDisciplinasActivity.PREFS_NAME, MODE_PRIVATE)
+        val json = prefs.getString(GerenciarDisciplinasActivity.KEY_DISCIPLINAS, null)
+        if (json != null) {
+            val type = object : TypeToken<List<Disciplina>>() {}.type
+            listaDeDisciplinas = Gson().fromJson(json, type)
+        }
+    }
+
+    private fun carregarSalas() {
+        val prefs = getSharedPreferences(GerenciarSalasActivity.PREFS_NAME, MODE_PRIVATE)
+        val json = prefs.getString(GerenciarSalasActivity.KEY_SALAS, null)
+        if (json != null) {
+            val type = object : TypeToken<List<Sala>>() {}.type
+            listaDeSalas = Gson().fromJson(json, type)
+        }
+    }
+
+    private fun carregarTurmas() {
+        val prefs = getSharedPreferences(GerenciarTurmasActivity.PREFS_NAME, MODE_PRIVATE)
+        val json = prefs.getString(GerenciarTurmasActivity.KEY_TURMAS, null)
+        if (json != null) {
+            val type = object : TypeToken<List<Turma>>() {}.type
+            listaDeTurmas = Gson().fromJson(json, type)
+        }
+    }
+
+    private fun carregarGradeDaTurma() {
+        Log.d(TAG, "🔄 carregarGradeDaTurma() iniciado")
+        Log.d(TAG, "Turma selecionada: ${turmaSelecionada?.nome} (ID: ${turmaSelecionada?.id})")
+        
+        val prefs = getSharedPreferences("GradesHorariasPrefs", MODE_PRIVATE)
+        
+        // Primeiro, tentar buscar pelo ID (método antigo)
+        var chave = "grade_${turmaSelecionada?.id}"
+        Log.d(TAG, "Buscando grade com chave (ID): $chave")
+        var json = prefs.getString(chave, null)
+        
+        // Se não encontrar pelo ID, tentar pelo nome da turma
+        if (json == null) {
+            chave = "grade_${turmaSelecionada?.nome}"
+            Log.d(TAG, "Grade não encontrada pelo ID, tentando com chave (nome): $chave")
+            json = prefs.getString(chave, null)
+        }
+
+        if (json != null) {
+            Log.d(TAG, "📥 Grade encontrada no SharedPreferences com chave: $chave")
+            Log.d(TAG, "JSON encontrado: ${json.take(200)}...")
+            val type = object : TypeToken<List<CelulaHorario>>() {}.type
+            val gradeSalva: List<CelulaHorario> = Gson().fromJson(json, type)
+            Log.d(TAG, "Grade carregada com ${gradeSalva.size} células")
+            
+            // NOVO: Verificar se a grade é compatível com a configuração atual
+            val totalCelulasEsperadas = configuracaoGrade.getTotalCelulas()
+            if (gradeSalva.size != totalCelulasEsperadas) {
+                Log.d(TAG, "⚠️ Grade incompatível: ${gradeSalva.size} células vs ${totalCelulasEsperadas} esperadas")
+                Log.d(TAG, "�� Gerando nova grade vazia baseada na configuração atual")
+                gerarGradeVazia()
+            } else {
+                Log.d(TAG, "✅ Grade compatível com configuração atual")
+                listaDeCelulas.clear()
+                listaDeCelulas.addAll(gradeSalva)
+            }
+        } else {
+            Log.d(TAG, "📝 Nenhuma grade encontrada, gerando grade vazia")
+            gerarGradeVazia()
+        }
+        
+        Log.d(TAG, "✅ carregarGradeDaTurma() finalizado")
+    }
+
+    /**
+     * Recalcula todos os conflitos na grade atual
+     * Esta função é chamada após carregar a grade para garantir que os conflitos sejam exibidos corretamente
+     */
+    private fun recalcularConflitosNaGrade() {
+        Log.d(TAG, "🔄 recalcularConflitosNaGrade() iniciado")
+        Log.d(TAG, "📊 Total de células: ${listaDeCelulas.size}")
+        Log.d(TAG, "🔍 Adapter é null? ${adapter == null}")
+        Log.d(TAG, "🔍 Turma selecionada: ${turmaSelecionada?.nome}")
+        
+        try {
+            var celulasComProfessor = 0
+            var conflitosDetectados = 0
+            
+            listaDeCelulas.forEachIndexed { posicao, celula ->
+                if (celula.professor != null) {
+                    celulasComProfessor++
+                    Log.d(TAG, "🔍 Verificando conflitos na posição $posicao - Professor: ${celula.professor?.nome}")
+                    
+                    // Verificar conflito de professor
+                    val turmaDoConflitoProfessor = verificarConflitoDeProfessor(celula.professor!!, posicao)
+                    celula.temConflito = turmaDoConflitoProfessor != null
+                    
+                    if (turmaDoConflitoProfessor != null) {
+                        conflitosDetectados++
+                        Log.d(TAG, "⚠️ Conflito de professor detectado: ${celula.professor?.nome} em conflito com turma $turmaDoConflitoProfessor")
+                    }
+                    
+                    // Verificar conflito de sala
+                    if (celula.sala != null) {
+                        val turmaDoConflitoSala = verificarConflitoDeSala(celula.sala!!, posicao)
+                        celula.temConflitoDeSala = turmaDoConflitoSala != null
+                        
+                        if (turmaDoConflitoSala != null) {
+                            Log.d(TAG, "⚠️ Conflito de sala detectado: ${celula.sala?.nome} em conflito com turma $turmaDoConflitoSala")
+                        }
+                    } else {
+                        celula.temConflitoDeSala = false
+                    }
+                } else {
+                    // Se não há professor, não há conflitos
+                    celula.temConflito = false
+                    celula.temConflitoDeSala = false
+                }
+            }
+            
+            Log.d(TAG, "📊 Resumo: $celulasComProfessor células com professor, $conflitosDetectados conflitos detectados")
+            Log.d(TAG, "🔄 Tentando chamar adapter.notifyDataSetChanged()")
+            
+            // Notificar o adapter que todos os itens mudaram para atualizar as cores
+            if (adapter != null) {
+                adapter.notifyDataSetChanged()
+                Log.d(TAG, "✅ adapter.notifyDataSetChanged() executado com sucesso")
+            } else {
+                Log.e(TAG, "❌ ERRO: adapter é null! Não foi possível atualizar a interface")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERRO em recalcularConflitosNaGrade(): ${e.message}")
+            e.printStackTrace()
+        }
+        
+        Log.d(TAG, "✅ recalcularConflitosNaGrade() finalizado")
+    }
+
+    private fun salvarGradeDaTurma() {
+        turmaSelecionada?.let {
+            val prefs = getSharedPreferences("GradesHorariasPrefs", MODE_PRIVATE).edit()
+            val json = Gson().toJson(listaDeCelulas)
+            prefs.putString("grade_${it.id}", json)
+            prefs.apply()
+        }
+    }
+
+    // NOVO: Função para gerar grade vazia baseada na configuração
+    private fun gerarGradeVazia() {
+        Log.d(TAG, "Gerando grade vazia com ${configuracaoGrade.getTotalCelulas()} células")
+        
+        listaDeCelulas.clear()
+        val totalCelulas = configuracaoGrade.getTotalCelulas()
+        
+        for (i in 0 until totalCelulas) {
+            listaDeCelulas.add(CelulaHorario(id = i.toString()))
+        }
+        
+        Log.d(TAG, "Grade vazia gerada com ${listaDeCelulas.size} células")
+    }
+
+    private fun verificarConflitoDeProfessor(professorSelecionado: Professor, posicaoDaCelula: Int): String? {
+        Log.d(TAG, "🔍 verificarConflitoDeProfessor() - Professor: ${professorSelecionado.nome}, Posição: $posicaoDaCelula")
+        Log.d(TAG, "📊 Total de turmas carregadas: ${listaDeTurmas.size}")
+
+        val slotId = getSlotIdFromPosition(posicaoDaCelula)
+        if (professorSelecionado.indisponibilidades.contains(slotId)) {
+            Log.d(TAG, "⚠️ Professor indisponível no horário")
+            return "Indisponível" // Mensagem para indisponibilidade pessoal
+        }
+
+        val outrasTurmas = listaDeTurmas.filter { it.id != turmaSelecionada?.id }
+        Log.d(TAG, "📊 Outras turmas para verificar: ${outrasTurmas.size}")
+
+        val prefs = getSharedPreferences("GradesHorariasPrefs", MODE_PRIVATE)
+        val gson = Gson()
+
+        for (outraTurma in outrasTurmas) {
+            Log.d(TAG, "🔍 Verificando turma: ${outraTurma.nome}")
+            val jsonGrade = prefs.getString("grade_${outraTurma.id}", null)
+            if (jsonGrade != null) {
+                val type = object : TypeToken<List<CelulaHorario>>() {}.type
+                val gradeConcorrente: List<CelulaHorario> = gson.fromJson(jsonGrade, type)
+
+                if (gradeConcorrente.size > posicaoDaCelula) {
+                    val celulaConcorrente = gradeConcorrente[posicaoDaCelula]
+                    Log.d(TAG, "🔍 Célula concorrente na posição $posicaoDaCelula: Professor=${celulaConcorrente.professor?.nome}")
+
+                    if (celulaConcorrente.professor?.id == professorSelecionado.id) {
+                        Log.d(TAG, "⚠️ CONFLITO DETECTADO! Professor ${professorSelecionado.nome} já está na turma ${outraTurma.nome}")
+                        // MUDANÇA AQUI: Retorna apenas o nome da turma do conflito
+                        return outraTurma.nome
+                    }
+                } else {
+                    Log.d(TAG, "⚠️ Grade da turma ${outraTurma.nome} tem apenas ${gradeConcorrente.size} células, posição $posicaoDaCelula não existe")
+                }
+            } else {
+                Log.d(TAG, "📝 Turma ${outraTurma.nome} não tem grade salva")
+            }
+        }
+
+        Log.d(TAG, "✅ Nenhum conflito detectado para professor ${professorSelecionado.nome}")
+        return null // Sem conflitos
+    }
+
+    private fun verificarConflitoDeSala(salaSelecionada: Sala, posicaoDaCelula: Int): String? {
+        val outrasTurmas = listaDeTurmas.filter { it.id != turmaSelecionada?.id }
+        val prefs = getSharedPreferences("GradesHorariasPrefs", MODE_PRIVATE)
+        val gson = Gson()
+
+        for (outraTurma in outrasTurmas) {
+            val jsonGrade = prefs.getString("grade_${outraTurma.id}", null)
+            if (jsonGrade != null) {
+                val type = object : TypeToken<List<CelulaHorario>>() {}.type
+                val gradeConcorrente: List<CelulaHorario> = gson.fromJson(jsonGrade, type)
+
+                if (gradeConcorrente.size > posicaoDaCelula) {
+                    val celulaConcorrente = gradeConcorrente[posicaoDaCelula]
+                    if (celulaConcorrente.sala?.id == salaSelecionada.id) {
+                        return outraTurma.nome // Retorna o nome da turma que está usando a sala
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    private fun removerAula(position: Int) {
+        // Encontra a célula na nossa lista de dados
+        val celulaParaLimpar = listaDeCelulas[position]
+
+        // Limpa os dados da célula
+        celulaParaLimpar.disciplina = null
+        celulaParaLimpar.professor = null
+        celulaParaLimpar.turma = null // É importante limpar a turma também
+
+        // Notifica o adapter que a célula na posição X mudou, para que ela se redesenhe vazia
+        adapter.notifyItemChanged(position)
+
+        // Salva a grade com a célula agora limpa
+        salvarGradeDaTurma()
+        atualizarPainelProgresso()
+        Toast.makeText(this, "Aula removida.", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun configurarPainelProgresso() {
+        progressoAdapter = ProgressoAdapter(listaDeProgresso)
+        binding.rvProgresso.adapter = progressoAdapter
+        // O layout manager já foi definido no XML, mas podemos confirmar aqui
+        binding.rvProgresso.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+    }
+
+    private fun carregarRequisitosDaTurma() {
+        val prefs = getSharedPreferences("RequisitosTurmasPrefs", MODE_PRIVATE)
+        val json = prefs.getString("requisitos_${turmaSelecionada?.id}", null)
+        if (json != null) {
+            val type = object : TypeToken<List<RequisitoDisciplina>>() {}.type
+            // Filtra apenas os requisitos que têm mais de 0 aulas por semana
+            listaDeRequisitos = Gson().fromJson<List<RequisitoDisciplina>>(json, type)
+                .filter { it.aulasPorSemana > 0 }
+        }
+    }
+
+    private fun atualizarPainelProgresso() {
+        listaDeProgresso.clear()
+
+        listaDeRequisitos.forEach { requisito ->
+            // Conta quantas vezes a disciplina aparece na grade atual
+            val aulasAlocadas = listaDeCelulas.count { it.disciplina?.nome == requisito.nomeDisciplina }
+
+            listaDeProgresso.add(
+                ProgressoData(
+                    nomeDisciplina = requisito.nomeDisciplina,
+                    aulasAlocadas = aulasAlocadas,
+                    aulasRequeridas = requisito.aulasPorSemana
+                )
+            )
+        }
+
+        // Se o adapter já foi inicializado, notifica as mudanças
+        if (::progressoAdapter.isInitialized) {
+            progressoAdapter.notifyDataSetChanged()
+        }
+    }
+
+    private fun gerarECompartilharPdf() {
+        Log.d(TAG, "=== EXPORTANDO GRADE PARA PDF ===")
+        
+        try {
+            // Verificar se há grade para exportar
+            if (listaDeCelulas.isEmpty()) {
+                Toast.makeText(this, "Nenhuma grade encontrada para exportar", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            Log.d(TAG, "Grade para exportar: ${listaDeCelulas.size} células")
+            
+            // Log detalhado das primeiras células que serão exportadas
+            listaDeCelulas.take(10).forEachIndexed { index, celula ->
+                Log.d(TAG, "Exportando célula $index: ${celula.disciplina?.nome} - ${celula.professor?.nome}")
+            }
+            
+            // Gerar PDF da grade atual
+            val pdfFile = gerarPDFTabela()
+            
+            if (pdfFile != null) {
+                compartilharPDF(pdfFile)
+            } else {
+                Toast.makeText(this, "Erro ao gerar PDF", Toast.LENGTH_SHORT).show()
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao exportar PDF", e)
+            Toast.makeText(this, "Erro ao exportar PDF: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun gerarPDFTabela(): File? {
+        try {
+            Log.d(TAG, "Gerando PDF da grade atual...")
+            
+            // Criar documento PDF
+        val pdfDocument = PdfDocument()
+            val pageInfo = PdfDocument.PageInfo.Builder(842, 595, 1).create() // A4 landscape
+        val page = pdfDocument.startPage(pageInfo)
+            val canvas = page.canvas
+
+            // Configurar paint
+            val paint = Paint().apply {
+            color = Color.BLACK
+                textSize = 12f
+                isAntiAlias = true
+        }
+            
+            val paintHeader = Paint().apply {
+            color = Color.WHITE
+                textSize = 14f
+                isAntiAlias = true
+            isFakeBoldText = true
+        }
+            
+            val paintCell = Paint().apply {
+                color = Color.BLACK
+                textSize = 10f
+                isAntiAlias = true
+            }
+            
+            // Configurações da tabela
+            val margin = 50f
+            val tableWidth = 842f - (2 * margin)
+            val tableHeight = 595f - (2 * margin)
+            val cellWidth = tableWidth / 6 // 5 dias + 1 coluna para horários
+            val cellHeight = tableHeight / 6 // 5 aulas + 1 linha para cabeçalho
+            
+            // Desenhar fundo
+            canvas.drawColor(Color.WHITE)
+            
+            // Desenhar cabeçalho
+            val diasSemana = listOf(getString(R.string.horario), getString(R.string.segunda), getString(R.string.terca), getString(R.string.quarta), getString(R.string.quinta), getString(R.string.sexta))
+            for (i in 0..5) {
+                val x = margin + (i * cellWidth)
+                val y = margin + 20f
+                
+                // Fundo do cabeçalho
+                canvas.drawRect(x, margin, x + cellWidth, margin + cellHeight, Paint().apply {
+                    color = Color.rgb(76, 175, 80) // Verde primário
+                })
+                
+                // Texto do cabeçalho
+                canvas.drawText(diasSemana[i], x + 10f, y, paintHeader)
+            }
+            
+            // Desenhar células da grade
+            for (dia in 0..4) {
+                for (aula in 0..4) {
+                    val x = margin + ((dia + 1) * cellWidth)
+                    val y = margin + ((aula + 1) * cellHeight)
+                    
+                    // Borda da célula
+                    canvas.drawRect(x, y, x + cellWidth, y + cellHeight, Paint().apply {
+                        color = Color.LTGRAY
+                        style = Paint.Style.STROKE
+                        strokeWidth = 1f
+                    })
+                    
+                    // Conteúdo da célula
+                    val indice = (aula * 5) + dia
+                    if (indice < listaDeCelulas.size) {
+                        val celula = listaDeCelulas[indice]
+                        if (celula.disciplina != null && celula.professor != null) {
+                            val texto = "${celula.disciplina?.nome}\n${celula.professor?.nome}"
+                            val lines = texto.split("\n")
+                            
+                            lines.forEachIndexed { index, line ->
+                                canvas.drawText(
+                                    line,
+                                    x + 5f,
+                                    y + 15f + (index * 12f),
+                                    paintCell
+                                )
+                        }
+                    }
+                }
+            }
+        }
+
+            // Desenhar horários na primeira coluna
+            for (aula in 0..4) {
+                val x = margin
+                val y = margin + ((aula + 1) * cellHeight)
+                
+                // Borda da célula
+                canvas.drawRect(x, y, x + cellWidth, y + cellHeight, Paint().apply {
+                    color = Color.LTGRAY
+                    style = Paint.Style.STROKE
+                    strokeWidth = 1f
+                })
+                
+                // Texto do horário
+                canvas.drawText("${aula + 1}ª Aula", x + 10f, y + 20f, paintCell)
+            }
+            
+            pdfDocument.finishPage(page)
+            
+            // Salvar arquivo
+            val fileName = "grade_turma_${turmaSelecionada?.id}_${System.currentTimeMillis()}.pdf"
+            val file = File(getExternalFilesDir(null), fileName)
+            pdfDocument.writeTo(FileOutputStream(file))
+            pdfDocument.close()
+            
+            Log.d(TAG, "PDF gerado com sucesso: ${file.absolutePath}")
+            return file
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao gerar PDF", e)
+            return null
+        }
+    }
+
+    private fun compartilharPDF(pdfFile: File) {
+        try {
+            Log.d(TAG, "=== COMPARTILHANDO PDF ===")
+            Log.d(TAG, "Arquivo: ${pdfFile.absolutePath}")
+            Log.d(TAG, "Arquivo existe: ${pdfFile.exists()}")
+            Log.d(TAG, "Tamanho do arquivo: ${pdfFile.length()} bytes")
+            
+            val uri = FileProvider.getUriForFile(
+            this,
+                "${packageName}.fileprovider",
+                pdfFile
+            )
+            
+            Log.d(TAG, "URI gerado: $uri")
+            Log.d(TAG, "Package name: $packageName")
+            
+            if (uri == null) {
+                Log.e(TAG, "❌ URI é null - FileProvider falhou")
+                Toast.makeText(this, "Erro: Não foi possível gerar URI para o arquivo", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/pdf"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.grade_horaria_turma, turmaSelecionada?.nome ?: ""))
+                putExtra(Intent.EXTRA_TEXT, getString(R.string.grade_horaria_turma_texto, turmaSelecionada?.nome ?: ""))
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+            
+            Log.d(TAG, "Intent criado: $intent")
+            Log.d(TAG, "Intent action: ${intent.action}")
+            Log.d(TAG, "Intent type: ${intent.type}")
+            Log.d(TAG, "Intent extras: ${intent.extras}")
+            
+            // Verificar se há apps disponíveis
+            val chooser = Intent.createChooser(intent, getString(R.string.compartilhar_grade_horaria))
+            Log.d(TAG, "Chooser criado: $chooser")
+            
+            Log.d(TAG, "🚀 Iniciando activity de compartilhamento...")
+            startActivity(chooser)
+            Log.d(TAG, "✅ Activity de compartilhamento iniciada com sucesso")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Erro ao compartilhar PDF", e)
+            Log.e(TAG, "Stack trace: ${e.stackTraceToString()}")
+            Toast.makeText(this, "Erro ao compartilhar PDF: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun getSlotIdFromPosition(position: Int): String {
+        val dia = position % DIAS_NA_SEMANA
+        val horario = position / DIAS_NA_SEMANA
+        return "${dia}_${horario}"
+    }
+
+    private fun iniciarFluxoDeSubstituicao(celulaOriginal: CelulaHorario, position: Int) {
+        // Garante que temos as informações necessárias para começar.
+        val professorOriginal = celulaOriginal.professor ?: return
+        val disciplinaDaAula = celulaOriginal.disciplina ?: return
+
+        // 1. Encontra todos os professores que podem lecionar esta disciplina,
+        //    excluindo o professor que está ausente.
+        val candidatosPotenciais = listaDeProfessores.filter {
+            it.id != professorOriginal.id && it.disciplinas.contains(disciplinaDaAula.nome)
+        }
+
+        if (candidatosPotenciais.isEmpty()) {
+            Toast.makeText(this, "Nenhum outro professor cadastrado para lecionar ${disciplinaDaAula.nome}.", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        // 2. Verifica a disponibilidade de cada candidato para este horário específico.
+        val substitutosDisponiveis = candidatosPotenciais.filter { candidato ->
+            // Reutilizamos nossa lógica de verificação de conflito!
+            verificarConflitoDeProfessor(candidato, position) == null
+        }
+
+        if (substitutosDisponiveis.isEmpty()) {
+            Toast.makeText(this, getString(R.string.nenhum_professor_qualificado_disponivel), Toast.LENGTH_LONG).show()
+            return
+        }
+
+        // 3. Mostra o diálogo de seleção apenas com os substitutos disponíveis.
+        val nomesDosSubstitutos = substitutosDisponiveis.map { it.nome }.toTypedArray()
+
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle("Selecione o Substituto")
+            .setItems(nomesDosSubstitutos) { _, which ->
+                val professorSubstituto = substitutosDisponiveis[which]
+
+                // 4. Atualiza a célula com o novo professor.
+                val celulaParaAtualizar = listaDeCelulas[position]
+                celulaParaAtualizar.professor = professorSubstituto
+
+                // Opcional: podemos adicionar uma flag para indicar que é uma substituição
+                // celulaParaAtualizar.eSubstituicao = true
+                // (Isso exigiria adicionar a flag na data class CelulaHorario)
+
+                adapter.notifyItemChanged(position)
+                salvarGradeDaTurma()
+                atualizarPainelProgresso()
+
+                Toast.makeText(this, "${professorSubstituto.nome} alocado(a) com sucesso.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    // FUNÇÃO REMOVIDA - AGORA INTEGRADA COM IA
+    /*
+    private fun executarAlgoritmoLocalOtimizado() {
+        val aulasNaoAlocadas = mutableListOf<String>()
+        val LOG_TAG = "Algoritmo"
+
+        Thread {
+            Log.d(LOG_TAG, "--- INICIANDO GERAÇÃO DE GRADE OTIMIZADA ---")
+            val gradeTemporaria = listaDeCelulas.map { it.copy() }
+            gradeTemporaria.forEach { it.disciplina = null; it.professor = null; it.sala = null; it.temConflito = false; it.temConflitoDeSala = false }
+            val requisitosRestantes = listaDeRequisitos.associate { it.nomeDisciplina to it.aulasPorSemana }.toMutableMap()
+            Log.d(LOG_TAG, "Requisitos iniciais: $requisitosRestantes")
+
+            // <<< A CORREÇÃO PRINCIPAL ESTÁ AQUI >>>
+            // Criamos uma lista de todas as disciplinas a serem alocadas e a embaralhamos
+            // para garantir uma distribuição justa de prioridade.
+            val disciplinasParaAlocar = requisitosRestantes.keys.toList().shuffled()
+
+            // --- FASE 1: ALOCAR AULAS DUPLAS ---
+            Log.d(LOG_TAG, "--- FASE 1: Iniciando busca por AULAS DUPLAS na ordem: $disciplinasParaAlocar ---")
+
+            // Usa a lista embaralhada para iterar
+            disciplinasParaAlocar.forEach { nomeDisciplina ->
+                while ((requisitosRestantes[nomeDisciplina] ?: 0) >= 2) {
+                    var duplaAlocada = false
+                    Log.d(LOG_TAG, "Procurando dupla para: $nomeDisciplina")
+
+                    for (i in 0 until gradeTemporaria.size - DIAS_NA_SEMANA) {
+                        val slot1 = gradeTemporaria[i]
+                        val slot2 = gradeTemporaria[i + DIAS_NA_SEMANA]
+
+                        if (i % DIAS_NA_SEMANA == (i + DIAS_NA_SEMANA) % DIAS_NA_SEMANA) {
+                            if (slot1.disciplina == null && slot2.disciplina == null) {
+                                val professorDisponivel = listaDeProfessores.shuffled().find { prof ->
+                                    val podeLecionar = prof.disciplinas.contains(nomeDisciplina)
+                                    val livreSlot1 = verificarConflitoDeProfessor(prof, i) == null
+                                    val livreSlot2 = verificarConflitoDeProfessor(prof, i + DIAS_NA_SEMANA) == null
+                                    podeLecionar && livreSlot1 && livreSlot2
+                                }
+
+                                if (professorDisponivel != null) {
+                                    Log.i(LOG_TAG, "SUCESSO (Dupla): Alocando $nomeDisciplina com ${professorDisponivel.nome} nos slots $i e ${i + DIAS_NA_SEMANA}")
+                                    val disciplinaObj = listaDeDisciplinas.find { it.nome == nomeDisciplina }
+                                    slot1.disciplina = disciplinaObj; slot1.professor = professorDisponivel; slot1.turma = turmaSelecionada
+                                    slot2.disciplina = disciplinaObj; slot2.professor = professorDisponivel; slot2.turma = turmaSelecionada
+
+                                    requisitosRestantes[nomeDisciplina] = (requisitosRestantes[nomeDisciplina] ?: 0) - 2
+                                    duplaAlocada = true
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    if (!duplaAlocada) {
+                        Log.w(LOG_TAG, "AVISO (Dupla): Não foi encontrado lugar para a dupla de $nomeDisciplina.")
+                        break
+                    }
+                }
+            }
+
+            // --- FASE 2: ALOCAR AULAS INDIVIDUAIS RESTANTES ---
+            Log.d(LOG_TAG, "--- FASE 2: Iniciando busca por AULAS INDIVIDUAIS ---")
+            Log.d(LOG_TAG, "Requisitos restantes: $requisitosRestantes")
+
+            // Usa a mesma lista embaralhada para a Fase 2, garantindo consistência
+            disciplinasParaAlocar.forEach { nomeDisciplina ->
+                val quantidade = requisitosRestantes[nomeDisciplina] ?: 0
+                if (quantidade > 0) {
+                    repeat(quantidade) {
+                        var aulaIndividualAlocada = false
+                        Log.d(LOG_TAG, "Procurando aula individual para: $nomeDisciplina")
+                        for (i in gradeTemporaria.indices) {
+                            if (gradeTemporaria[i].disciplina == null) {
+                                val professorDisponivel = listaDeProfessores.shuffled().find { prof ->
+                                    prof.disciplinas.contains(nomeDisciplina) &&
+                                            verificarConflitoDeProfessor(prof, i) == null
+                                }
+
+                                if (professorDisponivel != null) {
+                                    Log.i(LOG_TAG, "SUCESSO (Individual): Alocando $nomeDisciplina com ${professorDisponivel.nome} no slot $i")
+                                    val celula = gradeTemporaria[i]
+                                    celula.disciplina = listaDeDisciplinas.find { it.nome == nomeDisciplina }
+                                    celula.professor = professorDisponivel
+                                    celula.turma = turmaSelecionada
+                                    aulaIndividualAlocada = true
+                                    break
+                                }
+                            }
+                        }
+                        if (!aulaIndividualAlocada) {
+                            Log.e(LOG_TAG, "FALHA (Individual): Não foi possível alocar aula individual para $nomeDisciplina.")
+                            aulasNaoAlocadas.add("$nomeDisciplina: Não foi possível alocar aula individual restante.")
+                        }
+                    }
+                }
+            }
+
+            // A FASE 3 de otimização pode ser comentada temporariamente para simplificar a depuração
+            // --- FASE 3: OTIMIZAÇÃO POR TROCAS ---
+            Log.d(LOG_TAG, "--- FASE 3: (Desativada para depuração inicial) ---")
+
+            // --- FINALIZAÇÃO ---
+            Log.d(LOG_TAG, "--- GERAÇÃO CONCLUÍDA. Atualizando UI. ---")
+            runOnUiThread {
+                listaDeCelulas.clear()
+                listaDeCelulas.addAll(gradeTemporaria)
+                salvarGradeDaTurma()
+                adapter.notifyDataSetChanged()
+                atualizarPainelProgresso()
+                mostrarDialogoRelatorioGeracao(aulasNaoAlocadas)
+            }
+        }.start()
+    }
+    */
+
+    // FUNÇÕES REMOVIDAS - AGORA INTEGRADAS COM IA
+    /*
+    private fun calcularPontuacaoJanelas(grade: List<CelulaHorario>): Int {
+        var totalJanelas = 0
+        // Itera sobre cada dia da semana (coluna)
+        for (dia in 0 until DIAS_NA_SEMANA) {
+            listaDeProfessores.forEach { professor ->
+                var primeiraAulaDoDia = -1
+                var ultimaAulaDoDia = -1
+                var aulasNesseDia = 0
+
+                // Encontra a primeira e a última aula do professor neste dia
+                for (horario in 0 until AULAS_POR_DIA) {
+                    val index = horario * DIAS_NA_SEMANA + dia
+                    if (grade[index].professor?.id == professor.id) {
+                        if (primeiraAulaDoDia == -1) primeiraAulaDoDia = horario
+                        ultimaAulaDoDia = horario
+                        aulasNesseDia++
+                    }
+                }
+
+                // Se o professor teve aulas neste dia, calcula as janelas
+                if (primeiraAulaDoDia != -1) {
+                    val totalSlots = ultimaAulaDoDia - primeiraAulaDoDia + 1
+                    val janelas = totalSlots - aulasNesseDia
+                    totalJanelas += janelas
+                }
+            }
+        }
+        return totalJanelas
+    }
+
+    /**
+     * Verifica se a troca de conteúdo entre duas células é válida.
+     */
+    private fun trocaValida(celulaA: CelulaHorario, celulaB: CelulaHorario, posA: Int, posB: Int, grade: List<CelulaHorario>): Boolean {
+        // Cenário 1: Trocar uma aula com um slot vazio
+        if (celulaA.professor != null && celulaB.professor == null) {
+            // O professor da Célula A pode ir para o slot B?
+            return verificarConflitoDeProfessor(celulaA.professor!!, posB) == null
+        }
+        // Cenário 2: Trocar um slot vazio com uma aula
+        if (celulaA.professor == null && celulaB.professor != null) {
+            // O professor da Célula B pode ir para o slot A?
+            return verificarConflitoDeProfessor(celulaB.professor!!, posA) == null
+        }
+        // Cenário 3: Trocar duas aulas
+        if (celulaA.professor != null && celulaB.professor != null) {
+            // O professor da Célula A pode ir para o slot B?
+            val profAPodeIrParaB = verificarConflitoDeProfessor(celulaA.professor!!, posB) == null
+            // O professor da Célula B pode ir para o slot A?
+            val profBPodeIrParaA = verificarConflitoDeProfessor(celulaB.professor!!, posA) == null
+            return profAPodeIrParaB && profBPodeIrParaA
+        }
+        // Se ambas as células estão vazias, a troca é inútil mas válida
+        return true
+    }
+
+    private fun mostrarDialogoRelatorioGeracao(aulasNaoAlocadas: List<String>) {
+        val totalAulasRequeridas = listaDeRequisitos.sumOf { it.aulasPorSemana }
+        val aulasAlocadas = totalAulasRequeridas - aulasNaoAlocadas.size
+
+        val titulo = "Geração Concluída"
+        val mensagem = StringBuilder()
+
+        mensagem.append("Resumo:\n")
+        mensagem.append("  • Aulas alocadas com sucesso: $aulasAlocadas de $totalAulasRequeridas\n")
+        mensagem.append("  • Falhas: ${aulasNaoAlocadas.size}\n\n")
+
+        if (aulasNaoAlocadas.isNotEmpty()) {
+            mensagem.append("Detalhes das falhas:\n")
+            aulasNaoAlocadas.forEach { falha ->
+                mensagem.append("  • $falha\n")
+            }
+        }
+
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle(titulo)
+            .setMessage(mensagem.toString())
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+    */
+
+    private fun abrirDetalhesTurma() {
+        turmaSelecionada?.let { turma ->
+            val intent = Intent(this, DetalhesTurmaActivity::class.java)
+            intent.putExtra("TURMA_EXTRA", turma)
+            startActivity(intent)
+        }
+    }
+
+    // ===== FUNÇÕES DE FEEDBACK VISUAL =====
+    
+    private fun mostrarProgressoGeracao(mensagem: String) {
+        // Mostrar Toast com progresso
+        Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show()
+        
+        // Opcional: Mostrar ProgressDialog ou overlay
+        mostrarOverlayProgresso(mensagem)
+    }
+    
+    private fun atualizarProgressoGeracao(mensagem: String) {
+        // Atualizar mensagem de progresso
+        Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show()
+        atualizarOverlayProgresso(mensagem)
+    }
+    
+    private fun esconderProgressoGeracao() {
+        // Esconder overlay
+        esconderOverlayProgresso()
+    }
+    
+    private fun mostrarErroGeracao(mensagem: String) {
+        // Mostrar erro em um AlertDialog mais amigável
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle("❌ Erro na Geração")
+            .setMessage(mensagem)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+    
+    // ===== OVERLAY DE PROGRESSO =====
+    
+    private var progressOverlay: View? = null
+    private var progressDialog: AlertDialog? = null
+    
+    private fun mostrarOverlayProgresso(mensagem: String) {
+        // Criar overlay de progresso
+        val overlay = LayoutInflater.from(this).inflate(R.layout.overlay_progresso, null)
+        val tvMensagem = overlay.findViewById<TextView>(R.id.tvMensagemProgresso)
+        val progressBar = overlay.findViewById<ProgressBar>(R.id.progressBar)
+        
+        tvMensagem.text = mensagem
+        
+        progressDialog = AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setView(overlay)
+            .setCancelable(false)
+            .create()
+        
+        progressDialog?.show()
+        progressOverlay = overlay
+    }
+    
+    private fun atualizarOverlayProgresso(mensagem: String) {
+        progressOverlay?.findViewById<TextView>(R.id.tvMensagemProgresso)?.text = mensagem
+    }
+    
+    private fun esconderOverlayProgresso() {
+        progressDialog?.dismiss()
+        progressDialog = null
+        progressOverlay = null
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressedDispatcher.onBackPressed()
+        return true
+    }
+}

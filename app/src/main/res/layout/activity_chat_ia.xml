@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarChat"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primaria"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:title="@string/chat_com_ia" />
+
+    <!-- Título do Chat -->
+    <TextView
+        android:id="@+id/tvTituloChat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/primaria"
+        android:padding="16dp"
+        android:text="@string/chat_com_ia"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- RecyclerView para as mensagens do chat -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:background="@color/white" />
+
+    <!-- Campo de entrada de mensagem -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/white">
+
+        <EditText
+            android:id="@+id/etMensagem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/digite_sua_mensagem"
+            android:padding="16dp"
+            android:textSize="16sp"
+            android:background="@drawable/bg_input"
+            android:maxLines="4"
+            android:inputType="textMultiLine|textCapSentences" />
+
+        <ImageButton
+            android:id="@+id/btnEnviar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="12dp"
+            android:src="@drawable/ic_send"
+            android:background="@drawable/bg_btn_enviar"
+            android:tint="@color/white"
+            android:contentDescription="@string/enviar_mensagem" />
+
+    </LinearLayout>
+
+</LinearLayout>

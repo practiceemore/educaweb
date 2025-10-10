@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="8dp"
+    android:background="@drawable/dialog_background"
+    android:layout_marginEnd="8dp">
+
+    <TextView
+        android:id="@+id/tvNomeDisciplinaProgresso"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="@color/primaria_variacao"
+        tools:text="MAT" />
+
+    <TextView
+        android:id="@+id/tvContagemProgresso"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="@color/primaria_variacao"
+        tools:text="3 / 5" />
+
+    <ProgressBar
+        android:id="@+id/progressBarProgresso"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        tools:progress="60" />
+
+</LinearLayout>

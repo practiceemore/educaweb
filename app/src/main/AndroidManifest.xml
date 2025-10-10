@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name=".MeuApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Edu"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+        
+        <!-- LoginActivity como activity principal -->
+        <activity
+            android:name=".activitys.LoginActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Edu">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+        <activity
+            android:name=".activitys.DetalhesSalaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.GradeSalaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.ConsultorIAActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Edu" />
+        <activity
+            android:name=".activitys.GradeAlunoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.SelecaoTurmaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.GradeProfessorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.SelecaoProfessorActivity"
+            android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".activitys.GerenciarSalasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.DetalhesTurmaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.GradeHorariaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.GerenciarTurmasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.GerenciarDisciplinasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.GradeDisciplinaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.DetalhesDisciplinaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.DetalhesProfessorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.GerenciarProfessoresActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.DirecaoMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.InicialActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activitys.LousaMagicaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.TeremimActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activitys.PianoActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".activitys.InstrumentosActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <!-- HomeActivity não é mais a activity principal -->
+        <activity
+            android:name=".activitys.HomeActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activitys.PastaDetalhesActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activitys.ImagensActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        
+    </application>
+
+</manifest>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/fundo"
+    tools:context=".activitys.InstrumentosActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_instrumentos"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primaria"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleTextColor="@color/white" />
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_instrumentos">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top|center_horizontal"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <com.example.educa1.CustomButtonView
+                android:id="@+id/btnPianoInstrumentos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:buttonText="@string/piano"
+                app:showDeleteIcon="false"
+                app:showEditIcon="false" />
+
+            <com.example.educa1.CustomButtonView
+                android:id="@+id/btnTeremimInstrumentos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:buttonText="@string/teremim"
+                app:showDeleteIcon="false"
+                app:showEditIcon="false" />
+
+            <com.example.educa1.CustomButtonView
+                android:id="@+id/btnBateriaInstrumentos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:buttonText="@string/bateria"
+                app:showDeleteIcon="false"
+                app:showEditIcon="false" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

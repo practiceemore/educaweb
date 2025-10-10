@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: educaweb-postgres
+    environment:
+      POSTGRES_DB: educaweb
+      POSTGRES_USER: educaweb
+      POSTGRES_PASSWORD: educaweb123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - educaweb-network
+
+  # Redis (para cache e sessões)
+  redis:
+    image: redis:7-alpine
+    container_name: educaweb-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - educaweb-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: educaweb-backend
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://educaweb:educaweb123@postgres:5432/educaweb?schema=public
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - PORT=3001
+      - FRONTEND_URL=http://localhost:5173
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - educaweb-network
+    command: npm run dev
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: educaweb-frontend
+    environment:
+      - VITE_API_URL=http://localhost:3001/api
+      - VITE_SOCKET_URL=http://localhost:3001
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - educaweb-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  educaweb-network:
+    driver: bridge

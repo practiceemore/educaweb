@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="16dp"
+    android:background="@drawable/requisitos_disciplinas_background"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/tvNomeDisciplinaRequisito"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Matemática"
+        android:textSize="18sp"
+        android:textColor="@color/corTextoBotaoInicial" />
+
+    <ImageButton
+        android:id="@+id/btnDiminuirAulas"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_remove"
+        app:tint="@color/corTextoBotaoInicial" />
+
+    <TextView
+        android:id="@+id/tvQuantidadeAulas"
+        android:layout_width="48dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="0"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/corTextoBotaoInicial" />
+
+    <ImageButton
+        android:id="@+id/btnAumentarAulas"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_add"
+        app:tint="@color/corTextoBotaoInicial" />
+
+    </LinearLayout>

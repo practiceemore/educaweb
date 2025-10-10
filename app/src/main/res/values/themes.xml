@@ -1,0 +1,44 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Edu" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/primaria</item>
+        <item name="colorPrimaryVariant">@color/primaria_variacao</item>
+<!--        <item name="colorOnPrimary">@color/white</item>-->
+        <item name="colorSecondary">@color/primaria</item>
+
+    </style>
+
+    <style name="Theme.Edu" parent="Base.Theme.Edu" />
+
+    <!-- Estilo para os Alert Dialogs -->
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!-- Mantém as customizações que já funcionam -->
+        <item name="android:textColorPrimary">@color/primaria_variacao</item>
+        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="android:editTextColor">@color/primaria_variacao</item>
+        <item name="android:textColorHint">@color/corTextoBotaoInicial</item>
+
+        <!-- A CORREÇÃO PRINCIPAL: Definimos um estilo específico para os botões -->
+        <item name="buttonBarPositiveButtonStyle">@style/AlertDialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AlertDialog.Button</item>
+        <item name="buttonBarNeutralButtonStyle">@style/AlertDialog.Button</item>
+    </style>
+
+    <!-- ESTE É O NOVO ESTILO QUE DEFINE A APARÊNCIA DOS BOTÕES -->
+    <style name="AlertDialog.Button" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <!-- Forçamos a cor do texto do botão para a sua cor escura -->
+        <item name="android:textColor">@color/primaria_variacao</item>
+    </style>
+    <!-- Adicione este bloco dentro do seu arquivo themes.xml ou -->
+    <style name="HeaderDiaSemana">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:background">@color/primaria_variacao</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+</resources>

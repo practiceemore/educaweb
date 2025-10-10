@@ -1,0 +1,88 @@
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use {
+        localProperties.load(it)
+    }
+}
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    id("kotlin-parcelize")
+    id("com.google.gms.google-services") // Plugin do Google Services
+}
+
+android {
+    namespace = "com.example.educa1"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.example.educa1"
+        minSdk = 24
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue("string", "gemini_api_key", localProperties.getProperty("GEMINI_API_KEY"))
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,INDEX.LIST}"
+            // ADICIONE A LINHA ABAIXO PARA RESOLVER O NOVO ERRO
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "META-INF/gradle/incremental.annotation.processors"
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+    buildFeatures {
+        viewBinding = true
+    }
+}
+
+dependencies {
+
+    implementation(libs.androidx.core.ktx)
+    implementation("com.google.code.gson:gson:2.9.0")
+    implementation ("com.alphacephei:vosk-android:0.3.32")
+    implementation ("net.java.dev.jna:jna:5.13.0@aar")
+    implementation("com.google.ai.client.generativeai:generativeai:0.1.1")
+    // Adicione a dependência principal do Kotlin Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1") // Verifique a versão mais recente
+// Adicione a dependência específica para Coroutines no Android
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    // DEPENDÊNCIAS DO GOOGLE CLOUD SPEECH-TO-TEXT
+    implementation ("com.google.cloud:google-cloud-speech:4.33.0")
+    implementation ("io.grpc:grpc-okhttp:1.64.0")
+    implementation("ai.picovoice:porcupine-android:3.0.2") // Sempre verifique a versão mais recente
+    // OkHttp para configuração de timeout
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+}

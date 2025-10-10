@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin") // admin, professor, diretor
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  mensagens MensagemChat[]
+  disciplinas Disciplina[]
+  professores Professor[]
+  turmas Turma[]
+  salas Sala[]
+  configuracoes ConfiguracaoGrade[]
+  turmaDisciplinas TurmaDisciplina[]
+  gradeHoraria GradeHoraria[]
+
+  @@map("users")
+}
+
+model Disciplina {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  descricao   String?
+  userId      Int      // Relacionamento com usuário
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  professores ProfessorDisciplina[]
+  turmas      TurmaDisciplina[]
+  gradeHoraria GradeHoraria[]
+
+  @@unique([nome, userId]) // Nome único por usuário
+  @@map("disciplinas")
+}
+
+model Professor {
+  id              Int      @id @default(autoincrement())
+  nome            String
+  email           String
+  telefone        String?
+  especialidade   String
+  aulasContratadas Int
+  salario         Float?
+  dataAdmissao    DateTime?
+  ativo           Boolean  @default(true)
+  userId          Int      // Relacionamento com usuário
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disciplinas     ProfessorDisciplina[]
+  gradeHoraria    GradeHoraria[]
+
+  @@unique([email, userId]) // Email único por usuário
+  @@map("professores")
+}
+
+model ProfessorDisciplina {
+  id           Int @id @default(autoincrement())
+  professorId  Int
+  disciplinaId Int
+  createdAt    DateTime @default(now())
+
+  professor    Professor  @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  disciplina   Disciplina @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
+
+  @@unique([professorId, disciplinaId])
+  @@map("professor_disciplinas")
+}
+
+model Turma {
+  id                Int      @id @default(autoincrement())
+  nome              String
+  serie             String
+  turno             String   // manha, tarde, noite
+  capacidade        Int
+  alunosMatriculados Int     @default(0)
+  anoLetivo         String
+  ativa             Boolean  @default(true)
+  userId            Int      // Relacionamento com usuário
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relacionamentos
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disciplinas       TurmaDisciplina[]
+  gradeHoraria      GradeHoraria[]
+
+  @@unique([nome, userId]) // Nome único por usuário
+  @@map("turmas")
+}
+
+model TurmaDisciplina {
+  id           Int @id @default(autoincrement())
+  turmaId      Int
+  disciplinaId Int
+  aulasPorSemana Int // Quantidade de aulas por semana
+  userId       Int   // Relacionamento com usuário
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relacionamentos
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turma        Turma     @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  disciplina   Disciplina @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
+
+  @@unique([turmaId, disciplinaId, userId]) // Único por usuário
+  @@map("turma_disciplinas")
+}
+
+model GradeHoraria {
+  id           Int @id @default(autoincrement())
+  turmaId      Int
+  disciplinaId Int
+  professorId  Int
+  salaId       Int
+  diaSemana    String // segunda, terca, quarta, quinta, sexta
+  horarioInicio String // formato HH:MM
+  horarioFim   String // formato HH:MM
+  ativa        Boolean @default(true)
+  userId       Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relacionamentos
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turma        Turma     @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  disciplina   Disciplina @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
+  professor    Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  sala         Sala      @relation(fields: [salaId], references: [id], onDelete: Cascade)
+
+  @@unique([turmaId, diaSemana, horarioInicio, userId]) // Único por turma, dia e horário
+  @@map("grade_horaria")
+}
+
+model Sala {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  capacidade  Int
+  tipo        String   // normal, laboratorio, informatica, biblioteca
+  recursos    String?  // JSON string com recursos disponíveis
+  status      String   @default("disponivel") // disponivel, ocupada, manutencao
+  userId      Int      // Relacionamento com usuário
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gradeHoraria GradeHoraria[]
+
+  @@unique([nome, userId]) // Nome único por usuário
+  @@map("salas")
+}
+
+
+model MensagemChat {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  mensagem  String
+  resposta  String?
+  timestamp DateTime @default(now())
+  metadata  String?  // JSON string com metadados adicionais
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mensagens_chat")
+}
+
+model ConfiguracaoGrade {
+  id                Int      @id @default(autoincrement())
+  nome              String
+  horariosInicio    String   // JSON array com horários de início
+  horariosFim       String   // JSON array com horários de fim
+  diasSemana        String   // JSON array com dias da semana
+  configuracoes     String?  // JSON string com configurações adicionais
+  ativa             Boolean  @default(true)
+  userId            Int      // Relacionamento com usuário
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relacionamentos
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([nome, userId]) // Nome único por usuário
+  @@map("configuracoes_grade")
+}

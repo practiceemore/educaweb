@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <!-- Tema para Toolbar -->
+    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="colorControlNormal">@android:color/white</item>
+    </style>
+
+    <!-- Tema para Popup da Toolbar -->
+    <style name="ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+</resources>

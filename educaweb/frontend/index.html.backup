@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EducaWeb - Sistema de Gestão Educacional</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="login-card">
+                <h1>🎓 EducaWeb</h1>
+                <p>Sistema de Gestão Educacional</p>
+                
+                <form id="loginForm" class="login-form">
+                    <div id="errorMessage" class="error" style="display: none;"></div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" value="admin@educaweb.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="senha">Senha:</label>
+                        <input type="password" id="senha" value="admin123" required>
+                    </div>
+                    
+                    <button type="submit" id="loginBtn" class="login-btn">
+                        <span id="loginText">Entrar</span>
+                        <span id="loginLoading" style="display: none;">Entrando...</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div id="appScreen" class="screen">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎓 EducaWeb</h1>
+            <div class="user-info">
+                <span id="userName">Usuário</span>
+                <button id="logoutBtn" class="logout-btn">Sair</button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+            <button class="nav-btn" data-view="disciplinas">Disciplinas</button>
+            <button class="nav-btn" data-view="professores">Professores</button>
+            <button class="nav-btn" data-view="turmas">Turmas</button>
+            <button class="nav-btn" data-view="salas">Salas</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view active">
+                <h2>📊 Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="disciplinasCount">5</h3>
+                        <p>Disciplinas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="professoresCount">3</h3>
+                        <p>Professores</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="turmasCount">3</h3>
+                        <p>Turmas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="salasCount">3</h3>
+                        <p>Salas</p>
+                    </div>
+                </div>
+                
+                <div class="welcome">
+                    <h3>🎉 Bem-vindo ao EducaWeb!</h3>
+                    <p>Sistema de gestão educacional com IA integrada.</p>
+                    <p>Navegue pelas abas para gerenciar seus dados.</p>
+                </div>
+            </div>
+
+            <!-- Disciplinas View -->
+            <div id="disciplinasView" class="view">
+                <h2>📚 Disciplinas</h2>
+                <div id="disciplinasGrid" class="data-grid">
+                    <!-- Disciplinas serão carregadas aqui -->
+                </div>
+            </div>
+
+            <!-- Professores View -->
+            <div id="professoresView" class="view">
+                <h2>👨‍🏫 Professores</h2>
+                <div id="professoresGrid" class="data-grid">
+                    <!-- Professores serão carregados aqui -->
+                </div>
+            </div>
+
+            <!-- Turmas View -->
+            <div id="turmasView" class="view">
+                <h2>👥 Turmas</h2>
+                <div id="turmasGrid" class="data-grid">
+                    <!-- Turmas serão carregadas aqui -->
+                </div>
+            </div>
+
+            <!-- Salas View -->
+            <div id="salasView" class="view">
+                <h2>🏫 Salas</h2>
+                <div id="salasGrid" class="data-grid">
+                    <!-- Salas serão carregadas aqui -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

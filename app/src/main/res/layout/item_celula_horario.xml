@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:layout_margin="2dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/primaria_variacao">
+
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:gravity="center"
+android:orientation="vertical"
+android:padding="4dp">
+
+<TextView
+    android:id="@+id/tvDisciplinaCelula"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textColor="@color/white"
+    android:textSize="14sp"
+    android:textStyle="bold"
+    tools:text="Matemática" />
+
+<TextView
+    android:id="@+id/tvProfessorCelula"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textColor="@color/white"
+    android:textSize="12sp"
+    tools:text="Prof. Maria" />
+
+    <TextView
+        android:id="@+id/tvSalaCelula"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        android:textStyle="italic"
+        tools:text="Lab. Química" />
+
+</LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

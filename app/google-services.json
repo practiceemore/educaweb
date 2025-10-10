@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "311606842077",
+    "project_id": "educa-179bc",
+    "storage_bucket": "educa-179bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:311606842077:android:898d346e35b9408d2c8134",
+        "android_client_info": {
+          "package_name": "com.example.educa1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "311606842077-fh62hqn7iacl7g5l3ri22oqlji0k87t6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.educa1",
+            "certificate_hash": "3cb4727b42b5b03d813cdfc48d181a8d1dcc7c5e"
+          }
+        },
+        {
+          "client_id": "311606842077-59hfogccn7i18d7cl3scv3m4vu72tpdc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6Paoi4W3ddLYbcEPtnnFAKY51QzCxQxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "311606842077-59hfogccn7i18d7cl3scv3m4vu72tpdc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

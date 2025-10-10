@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/corBotaoFundo" /> <!-- Ou a cor desejada para sua Toolbar -->
+    <corners
+        android:radius="24dp" />
+    <!-- Você também pode definir cantos individuais:
+    android:topLeftRadius="16dp"
+    android:topRightRadius="16dp"
+    android:bottomLeftRadius="0dp"
+    android:bottomRightRadius="0dp"
+    Se quiser apenas os cantos superiores arredondados, por exemplo. -->
+</shape>

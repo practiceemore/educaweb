@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/fundo"
+    tools:context=".activitys.GradeAlunoActivity">
+
+    <!-- Toolbar para exibir o título da turma e o botão de compartilhar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_grade_horaria"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primaria"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleTextColor="@color/white"/>
+
+    <!-- Contêiner principal da grade, posicionado abaixo da Toolbar -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/grade_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_grade_horaria">
+
+        <!-- Cabeçalhos dos dias da semana -->
+        <TextView android:id="@+id/headerSegunda" style="@style/HeaderDiaSemana" android:text="@string/segunda"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent"/>
+        <TextView android:id="@+id/headerTerca" style="@style/HeaderDiaSemana" android:text="@string/terca"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toEndOf="@id/headerSegunda"/>
+        <TextView android:id="@+id/headerQuarta" style="@style/HeaderDiaSemana" android:text="@string/quarta"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toEndOf="@id/headerTerca"/>
+        <TextView android:id="@+id/headerQuinta" style="@style/HeaderDiaSemana" android:text="@string/quinta"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toEndOf="@id/headerQuarta"/>
+        <TextView android:id="@+id/headerSexta" style="@style/HeaderDiaSemana" android:text="@string/sexta"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toEndOf="@id/headerQuinta"/>
+
+        <!-- Flow para alinhar os cabeçalhos -->
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/flow_headers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="headerSegunda,headerTerca,headerQuarta,headerQuinta,headerSexta"
+            app:flow_wrapMode="chain"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <!-- RecyclerView principal da grade -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvGradeHoraria"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/flow_headers"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

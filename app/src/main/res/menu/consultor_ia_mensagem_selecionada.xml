@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item
+        android:id="@+id/action_exportar"
+        android:icon="@drawable/ic_share"
+        android:title="@string/exportar"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_aplicar_grade"
+        android:icon="@drawable/ic_schedule"
+        android:title="@string/aplicar_grade"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_copiar_texto"
+        android:icon="@drawable/ic_copy"
+        android:title="@string/copiar_texto"
+        app:showAsAction="always" />
+        
+</menu> 

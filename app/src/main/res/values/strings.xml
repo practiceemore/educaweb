@@ -1,0 +1,252 @@
+<resources>
+    <string name="app_name">Edu</string>
+    
+    <!-- Tela Inicial -->
+    <string name="direcao">Direção</string>
+    <string name="professores">Professores</string>
+    <string name="alunos">Alunos</string>
+    <string name="juegos">Jogos</string>
+    
+    <!-- Títulos das Telas -->
+    <string name="titulo_home">Edu</string>
+    <string name="titulo_direcao">Painel da Direção</string>
+    <string name="titulo_professores">Quem é você?</string>
+    <string name="titulo_turmas">Qual a sua turma?</string>
+    <string name="titulo_detalhes_turma">Requisitos</string>
+    
+    <!-- NOVO: Configuração da Grade -->
+    <string name="configuracao_grade">Número de aulas por dia</string>
+    <string name="configuracao_grade_titulo">Configuração Global da Grade</string>
+    <string name="configuracao_grade_descricao"></string>
+    <string name="aulas_por_dia">Número de aulas por dia:</string>
+    <string name="aulas_3">3 aulas</string>
+    <string name="aulas_4">4 aulas</string>
+    <string name="aulas_5">5 aulas</string>
+    <string name="aulas_6">6 aulas</string>
+    <string name="aulas_7">7 aulas</string>
+    <string name="aulas_8">8 aulas</string>
+    <string name="configuracao_grade_aviso">⚠️ Ao alterar esta configuração, todas as grades existentes serão ajustadas automaticamente.</string>
+    <string name="configuracao_grade_alterar_titulo">Alterar configuração</string>
+    <string name="configuracao_grade_alterar_mensagem">Ao alterar o número de aulas por dia, todas as grades existentes serão ajustadas automaticamente. Deseja continuar?</string>
+    <string name="configuracao_grade_resetar_titulo">Resetar configuração</string>
+    <string name="configuracao_grade_resetar_mensagem">Deseja resetar para a configuração padrão (5 aulas por dia)?</string>
+    <string name="configuracao_grade_salva">Configuração salva: %d aulas por dia para todas as turmas</string>
+    <string name="configuracao_grade_resetada">Configuração resetada para 5 aulas por dia</string>
+    
+    <!-- Mensagens -->
+    <string name="msg_grade_implementada">✅ Grade implementada automaticamente com %d aulas!</string>
+    <string name="msg_grade_salva">✅ Grade salva automaticamente para turma %s</string>
+    <string name="msg_erro_qualificacao">⚠️ ATENÇÃO: A grade gerada tem problemas de qualificação!</string>
+    <string name="msg_professor_nao_pode" formatted="false">• %s não pode lecionar %s. Disciplinas permitidas: %s</string>
+    <string name="msg_recomenda_regenerar">🔧 Recomendo regenerar a grade respeitando as qualificações.</string>
+    
+    <!-- Botões -->
+    <string name="btn_voltar">Voltar</string>
+    <string name="btn_salvar">Salvar</string>
+    <string name="btn_cancelar">Cancelar</string>
+    <string name="btn_ok">OK</string>
+    <string name="btn_resetar">Resetar</string>
+    
+    <!-- Menu de Idioma -->
+    <string name="menu_idioma">Idioma</string>
+    <string name="idioma_portugues">Português</string>
+    <string name="idioma_espanhol">Español</string>
+    <string name="painel_direcao">Painel da Direção</string>
+    <string name="disciplinas">Disciplinas</string>
+    <string name="turmas">Turmas</string>
+    <string name="salas">Salas</string>
+    <string name="assistenteIA">Assistente IA</string>
+    <string name="relatorio_carga_horaria">Relatório de Carga Horária</string>
+    <string name="relatorio_ia">Relatório da IA</string>
+    <string name="grade_ia">Grades IA</string>
+    <string name="consultor_ia">Consultor IA</string>
+    <string name="qual_sua_turma">Qual a sua turma?</string>
+    <string name="nenhuma_turma_cadastrada">Nenhuma turma cadastrada no momento.</string>
+    <string name="quem_e_voce">Quem é você?</string>
+    <string name="nenhum_professor_cadastrado">Nenhum professor cadastrado.</string>
+    <string name="area_aluno">Área do Aluno</string>
+    <string name="imagens">Imagens</string>
+    <string name="instrumentos_virtuais">Instrumentos Virtuais</string>
+    <string name="lousa_magica">Lousa Mágica</string>
+    <!-- Strings para GerenciarSalasActivity -->
+    <string name="gerenciar_salas">Gerenciar Salas e Recursos</string>
+    <string name="nova_sala_recurso">Nova Sala ou Recurso</string>
+    <string name="exemplo_sala">Ex: Sala 101, Laboratório</string>
+    <string name="nome_nao_pode_vazio">O nome não pode estar vazio.</string>
+    <string name="sala_adicionada">Sala \'%s\' adicionada.</string>
+    <string name="editar_nome_sala">Editar Nome da Sala</string>
+    <string name="confirmar_exclusao">Confirmar Exclusão</string>
+    <string name="tem_certeza_excluir_sala">Tem certeza que deseja excluir a sala \'%s\'?</string>
+    <string name="sim_excluir">Sim, excluir</string>
+    <string name="sala_excluida">Sala excluída.</string>
+
+    <!-- Strings para GerenciarTurmasActivity -->
+    <string name="gerenciar_turmas">Gerenciar Turmas</string>
+    <string name="nova_turma">Nova Turma</string>
+    <string name="exemplo_turma">Ex: 6º Ano A</string>
+    <string name="turma_adicionada">Turma \'%s\' adicionada.</string>
+    <string name="editar_nome_turma">Editar Nome da Turma</string>
+    <string name="tem_certeza_excluir_turma">Tem certeza que deseja excluir a turma \'%s\'?</string>
+    <string name="turma_excluida">Turma excluída.</string>
+
+    <!-- Strings para GerenciarProfessoresActivity -->
+    <string name="gerenciar_professores">Gerenciar Professores</string>
+    <string name="novo_professor">Novo Professor</string>
+    <string name="nome_completo_professor">Nome completo do professor</string>
+    <string name="professor_adicionado">Professor \'%s\' adicionado.</string>
+    <string name="editar_nome">Editar Nome</string>
+    <string name="professor_atualizado">Professor \'%s\' atualizado.</string>
+    <string name="tem_certeza_excluir_professor">Tem certeza que deseja excluir o professor \'%s\'?</string>
+    <string name="professor_excluido">Professor excluído.</string>
+
+    <!-- Strings para GerenciarDisciplinasActivity -->
+    <string name="gerenciar_disciplinas">Gerenciar Disciplinas</string>
+    <string name="nova_disciplina">Nova Disciplina</string>
+    <string name="nome_disciplina">Nome da disciplina</string>
+    <string name="disciplina_adicionada">Disciplina \'%s\' adicionada.</string>
+    <string name="editar_nome_disciplina">Editar Nome da Disciplina</string>
+    <string name="tem_certeza_excluir_disciplina">Tem certeza que deseja excluir a disciplina \'%s\'?</string>
+    <string name="disciplina_excluida">Disciplina excluída.</string>
+
+    <!-- Strings para InstrumentosActivity -->
+    <string name="piano">Piano</string>
+    <string name="teremim">Teremim</string>
+    <string name="bateria">Bateria</string>
+    <string name="botao_bateria_clicado">Botão Bateria clicado</string>
+
+    <string name="nome_do_botao">Nome do botão</string>
+    <string name="botao_adicionado">Botão \'%s\' adicionado.</string>
+    <string name="editar_nome_botao">Editar Nome do Botão</string>
+    <string name="tem_certeza_excluir_botao">Tem certeza que deseja excluir o botão \'%s\'?</string>
+    <string name="botao_excluido">Botão excluído.</string>
+
+    <!-- Strings para LousaMagicaActivity -->
+
+    <!-- Strings para Activities de Detalhes -->
+    <string name="erro_carregar_disciplina">Erro ao carregar dados da disciplina.</string>
+    <string name="erro_carregar_professor">Erro ao carregar dados do professor.</string>
+    <string name="erro_carregar_turma">Erro ao carregar dados da turma.</string>
+    <string name="erro_carregar_sala">Erro ao carregar dados da sala.</string>
+    <string name="requisitos_turma">Requisitos %s</string>
+    
+    <!-- Strings para Activities de Grades Horárias -->
+    <string name="horario_disciplina">Horário - %s</string>
+    <string name="horario_professor">Horário - %s</string>
+    <string name="horario_sala">Horário - %s</string>
+    <string name="horario_turma">Horário - %s</string>
+
+    <!-- Strings para DetalhesDisciplinaActivity -->
+    <string name="professores_que_lecionam">Professores que Lecionam</string>
+    <string name="anotacoes_disciplina">Anotações da Disciplina</string>
+    <string name="nenhum_professor_encontrado">Nenhum professor encontrado para esta disciplina.</string>
+    <string name="digite_anotacoes_disciplina">Digite aqui suas anotações sobre esta disciplina...\n\nExemplos:\n• Disciplina com material específico necessário\n• Precisa de laboratório de informática\n• Professores preferem aulas no período da manhã\n• Disciplina com alto índice de reprovação\n• Material didático desatualizado, precisa renovação</string>
+
+    <!-- Strings para DetalhesProfessorActivity -->
+    <string name="total_aulas_semanais_contratadas">Total de Aulas Semanais Contratadas</string>
+    <string name="exemplo_aulas">Ex: 20</string>
+    <string name="disponibilidade_semanal">Disponibilidade Semanal</string>
+    <string name="todas_disciplinas_adicionadas">Todas as disciplinas já foram adicionadas.</string>
+
+    <!-- Strings para DetalhesTurmaActivity -->
+    <string name="defina_carga_horaria_semanal">Defina a carga horária semanal</string>
+    
+    <!-- Strings para GradeHorariaActivity -->
+    <string name="grade_horaria_turma">Grade Horária - Turma %s</string>
+    <string name="grade_horaria_turma_texto">Grade horária da turma %s</string>
+    <string name="compartilhar_grade_horaria">Compartilhar Grade Horária</string>
+    <string name="nenhum_professor_qualificado_disponivel">Nenhum professor qualificado está disponível neste horário.</string>
+    <string name="usar_ia_sugerir_horarios">Isso irá usar a IA para sugerir horários e aplicá-los automaticamente na grade. Deseja continuar?</string>
+    
+    <!-- Dias da semana -->
+    <string name="horario">Horário</string>
+    <string name="segunda">Segunda</string>
+    <string name="terca">Terça</string>
+    <string name="quarta">Quarta</string>
+    <string name="quinta">Quinta</string>
+    <string name="sexta">Sexta</string>
+
+    <!-- Strings para DetalhesSalaActivity -->
+    <string name="digite_anotacoes_sala">Digite aqui suas anotacoes sobre esta sala...&#10;&#10;Exemplos:&#10;• Sala com ventilador e ar condicionado&#10;• Projetor quebrado, precisa de manutenção&#10;• Sala pequena, máximo 25 alunos&#10;• Equipamentos de laboratório disponíveis&#10;• Sala reservada para reuniões às segundas</string>
+
+    <!-- Strings para RelatorioCargaHorariaActivity -->
+    <string name="relatorio_carga_horaria_titulo">Relatório de Carga Horária</string>
+    <string name="nenhum_professor_cadastrado_relatorio">Nenhum professor cadastrado para gerar relatório.</string>
+
+    <!-- Chat com IA -->
+    <string name="chat_com_ia">Chat com IA</string>
+    <string name="digite_sua_mensagem">Digite sua mensagem...</string>
+    <string name="enviar_mensagem">Enviar mensagem</string>
+
+    <string name="erro_nenhuma_turma_selecionada">Erro: Nenhuma turma selecionada</string>
+    <string name="chat_limpo_sucesso">Chat limpo com sucesso</string>
+    <string name="erro_gerar_uri">Erro: Não foi possível gerar URI para o arquivo</string>
+    <string name="erro_compartilhar_pdf">Erro ao compartilhar PDF: %s</string>
+    <string name="mensagem_boas_vindas_chat">Olá! Sou sua assistente de IA para grade horária. Posso ajudar você a criar e ajustar a grade da turma %s. Digite suas instruções ou preferências!</string>
+    <string name="erro_processar_mensagem">Desculpe, ocorreu um erro ao processar sua mensagem: %s</string>
+
+    <!-- Mensagens de Erro da IA -->
+    <string name="erro_ia_consultor">Desculpe, não consegui processar sua mensagem.</string>
+    <string name="erro_ia_grade">Desculpe, não consegui gerar a grade solicitada.</string>
+    <string name="erro_ia_relatorio">Desculpe, não consegui gerar o relatório solicitado.</string>
+
+    <!-- Mensagem inicial do chat -->
+    <string name="mensagem_inicial_chat">Olá! Sou seu consultor educacional de IA. Estou aqui para conversar com você sobre gestão escolar, metodologias de ensino, organização pedagógica e qualquer assunto relacionado à educação. Como posso ajudá-lo hoje?</string>
+
+    <!-- Menu ConsultorIA -->
+    <string name="consultor_ia_titulo">Consultor IA</string>
+    <string name="limpar_chat">Limpar Chat</string>
+    <string name="exportar">Exportar</string>
+    <string name="aplicar_grade">Aplicar à Grade</string>
+    <string name="copiar_texto">Copiar Texto</string>
+    <string name="mensagem_selecionada">mensagem selecionada</string>
+    <string name="mensagens_selecionadas">mensagens selecionadas</string>
+
+    <!-- Dialog de confirmação -->
+    <string name="limpar_chat_titulo">Limpar Chat</string>
+    <string name="limpar_chat_mensagem">Tem certeza que deseja limpar todo o histórico do chat?</string>
+    <string name="sim">Sim</string>
+    <string name="nao">Não</string>
+
+    <!-- Mensagens de aplicação de grade -->
+    <string name="grade_aplicada_sucesso">Grade aplicada com sucesso para %d turma(s)!</string>
+    <string name="grade_aplicada_parcial" formatted="false">Grade aplicada para %d turma(s), %d erro(s)</string>
+    <string name="grade_aplicada_erro">Erro ao aplicar grade para todas as turmas</string>
+
+    <!-- Mensagens de exportação e aplicação -->
+    <string name="mensagem_sem_grade_exportar">Esta mensagem não contém dados de grade para exportar</string>
+    <string name="texto_copiado">Texto copiado para a área de transferência</string>
+    <string name="nenhuma_grade_exportar">Nenhuma grade encontrada para exportar. Selecione uma mensagem primeiro.</string>
+    <string name="pdf_gerado_sucesso_turmas" formatted="false">PDF gerado com sucesso! %d turmas em %d páginas.</string>
+    <string name="erro_compartilhar">Erro ao compartilhar: %s</string>
+    <string name="nenhuma_mensagem_selecionada">Nenhuma mensagem selecionada</string>
+    <string name="nenhum_conteudo_valido">Nenhum conteúdo válido para exportar</string>
+    <string name="pdf_hibrido_gerado_sucesso">PDF híbrido gerado com sucesso! %d páginas.</string>
+    <string name="erro_gerar_pdf_hibrido">Erro ao gerar PDF híbrido: %s</string>
+    <string name="mensagens_copiadas">Mensagens copiadas para área de transferência</string>
+    <string name="nenhuma_grade_valida_encontrada">Nenhuma grade válida encontrada nas mensagens selecionadas</string>
+    <string name="pdf_gerado_sucesso_todas_turmas">PDF gerado com sucesso! %d páginas com todas as turmas selecionadas.</string>
+    <string name="relatorio_gerado_sucesso">Relatório gerado com sucesso!</string>
+    <string name="nao_foi_possivel_extrair_grade">Não foi possível extrair dados da grade</string>
+    
+    <!-- Firebase Google Sign-in -->
+    <string name="default_web_client_id">311606842077-59hfogccn7i18d7cl3scv3m4vu72tpdc.apps.googleusercontent.com</string>
+    
+    <!-- Login com Email/Senha -->
+    <string name="subtitle_login">Entre com seu email e senha</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Senha</string>
+    <string name="btn_login">Entrar</string>
+    <string name="btn_register">Criar Conta</string>
+    <string name="loading_login">Fazendo login...</string>
+    <string name="loading_register">Criando conta...</string>
+    <string name="login_terms">Ao fazer login, você concorda com nossos Termos de Uso e Política de Privacidade</string>
+    
+    <!-- Mensagens de erro -->
+    <string name="error_email_empty">Por favor, digite seu email</string>
+    <string name="error_password_empty">Por favor, digite sua senha</string>
+    <string name="error_password_short">A senha deve ter pelo menos 6 caracteres</string>
+    <string name="error_email_invalid">Por favor, digite um email válido</string>
+    <string name="error_login_failed">Falha no login. Verifique suas credenciais.</string>
+    <string name="error_register_failed">Falha ao criar conta: %s</string>
+    <string name="register_success">Conta criada com sucesso! Faça login.</string>
+</resources>
