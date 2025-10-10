@@ -428,7 +428,7 @@ REGRAS PARA GERAÇÃO DE GRADE:
                   diaSemana: aula.diaSemana,
                   horarioInicio: aula.horarioInicio,
                   horarioFim: aula.horarioFim,
-,
+                  ativa: true,
                   userId
                 }
               });
