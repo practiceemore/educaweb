@@ -39,7 +39,7 @@ router.get('/', async (req: Request, res: Response) => {
           },
           _count: {
             select: {
-              aulas: true
+              gradeHoraria: true
             }
           }
         }
@@ -87,7 +87,7 @@ router.get('/:id', async (req: Request, res: Response) => {
             }
           }
         },
-        aulas: {
+        gradeHoraria: {
           include: {
             professor: {
               select: {
@@ -249,7 +249,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       include: {
         _count: {
           select: {
-            aulas: true,
+            gradeHoraria: true,
             professores: true
           }
         }
@@ -263,11 +263,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar se há aulas ou professores associados
-    if (existingDisciplina._count.aulas > 0) {
+    // Verificar se há grade horária ou professores associados
+    if (existingDisciplina._count.gradeHoraria > 0) {
       return res.status(400).json({
         success: false,
-        error: 'Não é possível deletar disciplina com aulas agendadas'
+        error: 'Não é possível deletar disciplina com grade horária agendada'
       });
     }
 
@@ -302,27 +302,21 @@ router.get('/stats/overview', async (req: Request, res: Response) => {
     const [
       totalDisciplinas,
       disciplinasComAulas,
-      disciplinasSemAulas,
-      cargaHorariaTotal
+      disciplinasSemAulas
     ] = await Promise.all([
       prisma.disciplina.count(),
       prisma.disciplina.count({
         where: {
-          aulas: {
+          gradeHoraria: {
             some: {}
           }
         }
       }),
       prisma.disciplina.count({
         where: {
-          aulas: {
+          gradeHoraria: {
             none: {}
           }
-        }
-      }),
-      prisma.disciplina.aggregate({
-        _sum: {
-          cargaHoraria: true
         }
       })
     ]);
@@ -333,8 +327,7 @@ router.get('/stats/overview', async (req: Request, res: Response) => {
         userId: req.user.id,
         totalDisciplinas,
         disciplinasComAulas,
-        disciplinasSemAulas,
-        cargaHorariaTotal: cargaHorariaTotal._sum.cargaHoraria || 0
+        disciplinasSemAulas
       }
     });
 

@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../index';
 import { AuthRequest } from '../types';
 
+export { AuthRequest };
+
 export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
