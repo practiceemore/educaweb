@@ -140,7 +140,7 @@ router.post('/', async (req: Request, res: Response) => {
         nome,
         capacidade,
         tipo,
-        recursos,
+        recursos: recursos ? recursos.join(', ') : '',
         status,
         userId: (req as any).user.id
       }

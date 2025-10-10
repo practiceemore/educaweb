@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response) => {
         include: {
           _count: {
             select: {
-              aulas: true
+              gradeHoraria: true
             }
           }
         }
@@ -70,7 +70,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const turma = await prisma.turma.findUnique({
       where: { id: Number(id) },
       include: {
-        aulas: {
+        gradeHoraria: {
           include: {
             disciplina: {
               select: {
@@ -246,7 +246,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       include: {
         _count: {
           select: {
-            aulas: true
+            gradeHoraria: true
           }
         }
       }
@@ -259,11 +259,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar se há aulas agendadas
-    if (existingTurma._count.aulas > 0) {
+    // Verificar se há grade horária agendada
+    if (existingTurma._count.gradeHoraria > 0) {
       return res.status(400).json({
         success: false,
-        error: 'Não é possível deletar turma com aulas agendadas'
+        error: 'Não é possível deletar turma com grade horária agendada'
       });
     }
 

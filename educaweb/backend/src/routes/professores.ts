@@ -85,7 +85,6 @@ router.get('/:id', async (req: Request, res: Response) => {
               select: {
                 id: true,
                 nome: true,
-                cargaHoraria: true
               }
             }
           }
@@ -189,7 +188,6 @@ router.post('/', async (req: Request, res: Response) => {
               select: {
                 id: true,
                 nome: true,
-                cargaHoraria: true
               }
             }
           }
@@ -284,7 +282,6 @@ router.put('/:id', async (req: Request, res: Response) => {
               select: {
                 id: true,
                 nome: true,
-                cargaHoraria: true
               }
             }
           }
@@ -318,7 +315,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       include: {
         _count: {
           select: {
-            aulas: true
+            gradeHoraria: true
           }
         }
       }

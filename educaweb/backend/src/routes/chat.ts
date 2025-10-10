@@ -28,7 +28,6 @@ router.get('/school-context', async (req: AuthRequest, res: Response) => {
           capacidade: true,
           alunosMatriculados: true,
           anoLetivo: true,
-          ativa: true
         },
         orderBy: { nome: 'asc' }
       }),
@@ -67,7 +66,6 @@ router.get('/school-context', async (req: AuthRequest, res: Response) => {
           id: true,
           nome: true,
           descricao: true,
-          ativa: true
         },
         orderBy: { nome: 'asc' }
       }),
@@ -202,7 +200,6 @@ router.post('/send', async (req: AuthRequest, res: Response) => {
           capacidade: true,
           alunosMatriculados: true,
           anoLetivo: true,
-          ativa: true
         },
         orderBy: { nome: 'asc' }
       }),
@@ -235,7 +232,6 @@ router.post('/send', async (req: AuthRequest, res: Response) => {
           id: true,
           nome: true,
           descricao: true,
-          ativa: true
         },
         orderBy: { nome: 'asc' }
       }),
@@ -432,7 +428,7 @@ REGRAS PARA GERAÇÃO DE GRADE:
                   diaSemana: aula.diaSemana,
                   horarioInicio: aula.horarioInicio,
                   horarioFim: aula.horarioFim,
-                  ativa: true,
+,
                   userId
                 }
               });
