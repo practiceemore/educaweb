@@ -32,7 +32,7 @@ router.get('/', async (req: Request, res: Response) => {
         include: {
           _count: {
             select: {
-              aulas: true
+              gradeHoraria: true
             }
           }
         }
@@ -68,7 +68,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const sala = await prisma.sala.findUnique({
       where: { id: Number(id) },
       include: {
-        aulas: {
+        gradeHoraria: {
           include: {
             disciplina: {
               select: {
@@ -174,7 +174,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       include: {
         _count: {
           select: {
-            aulas: true
+            gradeHoraria: true
           }
         }
       }
@@ -187,11 +187,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar se a sala tem aulas associadas
-    if (sala._count.aulas > 0) {
+    // Verificar se a sala tem grade horária associada
+    if (sala._count.gradeHoraria > 0) {
       return res.status(400).json({
         success: false,
-        error: 'Não é possível deletar uma sala que possui aulas associadas'
+        error: 'Não é possível deletar uma sala que possui grade horária associada'
       });
     }
 

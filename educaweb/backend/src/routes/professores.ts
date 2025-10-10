@@ -37,14 +37,13 @@ router.get('/', async (req: Request, res: Response) => {
                 select: {
                   id: true,
                   nome: true,
-                  cargaHoraria: true
                 }
               }
             }
           },
           _count: {
             select: {
-              aulas: true
+              gradeHoraria: true
             }
           }
         }
@@ -91,7 +90,7 @@ router.get('/:id', async (req: Request, res: Response) => {
             }
           }
         },
-        aulas: {
+        gradeHoraria: {
           include: {
             disciplina: {
               select: {
@@ -332,11 +331,11 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar se há aulas agendadas
-    if (existingProfessor._count.aulas > 0) {
+    // Verificar se há grade horária agendada
+    if (existingProfessor._count.gradeHoraria > 0) {
       return res.status(400).json({
         success: false,
-        error: 'Não é possível deletar professor com aulas agendadas'
+        error: 'Não é possível deletar professor com grade horária agendada'
       });
     }
 
