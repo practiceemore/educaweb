@@ -14,9 +14,9 @@ router.get('/', async (req: Request, res: Response) => {
     
     if (search) {
       where.OR = [
-        { nome: { contains: search as string, mode: 'insensitive' } },
-        { email: { contains: search as string, mode: 'insensitive' } },
-        { especialidade: { contains: search as string, mode: 'insensitive' } }
+        { nome: { contains: search as string, mode: 'insensitive' as const } },
+        { email: { contains: search as string, mode: 'insensitive' as const } },
+        { especialidade: { contains: search as string, mode: 'insensitive' as const } }
       ];
     }
 

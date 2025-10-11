@@ -9,7 +9,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const configuracoes = await prisma.configuracaoGrade.findMany({
       orderBy: { createdAt: 'desc' }
-    });
+    }); 
 
     const formattedConfigs = configuracoes.map(config => ({
       ...config,
