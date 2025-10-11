@@ -17,6 +17,7 @@ import chatRoutes from './routes/chat';
 import gradeRoutes from './routes/grades';
 import turmaDisciplinaRoutes from './routes/turma-disciplinas';
 import gradeHorariaRoutes from './routes/grade-horaria';
+import setupRoutes from './routes/setup';
 
 // Importar middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -61,6 +62,7 @@ app.get('/health', (req, res) => {
 
 // Rotas da API
 app.use('/api/auth', authRoutes);
+app.use('/api/setup', setupRoutes);
 app.use('/api/disciplinas', authMiddleware, disciplinaRoutes);
 app.use('/api/professores', authMiddleware, professorRoutes);
 app.use('/api/turmas', authMiddleware, turmaRoutes);
