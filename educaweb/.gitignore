@@ -35,4 +35,4 @@ coverage/
 Thumbs.db
 
 # Prisma
-prisma/migrations/
+prisma/migrations/google_credentials.json
