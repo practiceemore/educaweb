@@ -28,6 +28,665 @@
         </main>
     </div>
 
-    <script src="app-1760089181.js"></script>
+    <script>
+        // ===== EDUCACWEB - SISTEMA DE GESTÃO EDUCACIONAL =====
+
+        // Configuração
+        const API_BASE_URL = 'https://educaweb-backend.onrender.com/api';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        // Arrays de dados
+        let disciplinas = [];
+        let professores = [];
+        let turmas = [];
+        let salas = [];
+
+        // ===== FUNÇÕES DE UTILIDADE =====
+
+        function showNotification(message, type = 'info') {
+            // Fecha qualquer modal aberto para não ocultar o toast
+            const openModals = document.querySelectorAll('.modal');
+            openModals.forEach(m => {
+                // Não fecha automaticamente em sucesso para manter fluxo
+                if (type !== 'success') m.style.display = 'none';
+            });
+
+            const containerId = 'toast-container';
+            let container = document.getElementById(containerId);
+            if (!container) {
+                container = document.createElement('div');
+                container.id = containerId;
+                container.style.position = 'fixed';
+                container.style.top = '50%';
+                container.style.left = '50%';
+                container.style.transform = 'translate(-50%, -50%)';
+                container.style.zIndex = '99999';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.gap = '8px';
+                document.body.appendChild(container);
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            notification.style.minWidth = '260px';
+            notification.style.maxWidth = '420px';
+            notification.style.padding = '12px 14px';
+            notification.style.borderRadius = '6px';
+            notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+            notification.style.background = type === 'success' ? '#e6ffed' : type === 'error' ? '#ffecec' : '#f1f5f9';
+            notification.style.color = '#222';
+            notification.style.border = `1px solid ${type === 'success' ? '#b7f5c5' : type === 'error' ? '#ffb3b3' : '#d7e0ea'}`;
+
+            container.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+                if (!container.children.length) container.remove();
+            }, 3500);
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // ===== FUNÇÕES DE API =====
+
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            
+            // Atualizar token a cada requisição
+            const currentToken = localStorage.getItem("authToken");
+            
+            const config = {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(currentToken && { "Authorization": `Bearer ${currentToken}` })
+                },
+                ...(data && { body: JSON.stringify(data) })
+            };
+
+            console.log("Request config:", config);
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json();
+
+                console.log("Response status:", response.status);
+                console.log("Response data:", data);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro na requisição');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Erro na API:', error);
+                throw error;
+            }
+        }
+
+        // ===== AUTENTICAÇÃO =====
+
+        async function login(email, password) {
+            try {
+                console.log("Enviando para API:", { email, password });
+                
+                const response = await apiRequest('/auth/login', 'POST', { email, password });
+
+                if (response.success) {
+                    authToken = response.data.token;
+                    currentUser = response.data.user;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    
+                    showNotification('Login realizado com sucesso!', 'success');
+                    showDashboard();
+                    showNavigation();
+                    return true;
+                }
+            } catch (error) {
+                showNotification('Erro no login: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            showNotification('Logout realizado com sucesso!', 'success');
+            showLoginScreen();
+            hideNavigation();
+        }
+
+        // ===== CARREGAMENTO DE DADOS =====
+
+        async function loadData() {
+            try {
+                const [disciplinasData, professoresData, turmasData, salasData] = await Promise.all([
+                    apiRequest('/disciplinas').then(r => r.success ? r.data : []).catch(() => []),
+                    apiRequest('/professores').then(r => r.success ? r.data : []).catch(() => []),
+                    apiRequest('/turmas').then(r => r.success ? r.data : []).catch(() => []),
+                    apiRequest('/salas').then(r => r.success ? r.data : []).catch(() => [])
+                ]);
+
+                disciplinas = disciplinasData;
+                professores = professoresData;
+                turmas = turmasData;
+                salas = salasData;
+
+                updateDashboard();
+                showNotification('Dados carregados com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                showNotification('Erro ao carregar dados: ' + error.message, 'error');
+            }
+        }
+
+        // ===== INTERFACE =====
+
+        function showLoginScreen() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="login-container">
+                        <div class="login-card">
+                            <h2>🎓 EducaWeb</h2>
+                            <p>Faça login para acessar o sistema</p>
+                            <form id="loginForm">
+                                <div class="form-group">
+                                    <label for="email">Email:</label>
+                                    <input type="email" id="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Senha:</label>
+                                    <input type="password" id="password" required>
+                                </div>
+                                <button type="submit" class="btn-primary">Entrar</button>
+                            </form>
+                            <div class="login-info">
+                                <p><strong>Usuário padrão:</strong></p>
+                                <p>Email: admin@educaweb.com</p>
+                                <p>Senha: admin123</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Adicionar evento de login
+                document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    const success = await login(email, password);
+                    if (!success) {
+                        showNotification('Erro no login. Verifique suas credenciais.', 'error');
+                    }
+                });
+            }
+        }
+
+        function showDashboard() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="dashboard">
+                        <div class="dashboard-header">
+                            <h1>📊 Dashboard</h1>
+                            <div class="user-info">
+                                <span class="user-name" id="userName">${currentUser ? currentUser.name : 'Usuário'}</span>
+                                <button class="btn-secondary" onclick="logout()">Sair</button>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-stats">
+                            <div class="stat-card">
+                                <div class="stat-icon">📚</div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="totalDisciplinas">${disciplinas.length}</div>
+                                    <div class="stat-label">Disciplinas</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">👨‍🏫</div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="totalProfessores">${professores.length}</div>
+                                    <div class="stat-label">Professores</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">👥</div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="totalTurmas">${turmas.length}</div>
+                                    <div class="stat-label">Turmas</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🏫</div>
+                                <div class="stat-content">
+                                    <div class="stat-number" id="totalSalas">${salas.length}</div>
+                                    <div class="stat-label">Salas</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-content">
+                            <div class="welcome-message">
+                                <h2>Bem-vindo ao EducaWeb!</h2>
+                                <p>Sistema de gestão educacional com IA integrada.</p>
+                                <p><strong>Status do Backend:</strong> <span id="backendStatus">Conectado</span></p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Carregar dados após mostrar dashboard
+                loadData();
+            }
+        }
+
+        function updateDashboard() {
+            const totalDisciplinas = document.getElementById('totalDisciplinas');
+            const totalProfessores = document.getElementById('totalProfessores');
+            const totalTurmas = document.getElementById('totalTurmas');
+            const totalSalas = document.getElementById('totalSalas');
+            
+            if (totalDisciplinas) totalDisciplinas.textContent = disciplinas.length;
+            if (totalProfessores) totalProfessores.textContent = professores.length;
+            if (totalTurmas) totalTurmas.textContent = turmas.length;
+            if (totalSalas) totalSalas.textContent = salas.length;
+        }
+
+        // ===== INICIALIZAÇÃO =====
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, inicializando app...');
+            
+            // Verificar se usuário já está logado
+            const token = localStorage.getItem('authToken');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                authToken = token;
+                try {
+                    currentUser = JSON.parse(user);
+                } catch (e) {
+                    console.error("Erro ao fazer parse do usuário:", e);
+                    localStorage.removeItem("authToken");
+                    localStorage.removeItem("user");
+                    showLoginScreen();
+                    return;
+                }
+                showDashboard();
+                showNavigation();
+            } else {
+                showLoginScreen();
+                hideNavigation();
+            }
+        });
+
+        console.log('🔗 EducaWeb carregado com sucesso!');
+
+        // ===== NAVEGAÇÃO =====
+
+        function showNavigation() {
+            const nav = document.getElementById('mainNav');
+            if (nav) {
+                nav.style.display = 'block';
+            }
+        }
+
+        function hideNavigation() {
+            const nav = document.getElementById('mainNav');
+            if (nav) {
+                nav.style.display = 'none';
+            }
+        }
+
+        function showView(viewName) {
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Adicionar classe active ao botão clicado
+            const activeBtn = document.querySelector(`[onclick="showView('${viewName}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            // Mostrar a view correspondente
+            switch(viewName) {
+                case 'dashboard':
+                    showDashboard();
+                    break;
+                case 'disciplinas':
+                    showDisciplinasView();
+                    break;
+                case 'professores':
+                    showProfessoresView();
+                    break;
+                case 'turmas':
+                    showTurmasView();
+                    break;
+                case 'salas':
+                    showSalasView();
+                    break;
+                case 'grade':
+                    showGradeView();
+                    break;
+                case 'ai':
+                    showAIView();
+                    break;
+                case 'chat':
+                    showChatView();
+                    break;
+                default:
+                    showDashboard();
+            }
+        }
+
+        // ===== VIEWS =====
+
+        function showDisciplinasView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>📚 Gestão de Disciplinas</h2>
+                            <button class="btn-primary" onclick="showAddDisciplinaModal()">➕ Adicionar Disciplina</button>
+                        </div>
+                        <div class="disciplinas-table-container">
+                            <table class="disciplinas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Descrição</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="disciplinasTableBody">
+                                    ${disciplinas.map(d => `
+                                        <tr>
+                                            <td>${d.nome}</td>
+                                            <td>${d.descricao || '-'}</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="action-btn edit" onclick="editDisciplina('${d.id}')" title="Editar">✏️</button>
+                                                    <button class="action-btn delete" onclick="deleteDisciplina('${d.id}')" title="Excluir">🗑️</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showProfessoresView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>👨‍🏫 Gestão de Professores</h2>
+                            <button class="btn-primary" onclick="showAddProfessorModal()">➕ Adicionar Professor</button>
+                        </div>
+                        <div class="professores-table-container">
+                            <table class="professores-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Telefone</th>
+                                        <th>Especialidade</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="professoresTableBody">
+                                    ${professores.map(p => `
+                                        <tr>
+                                            <td>${p.nome}</td>
+                                            <td>${p.email}</td>
+                                            <td>${p.telefone || '-'}</td>
+                                            <td>${p.especialidade || '-'}</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="action-btn edit" onclick="editProfessor('${p.id}')" title="Editar">✏️</button>
+                                                    <button class="action-btn delete" onclick="deleteProfessor('${p.id}')" title="Excluir">🗑️</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showTurmasView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>👥 Gestão de Turmas</h2>
+                            <button class="btn-primary" onclick="showAddTurmaModal()">➕ Adicionar Turma</button>
+                        </div>
+                        <div class="turmas-table-container">
+                            <table class="turmas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Série</th>
+                                        <th>Turno</th>
+                                        <th>Capacidade</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="turmasTableBody">
+                                    ${turmas.map(t => `
+                                        <tr>
+                                            <td>${t.nome}</td>
+                                            <td>${t.serie}</td>
+                                            <td>${t.turno}</td>
+                                            <td>${t.capacidade}</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="action-btn edit" onclick="editTurma('${t.id}')" title="Editar">✏️</button>
+                                                    <button class="action-btn edit" onclick="showTurmaDisciplinasModal('${t.id}')" title="Disciplinas">📚</button>
+                                                    <button class="action-btn delete" onclick="deleteTurma('${t.id}')" title="Excluir">🗑️</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showSalasView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>🏫 Gestão de Salas</h2>
+                            <button class="btn-primary" onclick="showAddSalaModal()">➕ Adicionar Sala</button>
+                        </div>
+                        <div class="salas-table-container">
+                            <table class="salas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Tipo</th>
+                                        <th>Capacidade</th>
+                                        <th>Equipamentos</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salasTableBody">
+                                    ${salas.map(s => `
+                                        <tr>
+                                            <td>${s.nome}</td>
+                                            <td>${s.tipo}</td>
+                                            <td>${s.capacidade}</td>
+                                            <td>${s.recursos ? (Array.isArray(s.recursos) ? s.recursos.join(', ') : s.recursos) : '-'}</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="action-btn edit" onclick="editSala('${s.id}')" title="Editar">✏️</button>
+                                                    <button class="action-btn delete" onclick="deleteSala('${s.id}')" title="Excluir">🗑️</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showGradeView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>📅 Grade Horária</h2>
+                            <button class="btn-primary" onclick="showAddAulaModal()">➕ Adicionar Aula</button>
+                        </div>
+                        <div class="grade-container">
+                            <p>Grade horária será implementada aqui...</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showAIView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>🤖 Assistente IA</h2>
+                        </div>
+                        <div class="ai-container">
+                            <p>Assistente IA será implementado aqui...</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function showChatView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>💬 Chat com IA</h2>
+                        </div>
+                        <div class="chat-container">
+                            <p>Chat com IA será implementado aqui...</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== MODAIS (PLACEHOLDERS) =====
+
+        function showAddDisciplinaModal() {
+            showNotification('Modal de adicionar disciplina será implementado', 'info');
+        }
+
+        function showAddProfessorModal() {
+            showNotification('Modal de adicionar professor será implementado', 'info');
+        }
+
+        function showAddTurmaModal() {
+            showNotification('Modal de adicionar turma será implementado', 'info');
+        }
+
+        function showAddSalaModal() {
+            showNotification('Modal de adicionar sala será implementado', 'info');
+        }
+
+        function showAddAulaModal() {
+            showNotification('Modal de adicionar aula será implementado', 'info');
+        }
+
+        function editDisciplina(id) {
+            showNotification(`Editando disciplina ${id}`, 'info');
+        }
+
+        function editProfessor(id) {
+            showNotification(`Editando professor ${id}`, 'info');
+        }
+
+        function deleteProfessor(id) {
+            if (confirm("Tem certeza que deseja deletar este professor?")) {
+                showNotification(`Professor ${id} deletado`, 'success');
+            }
+        }
+
+        function editTurma(id) {
+            showNotification(`Editando turma ${id}`, 'info');
+        }
+
+        function deleteTurma(id) {
+            if (confirm('Tem certeza que deseja deletar esta turma?')) {
+                showNotification(`Turma ${id} deletada`, 'success');
+            }
+        }
+
+        function editSala(id) {
+            showNotification(`Editando sala ${id}`, 'info');
+        }
+
+        function deleteSala(id) {
+            if (confirm('Tem certeza que deseja deletar esta sala?')) {
+                showNotification(`Sala ${id} deletada`, 'success');
+            }
+        }
+
+        function deleteDisciplina(id) {
+            if (confirm("Tem certeza que deseja deletar esta disciplina?")) {
+                showNotification(`Disciplina ${id} deletada`, 'success');
+            }
+        }
+
+        function showTurmaDisciplinasModal(turmaId) {
+            showNotification(`Modal de disciplinas da turma ${turmaId} será implementado`, 'info');
+        }
+    </script>
 </body>
 </html>
