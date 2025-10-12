@@ -5,6 +5,128 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EducaWeb - Sistema de Gestão Educacional</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ===== ESTILOS DOS MODAIS ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 0;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
 </head>
 <body>
     <div class="app">
@@ -622,10 +744,35 @@
             }
         }
 
-        // ===== MODAIS (PLACEHOLDERS) =====
+        // ===== MODAIS =====
 
         function showAddDisciplinaModal() {
-            showNotification('Modal de adicionar disciplina será implementado', 'info');
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>➕ Adicionar Disciplina</h3>
+                        <button class="close-btn" onclick="closeModal('addDisciplinaModal')">&times;</button>
+                    </div>
+                    <form id="addDisciplinaForm" onsubmit="handleAddDisciplina(event)">
+                        <div class="form-group">
+                            <label for="disciplinaNome">Nome da Disciplina:</label>
+                            <input type="text" id="disciplinaNome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="disciplinaDescricao">Descrição:</label>
+                            <textarea id="disciplinaDescricao" name="descricao" rows="3"></textarea>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('addDisciplinaModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'addDisciplinaModal';
+            document.body.appendChild(modal);
         }
 
         function showAddProfessorModal() {
@@ -644,8 +791,89 @@
             showNotification('Modal de adicionar aula será implementado', 'info');
         }
 
+        // ===== FUNÇÕES DE DISCIPLINAS =====
+
+        async function handleAddDisciplina(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                nome: formData.get('nome'),
+                descricao: formData.get('descricao') || null
+            };
+
+            try {
+                const response = await apiRequest('/disciplinas', 'POST', data);
+                if (response.success) {
+                    showNotification('Disciplina adicionada com sucesso!', 'success');
+                    closeModal('addDisciplinaModal');
+                    await loadData();
+                    showDisciplinasView();
+                } else {
+                    showNotification(response.error || 'Erro ao adicionar disciplina', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar disciplina:', error);
+                showNotification('Erro ao adicionar disciplina', 'error');
+            }
+        }
+
         function editDisciplina(id) {
-            showNotification(`Editando disciplina ${id}`, 'info');
+            const disciplina = disciplinas.find(d => d.id == id);
+            if (!disciplina) {
+                showNotification('Disciplina não encontrada', 'error');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>✏️ Editar Disciplina</h3>
+                        <button class="close-btn" onclick="closeModal('editDisciplinaModal')">&times;</button>
+                    </div>
+                    <form id="editDisciplinaForm" onsubmit="handleEditDisciplina(event, ${id})">
+                        <div class="form-group">
+                            <label for="editDisciplinaNome">Nome da Disciplina:</label>
+                            <input type="text" id="editDisciplinaNome" name="nome" value="${disciplina.nome}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDisciplinaDescricao">Descrição:</label>
+                            <textarea id="editDisciplinaDescricao" name="descricao" rows="3">${disciplina.descricao || ''}</textarea>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('editDisciplinaModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'editDisciplinaModal';
+            document.body.appendChild(modal);
+        }
+
+        async function handleEditDisciplina(event, id) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                nome: formData.get('nome'),
+                descricao: formData.get('descricao') || null
+            };
+
+            try {
+                const response = await apiRequest(`/disciplinas/${id}`, 'PUT', data);
+                if (response.success) {
+                    showNotification('Disciplina atualizada com sucesso!', 'success');
+                    closeModal('editDisciplinaModal');
+                    await loadData();
+                    showDisciplinasView();
+                } else {
+                    showNotification(response.error || 'Erro ao atualizar disciplina', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar disciplina:', error);
+                showNotification('Erro ao atualizar disciplina', 'error');
+            }
         }
 
         function editProfessor(id) {
@@ -678,9 +906,27 @@
             }
         }
 
-        function deleteDisciplina(id) {
-            if (confirm("Tem certeza que deseja deletar esta disciplina?")) {
-                showNotification(`Disciplina ${id} deletada`, 'success');
+        async function deleteDisciplina(id) {
+            const disciplina = disciplinas.find(d => d.id == id);
+            if (!disciplina) {
+                showNotification('Disciplina não encontrada', 'error');
+                return;
+            }
+
+            if (confirm(`Tem certeza que deseja excluir a disciplina "${disciplina.nome}"?`)) {
+                try {
+                    const response = await apiRequest(`/disciplinas/${id}`, 'DELETE');
+                    if (response.success) {
+                        showNotification('Disciplina excluída com sucesso!', 'success');
+                        await loadData();
+                        showDisciplinasView();
+                    } else {
+                        showNotification(response.error || 'Erro ao excluir disciplina', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir disciplina:', error);
+                    showNotification('Erro ao excluir disciplina', 'error');
+                }
             }
         }
 

@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: "postgresql://educaweb_db_user:XbmXQ6LSwLAzb4uWSnY1Qc3VGXktD33g@dpg-d3ke7549c44c73adh4k0-a/educaweb_db"
+      url: "postgresql://educaweb_db_user:XbmXQ6LSwLAzb4uWSnY1Qc3VGXktD33g@dpg-d3ke7549c44c73adh4k0-a.ohio-postgres.render.com/educaweb_db"
     }
   }
 });
