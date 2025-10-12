@@ -6,7 +6,7 @@ export const errorHandler = (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+) => {
   console.error('Erro capturado:', error);
 
   // Erro de validação do Prisma

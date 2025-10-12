@@ -163,9 +163,10 @@ router.post('/', async (req: Request, res: Response) => {
         email,
         telefone,
         especialidade,
+        aulasContratadas: 0, // Valor padrão
         salario,
         dataAdmissao: dataAdmissao ? new Date(dataAdmissao) : null,
-        userId: req.user.id,
+        userId: (req as any).user.id,
         disciplinas: {
           create: disciplinas.map(disciplinaId => ({
             disciplinaId

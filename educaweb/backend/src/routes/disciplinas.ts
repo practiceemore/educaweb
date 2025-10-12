@@ -149,9 +149,9 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 
     const disciplina = await prisma.disciplina.create({
       data: {
-        userId: req.user.id,
         nome,
-        descricao
+        descricao,
+        userId: (req as any).user.id,
       },
       include: {
         professores: {
@@ -324,7 +324,6 @@ router.get('/stats/overview', async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        userId: req.user.id,
         totalDisciplinas,
         disciplinasComAulas,
         disciplinasSemAulas
