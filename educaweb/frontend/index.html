@@ -776,15 +776,126 @@
         }
 
         function showAddProfessorModal() {
-            showNotification('Modal de adicionar professor será implementado', 'info');
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>➕ Adicionar Professor</h3>
+                        <button class="close-btn" onclick="closeModal('addProfessorModal')">&times;</button>
+                    </div>
+                    <form id="addProfessorForm" onsubmit="handleAddProfessor(event)">
+                        <div class="form-group">
+                            <label for="professorNome">Nome:</label>
+                            <input type="text" id="professorNome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="professorEmail">Email:</label>
+                            <input type="email" id="professorEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="professorTelefone">Telefone:</label>
+                            <input type="tel" id="professorTelefone" name="telefone">
+                        </div>
+                        <div class="form-group">
+                            <label for="professorEspecialidade">Especialidade:</label>
+                            <input type="text" id="professorEspecialidade" name="especialidade">
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('addProfessorModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'addProfessorModal';
+            document.body.appendChild(modal);
         }
 
         function showAddTurmaModal() {
-            showNotification('Modal de adicionar turma será implementado', 'info');
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>➕ Adicionar Turma</h3>
+                        <button class="close-btn" onclick="closeModal('addTurmaModal')">&times;</button>
+                    </div>
+                    <form id="addTurmaForm" onsubmit="handleAddTurma(event)">
+                        <div class="form-group">
+                            <label for="turmaNome">Nome:</label>
+                            <input type="text" id="turmaNome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="turmaSerie">Série:</label>
+                            <input type="text" id="turmaSerie" name="serie" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="turmaTurno">Turno:</label>
+                            <select id="turmaTurno" name="turno" required>
+                                <option value="">Selecione...</option>
+                                <option value="Manhã">Manhã</option>
+                                <option value="Tarde">Tarde</option>
+                                <option value="Noite">Noite</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="turmaCapacidade">Capacidade:</label>
+                            <input type="number" id="turmaCapacidade" name="capacidade" min="1" required>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('addTurmaModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'addTurmaModal';
+            document.body.appendChild(modal);
         }
 
         function showAddSalaModal() {
-            showNotification('Modal de adicionar sala será implementado', 'info');
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>➕ Adicionar Sala</h3>
+                        <button class="close-btn" onclick="closeModal('addSalaModal')">&times;</button>
+                    </div>
+                    <form id="addSalaForm" onsubmit="handleAddSala(event)">
+                        <div class="form-group">
+                            <label for="salaNome">Nome:</label>
+                            <input type="text" id="salaNome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="salaTipo">Tipo:</label>
+                            <select id="salaTipo" name="tipo" required>
+                                <option value="">Selecione...</option>
+                                <option value="Sala de Aula">Sala de Aula</option>
+                                <option value="Laboratório">Laboratório</option>
+                                <option value="Biblioteca">Biblioteca</option>
+                                <option value="Auditório">Auditório</option>
+                                <option value="Sala de Informática">Sala de Informática</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="salaCapacidade">Capacidade:</label>
+                            <input type="number" id="salaCapacidade" name="capacidade" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="salaRecursos">Recursos (separados por vírgula):</label>
+                            <textarea id="salaRecursos" name="recursos" rows="3" placeholder="Ex: Projetor, Ar condicionado, Quadro branco"></textarea>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('addSalaModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'addSalaModal';
+            document.body.appendChild(modal);
         }
 
         function showAddAulaModal() {
@@ -876,33 +987,378 @@
             }
         }
 
-        function editProfessor(id) {
-            showNotification(`Editando professor ${id}`, 'info');
+        async function handleAddProfessor(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                nome: formData.get('nome'),
+                email: formData.get('email'),
+                telefone: formData.get('telefone') || null,
+                especialidade: formData.get('especialidade') || null
+            };
+
+            try {
+                const response = await apiRequest('/professores', 'POST', data);
+                if (response.success) {
+                    showNotification('Professor adicionado com sucesso!', 'success');
+                    closeModal('addProfessorModal');
+                    await loadData();
+                    showProfessoresView();
+                } else {
+                    showNotification(response.error || 'Erro ao adicionar professor', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar professor:', error);
+                showNotification('Erro ao adicionar professor', 'error');
+            }
         }
 
-        function deleteProfessor(id) {
-            if (confirm("Tem certeza que deseja deletar este professor?")) {
-                showNotification(`Professor ${id} deletado`, 'success');
+        function editProfessor(id) {
+            const professor = professores.find(p => p.id == id);
+            if (!professor) {
+                showNotification('Professor não encontrado', 'error');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>✏️ Editar Professor</h3>
+                        <button class="close-btn" onclick="closeModal('editProfessorModal')">&times;</button>
+                    </div>
+                    <form id="editProfessorForm" onsubmit="handleEditProfessor(event, ${id})">
+                        <div class="form-group">
+                            <label for="editProfessorNome">Nome:</label>
+                            <input type="text" id="editProfessorNome" name="nome" value="${professor.nome}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editProfessorEmail">Email:</label>
+                            <input type="email" id="editProfessorEmail" name="email" value="${professor.email}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editProfessorTelefone">Telefone:</label>
+                            <input type="tel" id="editProfessorTelefone" name="telefone" value="${professor.telefone || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label for="editProfessorEspecialidade">Especialidade:</label>
+                            <input type="text" id="editProfessorEspecialidade" name="especialidade" value="${professor.especialidade || ''}">
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('editProfessorModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'editProfessorModal';
+            document.body.appendChild(modal);
+        }
+
+        async function handleEditProfessor(event, id) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                nome: formData.get('nome'),
+                email: formData.get('email'),
+                telefone: formData.get('telefone') || null,
+                especialidade: formData.get('especialidade') || null
+            };
+
+            try {
+                const response = await apiRequest(`/professores/${id}`, 'PUT', data);
+                if (response.success) {
+                    showNotification('Professor atualizado com sucesso!', 'success');
+                    closeModal('editProfessorModal');
+                    await loadData();
+                    showProfessoresView();
+                } else {
+                    showNotification(response.error || 'Erro ao atualizar professor', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar professor:', error);
+                showNotification('Erro ao atualizar professor', 'error');
+            }
+        }
+
+        async function deleteProfessor(id) {
+            const professor = professores.find(p => p.id == id);
+            if (!professor) {
+                showNotification('Professor não encontrado', 'error');
+                return;
+            }
+
+            if (confirm(`Tem certeza que deseja excluir o professor "${professor.nome}"?`)) {
+                try {
+                    const response = await apiRequest(`/professores/${id}`, 'DELETE');
+                    if (response.success) {
+                        showNotification('Professor excluído com sucesso!', 'success');
+                        await loadData();
+                        showProfessoresView();
+                    } else {
+                        showNotification(response.error || 'Erro ao excluir professor', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir professor:', error);
+                    showNotification('Erro ao excluir professor', 'error');
+                }
+            }
+        }
+
+        async function handleAddTurma(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                nome: formData.get('nome'),
+                serie: formData.get('serie'),
+                turno: formData.get('turno'),
+                capacidade: parseInt(formData.get('capacidade'))
+            };
+
+            try {
+                const response = await apiRequest('/turmas', 'POST', data);
+                if (response.success) {
+                    showNotification('Turma adicionada com sucesso!', 'success');
+                    closeModal('addTurmaModal');
+                    await loadData();
+                    showTurmasView();
+                } else {
+                    showNotification(response.error || 'Erro ao adicionar turma', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar turma:', error);
+                showNotification('Erro ao adicionar turma', 'error');
             }
         }
 
         function editTurma(id) {
-            showNotification(`Editando turma ${id}`, 'info');
+            const turma = turmas.find(t => t.id == id);
+            if (!turma) {
+                showNotification('Turma não encontrada', 'error');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>✏️ Editar Turma</h3>
+                        <button class="close-btn" onclick="closeModal('editTurmaModal')">&times;</button>
+                    </div>
+                    <form id="editTurmaForm" onsubmit="handleEditTurma(event, ${id})">
+                        <div class="form-group">
+                            <label for="editTurmaNome">Nome:</label>
+                            <input type="text" id="editTurmaNome" name="nome" value="${turma.nome}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editTurmaSerie">Série:</label>
+                            <input type="text" id="editTurmaSerie" name="serie" value="${turma.serie}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editTurmaTurno">Turno:</label>
+                            <select id="editTurmaTurno" name="turno" required>
+                                <option value="">Selecione...</option>
+                                <option value="Manhã" ${turma.turno === 'Manhã' ? 'selected' : ''}>Manhã</option>
+                                <option value="Tarde" ${turma.turno === 'Tarde' ? 'selected' : ''}>Tarde</option>
+                                <option value="Noite" ${turma.turno === 'Noite' ? 'selected' : ''}>Noite</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editTurmaCapacidade">Capacidade:</label>
+                            <input type="number" id="editTurmaCapacidade" name="capacidade" value="${turma.capacidade}" min="1" required>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('editTurmaModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'editTurmaModal';
+            document.body.appendChild(modal);
         }
 
-        function deleteTurma(id) {
-            if (confirm('Tem certeza que deseja deletar esta turma?')) {
-                showNotification(`Turma ${id} deletada`, 'success');
+        async function handleEditTurma(event, id) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                nome: formData.get('nome'),
+                serie: formData.get('serie'),
+                turno: formData.get('turno'),
+                capacidade: parseInt(formData.get('capacidade'))
+            };
+
+            try {
+                const response = await apiRequest(`/turmas/${id}`, 'PUT', data);
+                if (response.success) {
+                    showNotification('Turma atualizada com sucesso!', 'success');
+                    closeModal('editTurmaModal');
+                    await loadData();
+                    showTurmasView();
+                } else {
+                    showNotification(response.error || 'Erro ao atualizar turma', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar turma:', error);
+                showNotification('Erro ao atualizar turma', 'error');
+            }
+        }
+
+        async function deleteTurma(id) {
+            const turma = turmas.find(t => t.id == id);
+            if (!turma) {
+                showNotification('Turma não encontrada', 'error');
+                return;
+            }
+
+            if (confirm(`Tem certeza que deseja excluir a turma "${turma.nome}"?`)) {
+                try {
+                    const response = await apiRequest(`/turmas/${id}`, 'DELETE');
+                    if (response.success) {
+                        showNotification('Turma excluída com sucesso!', 'success');
+                        await loadData();
+                        showTurmasView();
+                    } else {
+                        showNotification(response.error || 'Erro ao excluir turma', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir turma:', error);
+                    showNotification('Erro ao excluir turma', 'error');
+                }
+            }
+        }
+
+        async function handleAddSala(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const recursos = formData.get('recursos') ? formData.get('recursos').split(',').map(r => r.trim()).filter(r => r) : [];
+            
+            const data = {
+                nome: formData.get('nome'),
+                tipo: formData.get('tipo'),
+                capacidade: parseInt(formData.get('capacidade')),
+                recursos: recursos
+            };
+
+            try {
+                const response = await apiRequest('/salas', 'POST', data);
+                if (response.success) {
+                    showNotification('Sala adicionada com sucesso!', 'success');
+                    closeModal('addSalaModal');
+                    await loadData();
+                    showSalasView();
+                } else {
+                    showNotification(response.error || 'Erro ao adicionar sala', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar sala:', error);
+                showNotification('Erro ao adicionar sala', 'error');
             }
         }
 
         function editSala(id) {
-            showNotification(`Editando sala ${id}`, 'info');
+            const sala = salas.find(s => s.id == id);
+            if (!sala) {
+                showNotification('Sala não encontrada', 'error');
+                return;
+            }
+
+            const recursosTexto = sala.recursos ? (Array.isArray(sala.recursos) ? sala.recursos.join(', ') : sala.recursos) : '';
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>✏️ Editar Sala</h3>
+                        <button class="close-btn" onclick="closeModal('editSalaModal')">&times;</button>
+                    </div>
+                    <form id="editSalaForm" onsubmit="handleEditSala(event, ${id})">
+                        <div class="form-group">
+                            <label for="editSalaNome">Nome:</label>
+                            <input type="text" id="editSalaNome" name="nome" value="${sala.nome}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editSalaTipo">Tipo:</label>
+                            <select id="editSalaTipo" name="tipo" required>
+                                <option value="">Selecione...</option>
+                                <option value="Sala de Aula" ${sala.tipo === 'Sala de Aula' ? 'selected' : ''}>Sala de Aula</option>
+                                <option value="Laboratório" ${sala.tipo === 'Laboratório' ? 'selected' : ''}>Laboratório</option>
+                                <option value="Biblioteca" ${sala.tipo === 'Biblioteca' ? 'selected' : ''}>Biblioteca</option>
+                                <option value="Auditório" ${sala.tipo === 'Auditório' ? 'selected' : ''}>Auditório</option>
+                                <option value="Sala de Informática" ${sala.tipo === 'Sala de Informática' ? 'selected' : ''}>Sala de Informática</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editSalaCapacidade">Capacidade:</label>
+                            <input type="number" id="editSalaCapacidade" name="capacidade" value="${sala.capacidade}" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editSalaRecursos">Recursos (separados por vírgula):</label>
+                            <textarea id="editSalaRecursos" name="recursos" rows="3" placeholder="Ex: Projetor, Ar condicionado, Quadro branco">${recursosTexto}</textarea>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('editSalaModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            modal.id = 'editSalaModal';
+            document.body.appendChild(modal);
         }
 
-        function deleteSala(id) {
-            if (confirm('Tem certeza que deseja deletar esta sala?')) {
-                showNotification(`Sala ${id} deletada`, 'success');
+        async function handleEditSala(event, id) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const recursos = formData.get('recursos') ? formData.get('recursos').split(',').map(r => r.trim()).filter(r => r) : [];
+            
+            const data = {
+                nome: formData.get('nome'),
+                tipo: formData.get('tipo'),
+                capacidade: parseInt(formData.get('capacidade')),
+                recursos: recursos
+            };
+
+            try {
+                const response = await apiRequest(`/salas/${id}`, 'PUT', data);
+                if (response.success) {
+                    showNotification('Sala atualizada com sucesso!', 'success');
+                    closeModal('editSalaModal');
+                    await loadData();
+                    showSalasView();
+                } else {
+                    showNotification(response.error || 'Erro ao atualizar sala', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar sala:', error);
+                showNotification('Erro ao atualizar sala', 'error');
+            }
+        }
+
+        async function deleteSala(id) {
+            const sala = salas.find(s => s.id == id);
+            if (!sala) {
+                showNotification('Sala não encontrada', 'error');
+                return;
+            }
+
+            if (confirm(`Tem certeza que deseja excluir a sala "${sala.nome}"?`)) {
+                try {
+                    const response = await apiRequest(`/salas/${id}`, 'DELETE');
+                    if (response.success) {
+                        showNotification('Sala excluída com sucesso!', 'success');
+                        await loadData();
+                        showSalasView();
+                    } else {
+                        showNotification(response.error || 'Erro ao excluir sala', 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir sala:', error);
+                    showNotification('Erro ao excluir sala', 'error');
+                }
             }
         }
 
