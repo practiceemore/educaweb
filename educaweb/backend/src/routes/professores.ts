@@ -144,24 +144,16 @@ router.post('/', async (req: Request, res: Response) => {
       email, 
       telefone, 
       especialidade, 
-      aulasContratadas, 
       salario, 
       dataAdmissao,
       disciplinas = []
     }: CreateProfessorRequest = req.body;
 
     // Validar dados
-    if (!nome || !email || !especialidade || !aulasContratadas) {
+    if (!nome || !email || !especialidade) {
       return res.status(400).json({
         success: false,
-        error: 'Nome, email, especialidade e aulas contratadas são obrigatórios'
-      });
-    }
-
-    if (aulasContratadas <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Aulas contratadas deve ser maior que zero'
+        error: 'Nome, email e especialidade são obrigatórios'
       });
     }
 
@@ -171,7 +163,6 @@ router.post('/', async (req: Request, res: Response) => {
         email,
         telefone,
         especialidade,
-        aulasContratadas,
         salario,
         dataAdmissao: dataAdmissao ? new Date(dataAdmissao) : null,
         userId: req.user.id,
@@ -219,7 +210,6 @@ router.put('/:id', async (req: Request, res: Response) => {
       email, 
       telefone, 
       especialidade, 
-      aulasContratadas, 
       salario, 
       dataAdmissao,
       ativo,
@@ -238,20 +228,11 @@ router.put('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    // Validar dados
-    if (aulasContratadas && aulasContratadas <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Aulas contratadas deve ser maior que zero'
-      });
-    }
-
     const updateData: any = {};
     if (nome) updateData.nome = nome;
     if (email) updateData.email = email;
     if (telefone !== undefined) updateData.telefone = telefone;
     if (especialidade) updateData.especialidade = especialidade;
-    if (aulasContratadas) updateData.aulasContratadas = aulasContratadas;
     if (salario !== undefined) updateData.salario = salario;
     if (dataAdmissao !== undefined) updateData.dataAdmissao = dataAdmissao ? new Date(dataAdmissao) : null;
     if (ativo !== undefined) updateData.ativo = ativo;

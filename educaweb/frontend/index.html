@@ -843,6 +843,10 @@
                             <label for="turmaCapacidade">Capacidade:</label>
                             <input type="number" id="turmaCapacidade" name="capacidade" min="1" required>
                         </div>
+                        <div class="form-group">
+                            <label for="turmaAnoLetivo">Ano Letivo:</label>
+                            <input type="text" id="turmaAnoLetivo" name="anoLetivo" placeholder="Ex: 2024" required>
+                        </div>
                         <div class="modal-actions">
                             <button type="button" class="btn-secondary" onclick="closeModal('addTurmaModal')">Cancelar</button>
                             <button type="submit" class="btn-primary">Salvar</button>
@@ -1113,7 +1117,8 @@
                 nome: formData.get('nome'),
                 serie: formData.get('serie'),
                 turno: formData.get('turno'),
-                capacidade: parseInt(formData.get('capacidade'))
+                capacidade: parseInt(formData.get('capacidade')),
+                anoLetivo: formData.get('anoLetivo')
             };
 
             try {
@@ -1169,6 +1174,10 @@
                             <label for="editTurmaCapacidade">Capacidade:</label>
                             <input type="number" id="editTurmaCapacidade" name="capacidade" value="${turma.capacidade}" min="1" required>
                         </div>
+                        <div class="form-group">
+                            <label for="editTurmaAnoLetivo">Ano Letivo:</label>
+                            <input type="text" id="editTurmaAnoLetivo" name="anoLetivo" value="${turma.anoLetivo || ''}" placeholder="Ex: 2024" required>
+                        </div>
                         <div class="modal-actions">
                             <button type="button" class="btn-secondary" onclick="closeModal('editTurmaModal')">Cancelar</button>
                             <button type="submit" class="btn-primary">Salvar</button>
@@ -1187,7 +1196,8 @@
                 nome: formData.get('nome'),
                 serie: formData.get('serie'),
                 turno: formData.get('turno'),
-                capacidade: parseInt(formData.get('capacidade'))
+                capacidade: parseInt(formData.get('capacidade')),
+                anoLetivo: formData.get('anoLetivo')
             };
 
             try {
