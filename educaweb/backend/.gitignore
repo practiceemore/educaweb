@@ -3,3 +3,8 @@ node_modules
 .env
 
 /generated/prisma
+
+# Scripts temporários (não commitar)
+create-user.js
+test-connection.js
+apply-schema.js
