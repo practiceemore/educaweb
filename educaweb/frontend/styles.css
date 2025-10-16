@@ -130,11 +130,13 @@ body {
 }
 
 .logo {
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
   float: left;
   padding: 14px 18px;
+}
+
+.logo-img {
+  height: 40px;
+  width: auto;
 }
 
 .nav {
