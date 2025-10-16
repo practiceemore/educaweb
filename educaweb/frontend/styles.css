@@ -131,12 +131,15 @@ body {
 
 .logo {
   float: left;
-  padding: 14px 18px;
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
 }
 
 .logo-img {
-  height: 60px;
+  height: 80px;
   width: auto;
+  display: block;
 }
 
 .nav {
