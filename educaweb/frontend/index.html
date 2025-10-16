@@ -131,7 +131,8 @@
 <body>
     <div class="app">
         <header class="header">
-                <nav class="nav" id="mainNav" style="display: none;">
+            <div class="logo" id="logo" style="display: none;">EducaWeb</div>
+            <nav class="nav" id="mainNav" style="display: none;">
                 <div class="nav-items">
                     <div class="nav-chip" onclick="showView('disciplinas')">📚 Disciplinas</div>
                     <div class="nav-chip" onclick="showView('grade')">📅 Grade Horária</div>
@@ -139,7 +140,7 @@
                     <div class="nav-chip" onclick="showView('turmas')">👥 Turmas</div>
                     <div class="nav-chip" onclick="showView('salas')">🏫 Salas</div>
                     <div class="nav-chip" onclick="showView('dashboard')">📊 Dashboard</div>
-            </div>
+                </div>
             </nav>
         </header>
 
@@ -490,8 +491,13 @@
         // ===== NAVEGAÇÃO =====
 
         function showNavigation() {
+            const logo = document.getElementById('logo');
             const nav = document.getElementById('mainNav');
             const chatWidget = document.getElementById('globalChatWidget');
+            
+            if (logo) {
+                logo.style.display = 'block';
+            }
             
             if (nav) {
                 nav.style.display = 'block';
@@ -505,8 +511,13 @@
         }
 
         function hideNavigation() {
+            const logo = document.getElementById('logo');
             const nav = document.getElementById('mainNav');
             const chatWidget = document.getElementById('globalChatWidget');
+            
+            if (logo) {
+                logo.style.display = 'none';
+            }
             
             if (nav) {
                 nav.style.display = 'none';
