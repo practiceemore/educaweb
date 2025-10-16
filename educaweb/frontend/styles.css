@@ -125,40 +125,60 @@ body {
 }
 
 .header {
-  background: #4A90E2;
+  background: transparent;
   padding: 1rem 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
 }
 
 .nav {
-  background: none;
-  padding: 0;
+  background: linear-gradient(90deg, #7B61E6, #9c7bf5);
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 14px;
   display: flex;
-  gap: 0;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 8px 24px rgba(17,48,85,0.06);
 }
 
-.nav-btn {
-  background: none;
-  border: none;
-  padding: 0.8rem 1rem;
-  cursor: pointer;
-  color: white;
-  font-size: 0.9rem;
-  border-radius: 6px;
-  transition: all 0.3s;
-  margin-left: 0.5rem;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 18px;
+  padding-right: 12px;
 }
 
-.nav-btn:hover {
-  background: rgba(255,255,255,0.1);
+.logo-badge {
+  background: #F5A623;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
-.nav-btn.active {
-  background: rgba(255,255,255,0.2);
+.nav-items {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.nav-chip {
+  background: rgba(255,255,255,0.12);
+  padding: 8px 12px;
+  border-radius: 999px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-chip:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.nav-chip.active {
+  background: #45C0A9;
 }
 
 .user-info {

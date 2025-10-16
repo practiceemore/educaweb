@@ -131,14 +131,19 @@
 <body>
     <div class="app">
         <header class="header">
-                <nav class="nav" id="mainNav" style="display: none;">
-                    <button class="nav-btn" onclick="showView('grade')">📅 Grade Horária</button>
-                    <button class="nav-btn" onclick="showView('disciplinas')">📚 Disciplinas</button>
-                    <button class="nav-btn" onclick="showView('professores')">👨‍🏫 Professores</button>
-                    <button class="nav-btn" onclick="showView('turmas')">👥 Turmas</button>
-                    <button class="nav-btn" onclick="showView('salas')">🏫 Salas</button>                  
-                    <button class="nav-btn" onclick="showView('dashboard')">📊 Dashboard</button>
-                </nav>
+            <nav class="nav" id="mainNav" style="display: none;">
+                <div class="brand">
+                    <span class="logo-badge">EducaWeb</span>
+                </div>
+                <div class="nav-items">
+                    <div class="nav-chip" onclick="showView('disciplinas')">📚 Disciplinas</div>
+                    <div class="nav-chip" onclick="showView('grade')">📅 Grade Horária</div>
+                    <div class="nav-chip" onclick="showView('professores')">👨‍🏫 Professores</div>
+                    <div class="nav-chip" onclick="showView('turmas')">👥 Turmas</div>
+                    <div class="nav-chip" onclick="showView('salas')">🏫 Salas</div>
+                    <div class="nav-chip" onclick="showView('dashboard')">📊 Dashboard</div>
+                </div>
+            </nav>
         </header>
 
         <main class="main">
@@ -516,16 +521,13 @@
         }
 
         function showView(viewName) {
-            // Remover classe active de todos os botões
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
+            // Remover classe active de todos os nav-chips
+            document.querySelectorAll('.nav-chip').forEach(chip => {
+                chip.classList.remove('active');
             });
             
-            // Adicionar classe active ao botão clicado
-            const activeBtn = document.querySelector(`[onclick="showView('${viewName}')"]`);
-            if (activeBtn) {
-                activeBtn.classList.add('active');
-            }
+            // Adicionar classe active ao nav-chip clicado
+            event.target.classList.add('active');
             
             // Mostrar a view correspondente
             switch(viewName) {
