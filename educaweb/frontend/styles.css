@@ -130,15 +130,14 @@ body {
 }
 
 .nav {
-  background: linear-gradient(90deg, #7B61E6, #9c7bf5);
-  color: #fff;
+  background: transparent;
+  color: #333;
   padding: 14px 18px;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 18px;
-  box-shadow: 0 8px 24px rgba(17,48,85,0.06);
 }
 
 .brand {
@@ -166,7 +165,8 @@ body {
 }
 
 .nav-chip {
-  background: rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.1);
+  color: #333;
   padding: 8px 12px;
   border-radius: 999px;
   font-weight: 600;
@@ -175,11 +175,12 @@ body {
 }
 
 .nav-chip:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.2);
 }
 
 .nav-chip.active {
-  background: #45C0A9;
+  background: #4A90E2;
+  color: white;
 }
 
 .user-info {
