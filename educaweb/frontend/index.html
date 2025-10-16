@@ -734,57 +734,60 @@
         function showChatView() {
             const main = document.querySelector('.main');
             main.innerHTML = `
-                <div class="unified-view">
-                    <div class="chat-panel">
-                        <h3>💬 Chat com IA</h3>
-                        <div class="chat-messages" id="chatMessages">
-                            <div class="chat-welcome">
-                                <div class="welcome-icon">🤖</div>
-                                <h4>Olá! Sou seu assistente educacional</h4>
-                                <p>Posso ajudar você com:</p>
-                                <ul>
-                                    <li>📊 Análises da grade horária</li>
-                                    <li>👥 Gestão de turmas e professores</li>
-                                    <li>📈 Relatórios e estatísticas</li>
-                                    <li>💡 Sugestões de otimização</li>
-                                    <li>❓ Dúvidas sobre o sistema</li>
-                                </ul>
-                                <p>Como posso ajudar você hoje?</p>
+                <div class="grade-view">
+                    <h3>📅 Grade Horária</h3>
+                    <div id="gradeContainer">
+                        <div class="loading">Carregando grade horária...</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="clearAllGrades()" style="margin-top: 1rem;">🗑️ Limpar Grades</button>
+                </div>
+                
+                <!-- Chat Flutuante -->
+                <div class="chat-widget">
+                    <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">💬</button>
+                    <div class="chat-panel" id="chatPanel">
+                        <div class="chat-header">
+                            <h3>💬 Chat com IA</h3>
+                            <button class="chat-close" onclick="toggleChat()">×</button>
                         </div>
+                        <div class="chat-body" id="chatMessages">
+                            <div class="chat-message assistant">
+                                <div>🤖 Olá! Sou seu assistente educacional. Como posso ajudar?</div>
+                            </div>
                         </div>
-                        
                         <div class="chat-input-container">
-                            <div class="chat-input-wrapper">
-                                <input type="text" id="chatInput" placeholder="Digite sua mensagem..." maxlength="500">
-                                <button id="sendButton" onclick="sendChatMessage()" disabled>
-                                    <span class="send-icon">📤</span>
-                                </button>
-                            </div>
-                            <div class="chat-input-footer">
-                                <small>Pressione Enter para enviar • Shift+Enter para nova linha</small>
-                            </div>
-                            <button class="btn btn-secondary" onclick="clearChatHistory()" style="margin-top: 0.5rem;">🗑️ Limpar Histórico</button>
+                            <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." maxlength="500">
+                            <button class="chat-send" onclick="sendChatMessage()">Enviar</button>
                         </div>
                     </div>
-                    
-                    <div class="grade-panel">
-                        <h3>📅 Grade Horária</h3>
-                        <div id="gradeContainer">
-                            <div class="loading">Carregando grade horária...</div>
-                        </div>
-                        <button class="btn btn-secondary" onclick="clearAllGrades()" style="margin-top: 1rem;">🗑️ Limpar Grades</button>
-                        </div>
-                    </div>
-                `;
-            
-            // Carregar histórico de mensagens
-            loadChatHistory();
+                </div>
+            `;
             
             // Carregar grade horária
             loadGradeHoraria();
             
-            // Configurar eventos
+            // Configurar eventos do chat
             setupChatEvents();
+        }
+
+        // ===== CHAT FLUTUANTE =====
+        
+        function toggleChat() {
+            const chatPanel = document.getElementById('chatPanel');
+            const chatToggle = document.getElementById('chatToggle');
+            
+            if (chatPanel.classList.contains('open')) {
+                chatPanel.classList.remove('open');
+                chatToggle.innerHTML = '💬';
+            } else {
+                chatPanel.classList.add('open');
+                chatToggle.innerHTML = '✕';
+                // Focar no input quando abrir
+                setTimeout(() => {
+                    const input = document.getElementById('chatInput');
+                    if (input) input.focus();
+                }, 100);
+            }
         }
 
         // ===== MODAIS =====
