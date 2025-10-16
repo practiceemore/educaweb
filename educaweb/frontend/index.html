@@ -761,21 +761,6 @@
             }
         }
 
-        function showChatView() {
-            const main = document.querySelector('.main');
-            main.innerHTML = `
-                <div class="grade-view">
-                    <h3>📅 Grade Horária</h3>
-                    <div id="gradeContainer">
-                        <div class="loading">Carregando grade horária...</div>
-                    </div>
-                    <button class="btn btn-secondary" onclick="clearAllGrades()" style="margin-top: 1rem;">🗑️ Limpar Grades</button>
-                </div>
-            `;
-            
-            // Carregar grade horária
-            loadGradeHoraria();
-        }
 
         // ===== CHAT FLUTUANTE =====
         
