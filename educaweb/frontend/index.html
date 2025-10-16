@@ -145,6 +145,26 @@
         <main class="main">
             <!-- Conteúdo será carregado dinamicamente -->
         </main>
+        
+        <!-- Chat Flutuante Global -->
+        <div class="chat-widget" id="globalChatWidget" style="display: none;">
+            <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">💬</button>
+            <div class="chat-panel" id="chatPanel">
+                <div class="chat-header">
+                    <h3>💬 Chat com IA</h3>
+                    <button class="chat-close" onclick="toggleChat()">×</button>
+                </div>
+                <div class="chat-body" id="chatMessages">
+                    <div class="chat-message assistant">
+                        <div>🤖 Olá! Sou seu assistente educacional. Como posso ajudar?</div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." maxlength="500">
+                    <button class="chat-send" onclick="sendChatMessage()">Enviar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -470,15 +490,29 @@
 
         function showNavigation() {
             const nav = document.getElementById('mainNav');
+            const chatWidget = document.getElementById('globalChatWidget');
+            
             if (nav) {
                 nav.style.display = 'block';
+            }
+            
+            if (chatWidget) {
+                chatWidget.style.display = 'block';
+                // Configurar eventos do chat quando mostrar navegação
+                setupChatEvents();
             }
         }
 
         function hideNavigation() {
             const nav = document.getElementById('mainNav');
+            const chatWidget = document.getElementById('globalChatWidget');
+            
             if (nav) {
                 nav.style.display = 'none';
+            }
+            
+            if (chatWidget) {
+                chatWidget.style.display = 'none';
             }
         }
 
@@ -741,33 +775,10 @@
                     </div>
                     <button class="btn btn-secondary" onclick="clearAllGrades()" style="margin-top: 1rem;">🗑️ Limpar Grades</button>
                 </div>
-                
-                <!-- Chat Flutuante -->
-                <div class="chat-widget">
-                    <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">💬</button>
-                    <div class="chat-panel" id="chatPanel">
-                        <div class="chat-header">
-                            <h3>💬 Chat com IA</h3>
-                            <button class="chat-close" onclick="toggleChat()">×</button>
-                        </div>
-                        <div class="chat-body" id="chatMessages">
-                            <div class="chat-message assistant">
-                                <div>🤖 Olá! Sou seu assistente educacional. Como posso ajudar?</div>
-                            </div>
-                        </div>
-                        <div class="chat-input-container">
-                            <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." maxlength="500">
-                            <button class="chat-send" onclick="sendChatMessage()">Enviar</button>
-                        </div>
-                    </div>
-                </div>
             `;
             
             // Carregar grade horária
             loadGradeHoraria();
-            
-            // Configurar eventos do chat
-            setupChatEvents();
         }
 
         // ===== CHAT FLUTUANTE =====
