@@ -136,8 +136,8 @@
             </div>
             <nav class="nav" id="mainNav" style="display: none;">
                 <div class="nav-items">
-                    <div class="nav-chip" onclick="showView('disciplinas')">📚 Disciplinas</div>
                     <div class="nav-chip" onclick="showView('grade')">📅 Grade Horária</div>
+                    <div class="nav-chip" onclick="showView('disciplinas')">📚 Disciplinas</div>
                     <div class="nav-chip" onclick="showView('professores')">👨‍🏫 Professores</div>
                     <div class="nav-chip" onclick="showView('turmas')">👥 Turmas</div>
                     <div class="nav-chip" onclick="showView('salas')">🏫 Salas</div>
@@ -301,7 +301,7 @@
                     localStorage.setItem('user', JSON.stringify(currentUser));
                     
                     showNotification('Login realizado com sucesso!', 'success');
-                    showDashboard();
+                    showGradeView();
                     showNavigation();
                     return true;
                 }
@@ -480,7 +480,7 @@
                     showLoginScreen();
                     return;
                 }
-                showDashboard();
+                showGradeView();
                 showNavigation();
             } else {
                 showLoginScreen();
@@ -563,7 +563,7 @@
                     showAIView();
                     break;
                 default:
-                    showDashboard();
+                    showGradeView();
             }
         }
 
