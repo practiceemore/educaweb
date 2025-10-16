@@ -138,31 +138,11 @@ body {
   align-items: center;
   justify-content: flex-end !important;
   gap: 18px;
-  text-align: right;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 700;
-  font-size: 18px;
-  padding-right: 12px;
-}
-
-.logo-badge {
-  background: #F5A623;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-weight: 800;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
 .nav-items {
   display: flex;
   gap: 12px;
-  margin-left: auto;
 }
 
 .nav-chip {
