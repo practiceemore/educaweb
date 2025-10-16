@@ -131,14 +131,14 @@ body {
 
 .logo {
   float: left;
-  padding: 8px 18px;
+  padding: 2px 2px;
   display: flex;
   align-items: center;
 }
 
 .logo-img {
-  height: 80px;
-  width: auto;
+  height: 100px;
+  width: 300px;
   display: block;
 }
 
@@ -502,7 +502,7 @@ body {
 
 /* Buttons */
 .btn-primary {
-  background: #4A90E2;
+  background: #45C0A9;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -514,9 +514,9 @@ body {
 }
 
 .btn-primary:hover {
-  background: #357ABD;
+  background: #3AA890;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 4px 12px rgba(69, 192, 169, 0.3);
 }
 
 .btn-edit {
@@ -2583,7 +2583,7 @@ body {
 }
 
 .disciplinas-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
   color: white !important;
   padding: 1.2rem 1.5rem;
   text-align: left;
@@ -2735,7 +2735,7 @@ body {
 }
 
 .professores-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
   color: white !important;
   padding: 1.2rem 1.5rem;
   text-align: left;
@@ -2863,7 +2863,7 @@ body {
 }
 
 .turmas-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
   color: white !important;
   padding: 1.2rem 1.5rem;
   text-align: left;
@@ -2939,7 +2939,7 @@ body {
 }
 
 .salas-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
   color: white !important;
   padding: 1.2rem 1.5rem;
   text-align: left;
