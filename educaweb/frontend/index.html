@@ -131,15 +131,14 @@
 <body>
     <div class="app">
         <header class="header">
-            <nav class="nav" id="mainNav" style="display: none;">
-                <button class="nav-btn active" onclick="showView('chat')">💬 Chat</button>
-                <button class="nav-btn" onclick="showView('disciplinas')">📚 Disciplinas</button>
-                <button class="nav-btn" onclick="showView('grade')">📅 Grade Horária</button>
-                <button class="nav-btn" onclick="showView('professores')">👨‍🏫 Professores</button>
-                <button class="nav-btn" onclick="showView('turmas')">👥 Turmas</button>
-                <button class="nav-btn" onclick="showView('salas')">🏫 Salas</button>                  
-                <button class="nav-btn" onclick="showView('dashboard')">📊 Dashboard</button>
-            </nav>
+                <nav class="nav" id="mainNav" style="display: none;">
+                    <button class="nav-btn" onclick="showView('disciplinas')">📚 Disciplinas</button>
+                    <button class="nav-btn" onclick="showView('grade')">📅 Grade Horária</button>
+                    <button class="nav-btn" onclick="showView('professores')">👨‍🏫 Professores</button>
+                    <button class="nav-btn" onclick="showView('turmas')">👥 Turmas</button>
+                    <button class="nav-btn" onclick="showView('salas')">🏫 Salas</button>                  
+                    <button class="nav-btn" onclick="showView('dashboard')">📊 Dashboard</button>
+                </nav>
         </header>
 
         <main class="main">
@@ -297,7 +296,7 @@
                     localStorage.setItem('user', JSON.stringify(currentUser));
                     
                     showNotification('Login realizado com sucesso!', 'success');
-                    showChatView();
+                    showDashboard();
                     showNavigation();
                     return true;
                 }
@@ -476,7 +475,7 @@
                     showLoginScreen();
                     return;
                 }
-                showChatView();
+                showDashboard();
                 showNavigation();
             } else {
                 showLoginScreen();
@@ -550,9 +549,6 @@
                     break;
                 case 'ai':
                     showAIView();
-                    break;
-                case 'chat':
-                    showChatView();
                     break;
                 default:
                     showDashboard();
