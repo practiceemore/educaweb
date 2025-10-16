@@ -27,7 +27,8 @@ import { authMiddleware } from './middleware/auth';
 dotenv.config();
 
 // Inicializar Prisma
-export const prisma = new PrismaClient();
+const prisma = new PrismaClient();
+export { prisma };
 
 // Criar aplicação Express
 const app = express();

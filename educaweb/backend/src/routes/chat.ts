@@ -393,7 +393,9 @@ REGRAS PARA GERAÇÃO DE GRADE:
     }
 
     // Processar dados da grade horária se encontrados
+    let gradeGenerated = false;
     if (gradeData && gradeData.turmas) {
+      gradeGenerated = true;
       try {
         // Limpar grade existente para as turmas
         const turmaIds = gradeData.turmas.map((t: any) => t.turmaId);
@@ -436,8 +438,6 @@ REGRAS PARA GERAÇÃO DE GRADE:
           }
         }
 
-        // Adicionar mensagem de sucesso à resposta
-        resposta += '\n\n✅ Grade horária criada com sucesso! Você pode visualizá-la na aba "Grade Horária".';
       } catch (error) {
         console.error('Erro ao processar grade horária:', error);
         resposta += '\n\n⚠️ Grade horária gerada, mas houve erro ao salvar no banco de dados.';
@@ -445,9 +445,14 @@ REGRAS PARA GERAÇÃO DE GRADE:
     }
 
     // Atualizar mensagem com resposta
+    // Se grade foi gerada, NÃO salvar o JSON, apenas mensagem de confirmação
+    const respostaParaSalvar = gradeGenerated 
+      ? '✅ Grade horária criada com sucesso! Você pode visualizá-la na aba "Grade Horária".'
+      : resposta;
+
     const messageWithResponse = await prisma.mensagemChat.update({
       where: { id: userMessage.id },
-      data: { resposta }
+      data: { resposta: respostaParaSalvar }
     });
 
     const response: ChatMessageResponse = {
@@ -459,7 +464,11 @@ REGRAS PARA GERAÇÃO DE GRADE:
 
     res.json({
       success: true,
-      data: response
+      data: {
+        ...response,
+        gradeGenerated,
+        gradeData: gradeGenerated ? gradeData : undefined
+      }
     });
 
   } catch (error) {
