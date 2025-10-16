@@ -12,13 +12,13 @@
             <div class="header-content">
                 <h1 class="logo">🎓 EducaWeb</h1>
                 <nav class="nav" id="mainNav" style="display: none;">
-                    <button class="nav-btn active" onclick="showView('dashboard')">📊 Dashboard</button>
+                    <button class="nav-btn active" onclick="showView('chat')">💬 Chat</button>
                     <button class="nav-btn" onclick="showView('disciplinas')">📚 Disciplinas</button>
+                    <button class="nav-btn" onclick="showView('grade')">📅 Grade Horária</button>
                     <button class="nav-btn" onclick="showView('professores')">👨‍🏫 Professores</button>
                     <button class="nav-btn" onclick="showView('turmas')">👥 Turmas</button>
                     <button class="nav-btn" onclick="showView('salas')">🏫 Salas</button>
-                    <button class="nav-btn" onclick="showView('grade')">📅 Grade Horária</button>
-                    <button class="nav-btn" onclick="showView('chat')">💬 Chat</button>
+                    <button class="nav-btn" onclick="showView('dashboard')">📊 Dashboard</button>
                 </nav>
             </div>
         </header>
@@ -41,6 +41,10 @@
         let professores = [];
         let turmas = [];
         let salas = [];
+
+        // Variáveis para disciplinas da turma
+        let turmaDisciplinas = [];
+        let turmaAtual = null;
 
         // ===== FUNÇÕES DE UTILIDADE =====
 
@@ -154,7 +158,7 @@
                     localStorage.setItem('user', JSON.stringify(currentUser));
                     
                     showNotification('Login realizado com sucesso!', 'success');
-                    showDashboard();
+                    showChatView();
                     showNavigation();
                     return true;
                 }
@@ -333,7 +337,7 @@
                     showLoginScreen();
                     return;
                 }
-                showDashboard();
+                showChatView();
                 showNavigation();
             } else {
                 showLoginScreen();
@@ -580,13 +584,15 @@
                     <div class="view-container">
                         <div class="view-header">
                             <h2>📅 Grade Horária</h2>
-                            <button class="btn-primary" onclick="showAddAulaModal()">➕ Adicionar Aula</button>
+                            <button class="btn-secondary" onclick="clearAllGrades()">🗑️ Limpar Grades</button>
                         </div>
-                        <div class="grade-container">
-                            <p>Grade horária será implementada aqui...</p>
+                        <div id="gradeContainer">
+                            <div class="loading">Carregando grade horária...</div>
                         </div>
                     </div>
                 `;
+                
+                loadGradeHoraria();
             }
         }
 
@@ -607,19 +613,59 @@
         }
 
         function showChatView() {
-            const mainContent = document.querySelector('main');
-            if (mainContent) {
-                mainContent.innerHTML = `
-                    <div class="view-container">
-                        <div class="view-header">
-                            <h2>💬 Chat com IA</h2>
+            const main = document.querySelector('.main');
+            main.innerHTML = `
+                <div class="unified-view">
+                    <div class="chat-panel">
+                        <h3>💬 Chat com IA</h3>
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="chat-welcome">
+                                <div class="welcome-icon">🤖</div>
+                                <h4>Olá! Sou seu assistente educacional</h4>
+                                <p>Posso ajudar você com:</p>
+                                <ul>
+                                    <li>📊 Análises da grade horária</li>
+                                    <li>👥 Gestão de turmas e professores</li>
+                                    <li>📈 Relatórios e estatísticas</li>
+                                    <li>💡 Sugestões de otimização</li>
+                                    <li>❓ Dúvidas sobre o sistema</li>
+                                </ul>
+                                <p>Como posso ajudar você hoje?</p>
                         </div>
-                        <div class="chat-container">
-                            <p>Chat com IA será implementado aqui...</p>
+                        </div>
+                        
+                        <div class="chat-input-container">
+                            <div class="chat-input-wrapper">
+                                <input type="text" id="chatInput" placeholder="Digite sua mensagem..." maxlength="500">
+                                <button id="sendButton" onclick="sendChatMessage()" disabled>
+                                    <span class="send-icon">📤</span>
+                                </button>
+                            </div>
+                            <div class="chat-input-footer">
+                                <small>Pressione Enter para enviar • Shift+Enter para nova linha</small>
+                            </div>
+                            <button class="btn btn-secondary" onclick="clearChatHistory()" style="margin-top: 0.5rem;">🗑️ Limpar Histórico</button>
+                        </div>
+                    </div>
+                    
+                    <div class="grade-panel">
+                        <h3>📅 Grade Horária</h3>
+                        <div id="gradeContainer">
+                            <div class="loading">Carregando grade horária...</div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="clearAllGrades()" style="margin-top: 1rem;">🗑️ Limpar Grades</button>
                         </div>
                     </div>
                 `;
-            }
+            
+            // Carregar histórico de mensagens
+            loadChatHistory();
+            
+            // Carregar grade horária
+            loadGradeHoraria();
+            
+            // Configurar eventos
+            setupChatEvents();
         }
 
         // ===== MODAIS (PLACEHOLDERS) =====
@@ -684,8 +730,755 @@
             }
         }
 
-        function showTurmaDisciplinasModal(turmaId) {
-            showNotification(`Modal de disciplinas da turma ${turmaId} será implementado`, 'info');
+        async function showTurmaDisciplinasModal(turmaId) {
+            turmaAtual = turmas.find(t => t.id == turmaId);
+            if (!turmaAtual) {
+                showNotification('Turma não encontrada', 'error');
+                return;
+            }
+
+            // Remover modal existente se houver
+            const existingModal = document.getElementById("turmaDisciplinasModal");
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Carregar disciplinas da turma
+            await loadTurmaDisciplinas(turmaId);
+
+            // Criar modal
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            modal.id = "turmaDisciplinasModal";
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h3>📚 Disciplinas da Turma: ${turmaAtual.nome}</h3>
+                        <span class="close" onclick="closeModal('turmaDisciplinasModal')">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div style="margin-bottom: 20px;">
+                            <button class="btn-primary" onclick="showAddDisciplinaToTurmaModal()">➕ Adicionar Disciplina</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Disciplina</th>
+                                        <th>Aulas por Semana</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="turmaDisciplinasTableBody">
+                                    ${turmaDisciplinas.map(td => `
+                                        <tr>
+                                            <td>${td.disciplina.nome}</td>
+                                            <td>
+                                                <input type="number" 
+                                                       id="aulas-${td.id}" 
+                                                       value="${td.aulasPorSemana}" 
+                                                       min="1" 
+                                                       max="20" 
+                                                       style="width: 80px; padding: 5px;"
+                                                       onchange="updateAulasPorSemana(${td.id}, this.value)">
+                                            </td>
+                                            <td>
+                                                <button class="btn-delete" onclick="removeDisciplinaFromTurma(${td.id})">🗑️</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.style.display = "block";
+
+            // Fechar modal ao clicar fora dele
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeModal("turmaDisciplinasModal");
+                }
+            };
+        }
+
+        // Função para carregar disciplinas da turma
+        async function loadTurmaDisciplinas(turmaId) {
+            try {
+                const response = await apiRequest(`/turma-disciplinas/turma/${turmaId}`, 'GET');
+                if (response.success) {
+                    turmaDisciplinas = response.data;
+                } else {
+                    throw new Error(response.error || 'Erro ao carregar disciplinas');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar disciplinas da turma:', error);
+                showNotification('Erro ao carregar disciplinas da turma', 'error');
+                turmaDisciplinas = [];
+            }
+        }
+
+        // Função para atualizar aulas por semana
+        async function updateAulasPorSemana(turmaDisciplinaId, novasAulas) {
+            const aulas = parseInt(novasAulas);
+            if (aulas < 1 || aulas > 20) {
+                showNotification('Aulas por semana deve ser entre 1 e 20', 'error');
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'PUT', {
+                    aulasPorSemana: aulas
+                });
+
+                if (response.success) {
+                    // Atualizar dados locais
+                    const index = turmaDisciplinas.findIndex(td => td.id === turmaDisciplinaId);
+                    if (index !== -1) {
+                        turmaDisciplinas[index].aulasPorSemana = aulas;
+                    }
+                    showNotification('Aulas por semana atualizadas!', 'success');
+                } else {
+                    throw new Error(response.error || 'Erro ao atualizar');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar aulas por semana:', error);
+                showNotification('Erro ao atualizar aulas por semana', 'error');
+            }
+        }
+
+        // Função para remover disciplina da turma
+        async function removeDisciplinaFromTurma(turmaDisciplinaId) {
+            if (!confirm("Tem certeza que deseja remover esta disciplina da turma?")) {
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'DELETE');
+
+                if (response.success) {
+                    // Remover dos dados locais
+                    turmaDisciplinas = turmaDisciplinas.filter(td => td.id !== turmaDisciplinaId);
+                    
+                    // Recarregar modal
+                    await showTurmaDisciplinasModal(turmaAtual.id);
+                    showNotification('Disciplina removida da turma!', 'success');
+                } else {
+                    throw new Error(response.error || 'Erro ao remover');
+                }
+            } catch (error) {
+                console.error('Erro ao remover disciplina da turma:', error);
+                showNotification('Erro ao remover disciplina da turma', 'error');
+            }
+        }
+
+        // Função para mostrar modal de adicionar disciplina à turma
+        async function showAddDisciplinaToTurmaModal() {
+            // Remover modal existente se houver
+            const existingModal = document.getElementById("addDisciplinaToTurmaModal");
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Carregar disciplinas disponíveis
+            let disciplinasDisponiveis = [];
+            try {
+                const response = await apiRequest(`/turma-disciplinas/disciplinas-disponiveis/${turmaAtual.id}`, 'GET');
+                if (response.success) {
+                    disciplinasDisponiveis = response.data;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar disciplinas disponíveis:', error);
+                showNotification('Erro ao carregar disciplinas disponíveis', 'error');
+            }
+
+            if (disciplinasDisponiveis.length === 0) {
+                showNotification('Não há disciplinas disponíveis para adicionar', 'info');
+                return;
+            }
+
+            // Criar modal
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            modal.id = "addDisciplinaToTurmaModal";
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>➕ Adicionar Disciplina à Turma</h3>
+                        <span class="close" onclick="closeModal('addDisciplinaToTurmaModal')">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addDisciplinaToTurmaForm">
+                            <div class="form-group">
+                                <label for="disciplinaSelect">Disciplina:</label>
+                                <select id="disciplinaSelect" required>
+                                    <option value="">Selecione uma disciplina</option>
+                                    ${disciplinasDisponiveis.map(d => `
+                                        <option value="${d.id}">${d.nome}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="aulasPorSemana">Aulas por Semana:</label>
+                                <input type="number" id="aulasPorSemana" required min="1" max="20" value="2">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('addDisciplinaToTurmaModal')">Cancelar</button>
+                        <button type="button" class="btn-primary" onclick="addDisciplinaToTurma()">Adicionar</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.style.display = "block";
+
+            // Fechar modal ao clicar fora dele
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeModal("addDisciplinaToTurmaModal");
+                }
+            };
+        }
+
+        // Função para adicionar disciplina à turma
+        async function addDisciplinaToTurma() {
+            const disciplinaId = document.getElementById("disciplinaSelect").value;
+            const aulasPorSemana = parseInt(document.getElementById("aulasPorSemana").value);
+
+            if (!disciplinaId) {
+                showNotification("Selecione uma disciplina", "error");
+                return;
+            }
+
+            if (!aulasPorSemana || aulasPorSemana < 1 || aulasPorSemana > 20) {
+                showNotification("Aulas por semana deve ser entre 1 e 20", "error");
+                return;
+            }
+
+            try {
+                const response = await apiRequest("/turma-disciplinas", "POST", {
+                    turmaId: turmaAtual.id,
+                    disciplinaId: parseInt(disciplinaId),
+                    aulasPorSemana: aulasPorSemana
+                });
+
+                if (response.success) {
+                    closeModal("addDisciplinaToTurmaModal");
+                    // Recarregar modal de disciplinas
+                    await showTurmaDisciplinasModal(turmaAtual.id);
+                    showNotification("Disciplina adicionada à turma!", "success");
+                } else {
+                    throw new Error(response.error || 'Erro ao adicionar disciplina');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar disciplina à turma:', error);
+                showNotification('Erro ao adicionar disciplina à turma', 'error');
+            }
+        }
+
+        // ===== GRADE HORÁRIA =====
+
+        // Variáveis globais para grade horária
+        let gradeHoraria = [];
+        let turmasGrade = [];
+
+        // Função para carregar grade horária
+        async function loadGradeHoraria() {
+            try {
+                const response = await apiRequest('/grade-horaria', 'GET');
+                if (response.success) {
+                    gradeHoraria = response.data;
+                    turmasGrade = [...new Set(gradeHoraria.map(g => g.turma.id))];
+                    renderGradeHoraria();
+                } else {
+                    throw new Error(response.error || 'Erro ao carregar grade horária');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar grade horária:', error);
+                showNotification('Erro ao carregar grade horária', 'error');
+                document.getElementById('gradeContainer').innerHTML = '<div class="error">Erro ao carregar grade horária</div>';
+            }
+        }
+
+        // Função para renderizar grade horária
+        function renderGradeHoraria() {
+            const container = document.getElementById('gradeContainer');
+            
+            if (gradeHoraria.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📅 Nenhuma grade horária encontrada</h3>
+                        <p>Use a IA para gerar uma grade horária automaticamente ou adicione aulas manualmente.</p>
+                        <button class="btn-primary" onclick="showGenerateGradeModal()">🤖 Gerar Grade com IA</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Agrupar por turma
+            const gradePorTurma = {};
+            gradeHoraria.forEach(aula => {
+                if (!gradePorTurma[aula.turma.id]) {
+                    gradePorTurma[aula.turma.id] = {
+                        turma: aula.turma,
+                        aulas: []
+                    };
+                }
+                gradePorTurma[aula.turma.id].aulas.push(aula);
+            });
+
+            // Renderizar grade para cada turma
+            let html = '';
+            Object.values(gradePorTurma).forEach(turmaData => {
+                html += renderGradeTurma(turmaData.turma, turmaData.aulas);
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Função para renderizar grade de uma turma específica
+        function renderGradeTurma(turma, aulas) {
+            const diasSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+            const horarios = ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'];
+            
+            // Criar matriz de grade
+            const grade = {};
+            diasSemana.forEach(dia => {
+                grade[dia] = {};
+                horarios.forEach(horario => {
+                    grade[dia][horario] = null;
+                });
+            });
+
+            // Preencher com aulas existentes
+            console.log('🔍 Renderizando grade para turma:', turma.nome, 'com', aulas.length, 'aulas');
+            aulas.forEach(aula => {
+                console.log('📚 Aula:', aula.diaSemana, aula.horarioInicio, aula.disciplina.nome);
+                if (grade[aula.diaSemana] && grade[aula.diaSemana][aula.horarioInicio] === null) {
+                    grade[aula.diaSemana][aula.horarioInicio] = aula;
+                    console.log('✅ Aula adicionada à grade');
+                } else {
+                    console.log('❌ Não foi possível adicionar aula:', aula.diaSemana, aula.horarioInicio);
+                }
+            });
+
+            let html = `
+                <div class="grade-turma">
+                    <h3>📚 ${turma.nome} - ${turma.serie}º ano</h3>
+                    <div class="grade-table-container">
+                        <table class="grade-table">
+                            <thead>
+                                <tr>
+                                    <th>Horário</th>
+                                    ${diasSemana.map(dia => `<th>${dia.charAt(0).toUpperCase() + dia.slice(1)}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            horarios.forEach(horario => {
+                html += `<tr><td class="horario">${horario}</td>`;
+                diasSemana.forEach(dia => {
+                    const aula = grade[dia][horario];
+                    if (aula) {
+                        html += `
+                            <td class="aula" onclick="editAulaGrade(${aula.id})">
+                                <div class="aula-content">
+                                    <strong>${aula.disciplina.nome}</strong>
+                                    <br>
+                                    <small>${aula.professor.nome}</small>
+                                    <br>
+                                    <small>${aula.sala.nome}</small>
+                                </div>
+                            </td>
+                        `;
+                    } else {
+                        html += `<td class="vazio" onclick="addAulaGrade('${turma.id}', '${dia}', '${horario}')">+</td>`;
+                    }
+                });
+                html += '</tr>';
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            `;
+
+            return html;
+        }
+
+        // Função para mostrar modal de geração de grade com IA
+        function showGenerateGradeModal() {
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            modal.id = "generateGradeModal";
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3>🤖 Gerar Grade Horária com IA</h3>
+                        <span class="close" onclick="closeModal('generateGradeModal')">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <p>A IA irá analisar todos os dados da escola e gerar uma grade horária otimizada, evitando conflitos de professores e salas.</p>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="clearExisting" checked>
+                                Limpar grade existente antes de gerar nova
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Turma específica (opcional):</label>
+                            <select id="turmaSelect">
+                                <option value="">Todas as turmas</option>
+                                ${turmas.map(t => `<option value="${t.id}">${t.nome} - ${t.serie}º ano</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal('generateGradeModal')">Cancelar</button>
+                        <button type="button" class="btn-primary" onclick="generateGradeWithAI()">🤖 Gerar Grade</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.style.display = "block";
+
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeModal("generateGradeModal");
+                }
+            };
+        }
+
+        // Função para gerar grade com IA
+        async function generateGradeWithAI() {
+            const clearExisting = document.getElementById("clearExisting").checked;
+            const turmaId = document.getElementById("turmaSelect").value;
+
+            try {
+                // Limpar grade existente se solicitado
+                if (clearExisting) {
+                    const turmasToClear = turmaId ? [turmaId] : turmas.map(t => t.id);
+                    for (const tId of turmasToClear) {
+                        const response = await apiRequest(`/grade-horaria/turma/${tId}`, 'GET');
+                        if (response.success) {
+                            for (const aula of response.data) {
+                                await apiRequest(`/grade-horaria/${aula.id}`, 'DELETE');
+                            }
+                        }
+                    }
+                }
+
+                // Enviar comando para IA gerar grade
+                const prompt = turmaId 
+                    ? `Gere uma grade horária para a turma ${turmas.find(t => t.id == turmaId)?.nome}.`
+                    : 'Gere uma grade horária para todas as turmas da escola.';
+
+                const response = await apiRequest('/chat/send', 'POST', {
+                    mensagem: prompt
+                });
+
+                if (response.success) {
+                    closeModal("generateGradeModal");
+                    showNotification('Grade horária gerada com sucesso!', 'success');
+                    // A grade será carregada automaticamente quando o usuário for redirecionado
+                } else {
+                    throw new Error(response.error || 'Erro ao gerar grade');
+                }
+            } catch (error) {
+                console.error('Erro ao gerar grade:', error);
+                showNotification('Erro ao gerar grade horária', 'error');
+            }
+        }
+
+        // Função para adicionar aula à grade
+        function addAulaGrade(turmaId, diaSemana, horario) {
+            showNotification(`Adicionar aula para turma ${turmaId} em ${diaSemana} às ${horario}`, 'info');
+            // TODO: Implementar modal para adicionar aula
+        }
+
+        // Função para editar aula da grade
+        function editAulaGrade(aulaId) {
+            showNotification(`Editar aula ${aulaId}`, 'info');
+            // TODO: Implementar modal para editar aula
+        }
+
+        // Função para limpar todas as grades horárias
+        async function clearAllGrades() {
+            if (!confirm('Tem certeza que deseja limpar todas as grades horárias? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+            
+            try {
+                // Buscar todas as grades horárias
+                const response = await apiRequest('/grade-horaria', 'GET');
+                if (response.success && response.data.length > 0) {
+                    // Deletar todas as grades uma por uma
+                    let deletedCount = 0;
+                    for (const grade of response.data) {
+                        const deleteResponse = await apiRequest(`/grade-horaria/${grade.id}`, 'DELETE');
+                        if (deleteResponse.success) {
+                            deletedCount++;
+                        }
+                    }
+                    
+                    if (deletedCount > 0) {
+                        showNotification(`✅ ${deletedCount} aulas removidas com sucesso!`, 'success');
+                        // Recarregar a grade horária (que agora estará vazia)
+                        await loadGradeHoraria();
+                    } else {
+                        showNotification('Nenhuma aula foi removida', 'warning');
+                    }
+                } else {
+                    showNotification('Não há grades horárias para limpar', 'info');
+                }
+            } catch (error) {
+                console.error('Erro ao limpar grades horárias:', error);
+                showNotification('Erro ao limpar grades horárias', 'error');
+            }
+        }
+
+        // ===== FUNÇÕES DO CHAT =====
+
+        // Variáveis do chat
+        let chatMessages = [];
+        let isLoadingMessage = false;
+
+
+        // Configurar eventos do chat
+        function setupChatEvents() {
+            const chatInput = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            // Evento de digitação
+            chatInput.addEventListener('input', function() {
+                const hasText = this.value.trim().length > 0;
+                sendButton.disabled = !hasText || isLoadingMessage;
+            });
+            
+            // Evento de teclado
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!sendButton.disabled) {
+                        sendChatMessage();
+                    }
+                }
+            });
+            
+            // Focar no input
+            chatInput.focus();
+        }
+
+        // Enviar mensagem do chat
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendButton');
+            const message = chatInput.value.trim();
+            
+            if (!message || isLoadingMessage) return;
+            
+            // Limpar input e desabilitar botão
+            chatInput.value = '';
+            sendButton.disabled = true;
+            isLoadingMessage = true;
+            
+            // Adicionar mensagem do usuário
+            addChatMessage(message, 'user');
+            
+            // Mostrar indicador de carregamento
+            const loadingId = addChatMessage('🤖 Pensando...', 'assistant', true);
+            
+            try {
+                const response = await apiRequest('/chat/send', 'POST', {
+                    mensagem: message,
+                    metadata: {
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent
+                    }
+                });
+                
+                if (response.success) {
+                    // Remover indicador de carregamento
+                    removeChatMessage(loadingId);
+                    
+                    // Verificar se uma grade foi gerada
+                    if (response.data.gradeGenerated) {
+                        // NÃO processar resposta da IA, apenas confirmar
+                        addChatMessage('✅ Grade horária gerada com sucesso! Redirecionando...', 'assistant');
+                        showNotification('Grade horária gerada! Redirecionando...', 'success');
+                        
+                        // NÃO salvar no histórico local (já está no banco)
+                        
+                        setTimeout(() => {
+                            showView('grade');
+                        }, 2000);
+                    } else {
+                        // Resposta normal da IA
+                        const aiResponse = response.data.aiMessage?.mensagem || response.data.resposta || 'Resposta não disponível';
+                        addChatMessage(aiResponse, 'assistant');
+                        
+                        chatMessages.push({
+                            id: response.data.id,
+                            mensagem: message,
+                            resposta: response.data.resposta,
+                            timestamp: response.data.timestamp
+                        });
+                    }
+                } else {
+                    throw new Error(response.error || 'Erro ao enviar mensagem');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao enviar mensagem:', error);
+                
+                // Remover indicador de carregamento
+                removeChatMessage(loadingId);
+                
+                // Mostrar erro
+                addChatMessage('❌ Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.', 'assistant');
+            } finally {
+                isLoadingMessage = false;
+                sendButton.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        // Adicionar mensagem ao chat
+        function addChatMessage(content, sender, isLoading = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Remover mensagem de boas-vindas se existir
+            const welcome = chatMessages.querySelector('.chat-welcome');
+            if (welcome) {
+                welcome.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}`;
+            messageDiv.id = messageId;
+            
+            if (isLoading) {
+                messageDiv.innerHTML = `
+                    <div class="message-content loading">
+                        <div class="loading-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span class="loading-text">${content}</span>
+                    </div>
+                `;
+            } else {
+                const timestamp = new Date().toLocaleTimeString('pt-BR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-text">${formatChatMessage(content)}</div>
+                        <div class="message-time">${timestamp}</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageId;
+        }
+
+        // Remover mensagem do chat
+        function removeChatMessage(messageId) {
+            const message = document.getElementById(messageId);
+            if (message) {
+                message.remove();
+            }
+        }
+
+        // Formatar mensagem do chat
+        function formatChatMessage(content) {
+            // Converter quebras de linha
+            content = content.replace(/\n/g, '<br>');
+            
+            // Destacar listas
+            content = content.replace(/\n• /g, '<br>• ');
+            content = content.replace(/\n- /g, '<br>- ');
+            
+            // Destacar números
+            content = content.replace(/(\d+)/g, '<strong>$1</strong>');
+            
+            return content;
+        }
+
+        // Carregar histórico do chat
+        async function loadChatHistory() {
+            try {
+                const response = await apiRequest('/chat/messages?limit=20', 'GET');
+                
+                if (response.success && response.data.length > 0) {
+                    const chatMessages = document.getElementById('chatMessages');
+                    
+                    // Remover mensagem de boas-vindas
+                    const welcome = chatMessages.querySelector('.chat-welcome');
+                    if (welcome) {
+                        welcome.remove();
+                    }
+                    
+                    // Adicionar mensagens do histórico
+                    response.data.reverse().forEach(msg => {
+                        addChatMessage(msg.mensagem, 'user');
+                        if (msg.resposta) {
+                            addChatMessage(msg.resposta, 'assistant');
+                        }
+                    });
+                    
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar histórico do chat:', error);
+            }
+        }
+
+        // Limpar histórico do chat
+        async function clearChatHistory() {
+            if (!confirm('Tem certeza que deseja limpar todo o histórico do chat?')) {
+                return;
+            }
+            
+            try {
+                const response = await apiRequest('/chat/clear', 'DELETE');
+                
+                if (response.success) {
+                    // Limpar interface
+                    const chatMessages = document.getElementById('chatMessages');
+                    chatMessages.innerHTML = `
+                        <div class="chat-welcome">
+                            <div class="welcome-icon">🤖</div>
+                            <h3>Histórico limpo!</h3>
+                            <p>Como posso ajudar você hoje?</p>
+                        </div>
+                    `;
+                    
+                    // Limpar array local
+                    chatMessages.length = 0;
+                    
+                    showNotification('Histórico do chat limpo com sucesso!', 'success');
+                } else {
+                    throw new Error(response.error || 'Erro ao limpar histórico');
+                }
+            } catch (error) {
+                console.error('Erro ao limpar histórico:', error);
+                showNotification('Erro ao limpar histórico do chat', 'error');
+            }
         }
     </script>
 </body>
