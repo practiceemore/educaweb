@@ -138,7 +138,7 @@ body {
   align-items: center;
   justify-content: flex-end !important;
   gap: 18px;
-  width: 100%;
+  text-align: right;
 }
 
 .brand {
