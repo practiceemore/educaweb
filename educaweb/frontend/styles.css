@@ -350,7 +350,7 @@ body {
 }
 
 .chat-send {
-  background: #45C0A9;
+  background: #45C0A9 !important;
   color: white;
   border: none;
   padding: 0.75rem 1rem;
@@ -360,7 +360,7 @@ body {
 }
 
 .chat-send:hover {
-  background: #3AA890;
+  background: #3AA890 !important;
 }
 
 /* Grade View - Full Width */
