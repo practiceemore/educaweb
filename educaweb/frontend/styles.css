@@ -2481,14 +2481,14 @@ body {
 }
 
 .grade-table .aula {
-  background: #e3f2fd;
+  background: #d4f4e8;
   cursor: pointer;
   transition: background 0.2s;
   position: relative;
 }
 
 .grade-table .aula:hover {
-  background: #bbdefb;
+  background: #b8edd5;
 }
 
 .grade-table .aula-content {
@@ -2501,7 +2501,7 @@ body {
 }
 
 .grade-table .aula-content strong {
-  color: #1976d2;
+  color: #2d9973;
   font-size: 0.8rem;
   margin-bottom: 0.25rem;
 }
