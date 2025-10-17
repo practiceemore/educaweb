@@ -260,8 +260,8 @@ body {
   position: absolute;
   bottom: 80px;
   right: 0;
-  width: 350px;
-  height: 500px;
+  width: 550px;
+  height: 700px;
   background: white;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.15);
@@ -380,7 +380,7 @@ body {
   }
   
   .chat-panel {
-    height: 520px;
+    height: 750px;
   }
   
   .unified-view {
