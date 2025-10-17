@@ -2027,14 +2027,11 @@
                     // Verificar se uma grade foi gerada
                     if (response.data.gradeGenerated) {
                         // NÃO processar resposta da IA, apenas confirmar
-                        addChatMessage('✅ Grade horária gerada com sucesso! Redirecionando...', 'assistant');
-                        showNotification('Grade horária gerada! Redirecionando...', 'success');
+                        addChatMessage('✅ Grade horária gerada com sucesso! Você pode visualizá-la na aba "Grade Horária".', 'assistant');
+                        showNotification('Grade horária gerada com sucesso!', 'success');
                         
-                        // NÃO salvar no histórico local (já está no banco)
-                        
-                        setTimeout(() => {
-                            showView('grade');
-                        }, 2000);
+                        // Recarregar grade automaticamente em background
+                        await loadGradeHoraria();
                     } else {
                         // Resposta normal da IA
                         const aiResponse = response.data.aiMessage?.mensagem || response.data.resposta || 'Resposta não disponível';
