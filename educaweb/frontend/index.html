@@ -301,6 +301,7 @@
                     localStorage.setItem('user', JSON.stringify(currentUser));
                     
                     showNotification('Login realizado com sucesso!', 'success');
+                    await loadData();
                     showGradeView();
                     showNavigation();
                     return true;
@@ -442,9 +443,6 @@
                         </div>
                     </div>
                 `;
-                
-                // Carregar dados após mostrar dashboard
-                loadData();
             }
         }
 
@@ -462,7 +460,7 @@
 
         // ===== INICIALIZAÇÃO =====
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             console.log('DOM carregado, inicializando app...');
             
             // Verificar se usuário já está logado
@@ -480,6 +478,7 @@
                     showLoginScreen();
                     return;
                 }
+                await loadData();
                 showGradeView();
                 showNavigation();
             } else {
