@@ -2155,6 +2155,11 @@ body {
     padding: 60px 30px 30px 30px;
 }
 
+/* Padding for forms directly inside modal-content (when no modal-body exists) */
+.modal-content form {
+    padding: 40px 30px 30px 30px;
+}
+
 .modal-footer {
     padding: 20px 30px;
     border-top: 1px solid #eee;
