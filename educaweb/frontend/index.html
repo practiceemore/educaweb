@@ -165,7 +165,7 @@
                 </div>
                 <div class="chat-body" id="chatMessages">
                     <div class="chat-message assistant">
-                        <div>🤖 Olá! Sou seu assistente educacional. Como posso ajudar?</div>
+                        🤖 Olá! Sou seu assistente educacional. Como posso ajudar?
                     </div>
                 </div>
                 <div class="chat-input-container">
@@ -2103,12 +2103,10 @@
             
             if (isLoading) {
                 messageDiv.innerHTML = `
-                    <div class="message-content loading">
-                        <div class="loading-dots">
-                            <span></span><span></span><span></span>
-                        </div>
-                        <span class="loading-text">${content}</span>
+                    <div class="loading-dots">
+                        <span></span><span></span><span></span>
                     </div>
+                    <span class="loading-text">${content}</span>
                 `;
             } else {
                 const timestamp = new Date().toLocaleTimeString('pt-BR', { 
@@ -2117,10 +2115,8 @@
                 });
                 
                 messageDiv.innerHTML = `
-                    <div class="message-content">
-                        <div class="message-text">${formatChatMessage(content)}</div>
-                        <div class="message-time">${timestamp}</div>
-                    </div>
+                    <div class="message-text">${formatChatMessage(content)}</div>
+                    <div class="message-time">${timestamp}</div>
                 `;
             }
             
