@@ -288,20 +288,60 @@ body {
   font-size: 1.1rem;
 }
 
-.chat-clear {
-  background: none;
-  border: none;
-  color: white !important;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  transition: transform 0.2s ease;
+/* Menu de opções do chat */
+.chat-menu {
+  position: relative;
 }
 
-.chat-clear:hover {
-  transform: scale(1.2);
-  opacity: 0.8;
-  color: white !important;
+.chat-menu-toggle {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px 10px;
+  line-height: 1;
+  transition: background 0.2s ease;
+}
+
+.chat-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.chat-menu-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 5px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.chat-menu-dropdown.active {
+  display: block;
+}
+
+.chat-menu-dropdown button {
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.2s ease;
+}
+
+.chat-menu-dropdown button:hover {
+  background: #f5f5f5;
 }
 
 .chat-body {

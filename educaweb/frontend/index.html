@@ -156,7 +156,12 @@
             <div class="chat-panel" id="chatPanel">
                 <div class="chat-header">
                     <h3>💬 Chat com IA</h3>
-                    <button class="chat-clear" onclick="clearChatHistory()" title="Limpar histórico">🗑️</button>
+                    <div class="chat-menu">
+                        <button class="chat-menu-toggle" onclick="toggleChatMenu()" title="Opções">⋮</button>
+                        <div class="chat-menu-dropdown" id="chatMenuDropdown">
+                            <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="chat-body" id="chatMessages">
                     <div class="chat-message assistant">
@@ -793,6 +798,20 @@
                 }, 100);
             }
         }
+
+        function toggleChatMenu() {
+            const dropdown = document.getElementById('chatMenuDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        // Fechar menu ao clicar fora
+        document.addEventListener('click', function(e) {
+            const menu = document.querySelector('.chat-menu');
+            if (menu && !menu.contains(e.target)) {
+                const dropdown = document.getElementById('chatMenuDropdown');
+                if (dropdown) dropdown.classList.remove('active');
+            }
+        });
 
         // ===== MODAIS =====
 
