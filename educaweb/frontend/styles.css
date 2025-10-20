@@ -2273,6 +2273,69 @@ body {
 
 /* Chat message styles consolidated above (line 356) */
 
+/* ===== ESTILOS PARA TABELA DE DISCIPLINAS DA TURMA ===== */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.data-table th {
+    background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
+    color: white !important;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.data-table th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.data-table th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.data-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
+}
+
+.data-table tr:hover td {
+    background-color: #f8f9ff;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Proporções das colunas para disciplinas da turma */
+.data-table th:nth-child(1),
+.data-table td:nth-child(1) {
+    width: 50%; /* Disciplina - mais espaço */
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.data-table th:nth-child(2),
+.data-table td:nth-child(2) {
+    width: 30%; /* Aulas por Semana */
+    text-align: center;
+    color: #6c757d;
+}
+
+.data-table th:nth-child(3),
+.data-table td:nth-child(3) {
+    width: 20%; /* Ações - alinhado à direita */
+    text-align: center;
+}
+
 .message-text {
     line-height: 1.4;
     font-size: 14px;
