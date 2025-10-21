@@ -2130,9 +2130,134 @@
         }
 
         // Função para editar aula da grade
+        // FUNÇÃO MODIFICADA: para editar uma aula existente
         function editAulaGrade(aulaId) {
-            showNotification(`Editar aula ${aulaId}`, 'info');
-            // TODO: Implementar modal para editar aula
+            // 1. Encontrar a aula específica no nosso array de dados local
+            const aula = gradeHoraria.find(g => g.id == aulaId);
+
+            if (!aula) {
+                showNotification('Aula não encontrada. Tente recarregar a página.', 'error');
+                return;
+            }
+
+            // Remove qualquer modal de edição que possa ter ficado aberto
+            const existingModal = document.getElementById('editAulaModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const modal = document.createElement('div');
+            modal.id = 'editAulaModal';
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>✏️ Editar Aula</h3>
+                        <button class="close-btn" onclick="closeModal('editAulaModal')">&times;</button>
+                    </div>
+                    
+                    <form id="editAulaForm" onsubmit="handleEditAula(event, ${aula.id})">
+                        
+                        <div class="form-group">
+                            <label for="editAulaDisciplina">Disciplina:</label>
+                            <select id="editAulaDisciplina" name="disciplinaId" required>
+                                ${disciplinas.map(d => `
+                                    <option value="${d.id}" ${d.id === aula.disciplina.id ? 'selected' : ''}>
+                                        ${d.nome}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editAulaProfessor">Professor:</label>
+                            <select id="editAulaProfessor" name="professorId" required>
+                                ${professores.map(p => `
+                                    <option value="${p.id}" ${p.id === aula.professor.id ? 'selected' : ''}>
+                                        ${p.nome}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editAulaSala">Sala:</label>
+                            <select id="editAulaSala" name="salaId" required>
+                                ${salas.map(s => `
+                                    <option value="${s.id}" ${s.id === aula.sala.id ? 'selected' : ''}>
+                                        ${s.nome} (Cap: ${s.capacidade})
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+
+                        <div class="modal-actions" style="justify-content: space-between;">
+                             <!-- Botão de Excluir alinhado à esquerda -->
+                            <button type="button" class="btn-danger" onclick="handleDeleteAula(${aula.id})">Excluir Aula</button>
+                            
+                            <!-- Botões de Cancelar/Salvar alinhados à direita -->
+                            <div>
+                                <button type="button" class="btn-secondary" onclick="closeModal('editAulaModal')">Cancelar</button>
+                                <button type="submit" class="btn-primary">Salvar Alterações</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // NOVA FUNÇÃO: para processar o envio do formulário e SALVAR AS ALTERAÇÕES da aula
+        async function handleEditAula(event, aulaId) {
+            event.preventDefault();
+
+            const disciplinaId = document.getElementById('editAulaDisciplina').value;
+            const professorId = document.getElementById('editAulaProfessor').value;
+            const salaId = document.getElementById('editAulaSala').value;
+
+            const data = {
+                disciplinaId: parseInt(disciplinaId),
+                professorId: parseInt(professorId),
+                salaId: parseInt(salaId)
+            };
+
+            try {
+                // Usamos o método PUT para atualizar um recurso existente
+                const response = await apiRequest(`/grade-horaria/${aulaId}`, 'PUT', data);
+                if (response.success) {
+                    showNotification('Aula atualizada com sucesso!', 'success');
+                    closeModal('editAulaModal');
+                    await loadGradeHoraria(); // Recarrega a grade para mostrar as alterações
+                } else {
+                    showNotification(response.error || 'Erro ao atualizar a aula.', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar aula:', error);
+                showNotification('Ocorreu um erro de comunicação ao salvar as alterações.', 'error');
+            }
+        }
+
+        // NOVA FUNÇÃO: para EXCLUIR uma aula
+        async function handleDeleteAula(aulaId) {
+            // Pede confirmação ao usuário antes de uma ação destrutiva
+            if (!confirm('Tem certeza que deseja excluir esta aula? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+
+            try {
+                // Usamos o método DELETE para remover o recurso
+                const response = await apiRequest(`/grade-horaria/${aulaId}`, 'DELETE');
+                if (response.success) {
+                    showNotification('Aula excluída com sucesso!', 'success');
+                    closeModal('editAulaModal');
+                    await loadGradeHoraria(); // Recarrega a grade para remover a aula
+                } else {
+                    showNotification(response.error || 'Erro ao excluir a aula.', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir aula:', error);
+                showNotification('Ocorreu um erro de comunicação ao excluir a aula.', 'error');
+            }
         }
 
         // Função para limpar todas as grades horárias
