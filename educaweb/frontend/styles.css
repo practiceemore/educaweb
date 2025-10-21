@@ -3095,11 +3095,12 @@ body {
   background-color: #dc3545;
   color: white;
   border: none;
-  padding: 1rem 1rem;
-  border-radius: 6px;
+  padding: 0.75rem 1.5rem;   /* <-- AJUSTADO para o padrão */
+  border-radius: 5px;         /* <-- AJUSTADO para o padrão */
   cursor: pointer;
-  font-size: 0.8rem;
-  transition: background-color 0.2s;
+  font-size: 0.9rem;            /* <-- AJUSTADO para o padrão */
+  font-weight: 500;           /* <-- AJUSTADO para o padrão */
+  transition: background-color 0.3s; /* <-- AJUSTADO para o padrão */
 }
 
 .btn-danger:hover {
