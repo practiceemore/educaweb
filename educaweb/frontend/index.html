@@ -1789,10 +1789,92 @@
             container.innerHTML = html;
         }
 
-        // Função para renderizar grade de uma turma específica
+        // // Função para renderizar grade de uma turma específica
+        // function renderGradeTurma(turma, aulas) {
+        //     const diasSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+        //     const horarios = ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'];
+            
+        //     // Criar matriz de grade
+        //     const grade = {};
+        //     diasSemana.forEach(dia => {
+        //         grade[dia] = {};
+        //         horarios.forEach(horario => {
+        //             grade[dia][horario] = null;
+        //         });
+        //     });
+
+        //     // Preencher com aulas existentes
+        //     console.log('🔍 Renderizando grade para turma:', turma.nome, 'com', aulas.length, 'aulas');
+        //     aulas.forEach(aula => {
+        //         console.log('📚 Aula:', aula.diaSemana, aula.horarioInicio, aula.disciplina.nome);
+        //         if (grade[aula.diaSemana] && grade[aula.diaSemana][aula.horarioInicio] === null) {
+        //             grade[aula.diaSemana][aula.horarioInicio] = aula;
+        //             console.log('✅ Aula adicionada à grade');
+        //         } else {
+        //             console.log('❌ Não foi possível adicionar aula:', aula.diaSemana, aula.horarioInicio);
+        //         }
+        //     });
+
+        //     let html = `
+        //         <div class="grade-turma">
+        //             <h3>📚 ${turma.nome} - ${turma.serie}º ano</h3>
+        //             <div class="grade-table-container">
+        //                 <table class="grade-table">
+        //                     <thead>
+        //                         <tr>
+        //                             <th>Horário</th>
+        //                             ${diasSemana.map(dia => `<th>${dia.charAt(0).toUpperCase() + dia.slice(1)}</th>`).join('')}
+        //                         </tr>
+        //                     </thead>
+        //                     <tbody>
+        //     `;
+
+        //     horarios.forEach(horario => {
+        //         html += `<tr><td class="horario">${horario}</td>`;
+        //         diasSemana.forEach(dia => {
+        //             const aula = grade[dia][horario];
+        //             if (aula) {
+        //                 html += `
+        //                     <td class="aula" onclick="editAulaGrade(${aula.id})">
+        //                         <div class="aula-content">
+        //                             <strong>${aula.disciplina.nome}</strong>
+        //                             <br>
+        //                             <small>${aula.professor.nome}</small>
+        //                             <br>
+        //                             <small>${aula.sala.nome}</small>
+        //                         </div>
+        //                     </td>
+        //                 `;
+        //             } else {
+        //                 html += `<td class="vazio" onclick="addAulaGrade('${turma.id}', '${dia}', '${horario}')">+</td>`;
+        //             }
+        //         });
+        //         html += '</tr>';
+        //     });
+
+        //     html += `
+        //                 </tbody>
+        //             </table>
+        //         </div>
+        //     </div>
+        //     `;
+
+        //     return html;
+        // }
+
+        // Função para renderizar grade de uma turma específica (VERSÃO MODIFICADA)
         function renderGradeTurma(turma, aulas) {
             const diasSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+            
+            // MANTEMOS este array para a lógica interna
             const horarios = ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'];
+            
+            // NOVO: Adicionamos este array para exibir os nomes na coluna
+            // A quantidade de itens aqui deve ser a mesma do array 'horarios' acima.
+            const labelsAulas = [
+                '1ª Aula', '2ª Aula', '3ª Aula', '4ª Aula', '5ª Aula', 
+                '6ª Aula', '7ª Aula', '8ª Aula', '9ª Aula'
+            ];
             
             // Criar matriz de grade
             const grade = {};
@@ -1804,33 +1886,31 @@
             });
 
             // Preencher com aulas existentes
-            console.log('🔍 Renderizando grade para turma:', turma.nome, 'com', aulas.length, 'aulas');
             aulas.forEach(aula => {
-                console.log('📚 Aula:', aula.diaSemana, aula.horarioInicio, aula.disciplina.nome);
                 if (grade[aula.diaSemana] && grade[aula.diaSemana][aula.horarioInicio] === null) {
                     grade[aula.diaSemana][aula.horarioInicio] = aula;
-                    console.log('✅ Aula adicionada à grade');
-                } else {
-                    console.log('❌ Não foi possível adicionar aula:', aula.diaSemana, aula.horarioInicio);
                 }
             });
 
             let html = `
                 <div class="grade-turma">
-                    <h3>📚 ${turma.nome} - ${turma.serie}º ano</h3>
+                    <h3>📚 ${turma.nome} - ${turma.serie}</h3>
                     <div class="grade-table-container">
                         <table class="grade-table">
                             <thead>
                                 <tr>
-                                    <th>Horário</th>
+                                    <th>Período</th> <!-- ALTERADO: Mudamos o título da coluna -->
                                     ${diasSemana.map(dia => `<th>${dia.charAt(0).toUpperCase() + dia.slice(1)}</th>`).join('')}
                                 </tr>
                             </thead>
                             <tbody>
             `;
 
-            horarios.forEach(horario => {
-                html += `<tr><td class="horario">${horario}</td>`;
+            // ALTERADO: Agora usamos o índice do loop para pegar o texto de 'labelsAulas'
+            horarios.forEach((horario, index) => {
+                // A primeira coluna agora usa o texto do nosso novo array 'labelsAulas'
+                html += `<tr><td class="horario">${labelsAulas[index]}</td>`;
+                
                 diasSemana.forEach(dia => {
                     const aula = grade[dia][horario];
                     if (aula) {
