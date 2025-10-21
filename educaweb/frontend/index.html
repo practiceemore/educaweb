@@ -252,7 +252,7 @@
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
-                modal.remove(); // Remove o elemento do DOM;
+                modal.remove();
             }
         }
 
@@ -1742,6 +1742,7 @@
             }
         }
 
+        
         // Função para renderizar grade horária (VERSÃO MODIFICADA)
         function renderGradeHoraria() {
             const container = document.getElementById('gradeContainer');
@@ -1785,26 +1786,6 @@
             });
 
             // 4. Inserimos o HTML gerado no container.
-            container.innerHTML = html;
-        }
-            // Agrupar por turma
-            const gradePorTurma = {};
-            gradeHoraria.forEach(aula => {
-                if (!gradePorTurma[aula.turma.id]) {
-                    gradePorTurma[aula.turma.id] = {
-                        turma: aula.turma,
-                        aulas: []
-                    };
-                }
-                gradePorTurma[aula.turma.id].aulas.push(aula);
-            });
-
-            // Renderizar grade para cada turma
-            let html = '';
-            Object.values(gradePorTurma).forEach(turmaData => {
-                html += renderGradeTurma(turmaData.turma, turmaData.aulas);
-            });
-
             container.innerHTML = html;
         }
 
