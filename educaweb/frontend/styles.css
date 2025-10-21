@@ -3091,7 +3091,7 @@ body {
   text-align: center;
 }
 
-.btn-danger {
+/* .btn-danger {
   background-color: #dc3545;
   color: white;
   border: none;
@@ -3104,7 +3104,7 @@ body {
 
 .btn-danger:hover {
   background-color: #c82333;
-}
+} */
 
 /* Responsividade para tabelas de turmas e salas */
 @media (max-width: 768px) {
