@@ -1742,21 +1742,51 @@
             }
         }
 
-        // Função para renderizar grade horária
+        // Função para renderizar grade horária (VERSÃO MODIFICADA)
         function renderGradeHoraria() {
             const container = document.getElementById('gradeContainer');
-            
-            if (gradeHoraria.length === 0) {
+
+            // 1. Primeiro, verificamos se existe alguma turma cadastrada.
+            // Se não houver turmas, não há como montar uma grade.
+            if (!turmas || turmas.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <h3>📅 Nenhuma grade horária encontrada</h3>
-                        <p>Use a IA para gerar uma grade horária automaticamente ou adicione aulas manualmente.</p>
-                        <button class="btn-primary" onclick="showGenerateGradeModal()">🤖 Gerar Grade com IA</button>
+                        <h3>🏫 Nenhuma turma cadastrada</h3>
+                        <p>Para montar a grade, primeiro adicione as turmas na aba "Turmas".</p>
+                        <button class="btn-primary" onclick="showView('turmas')">Ir para Turmas</button>
                     </div>
                 `;
                 return;
             }
 
+            // 2. Agrupamos as aulas existentes por ID da turma para facilitar a busca.
+            // Esta parte da lógica é similar à anterior, mas otimizada.
+            const aulasPorTurma = {};
+            gradeHoraria.forEach(aula => {
+                const turmaId = aula.turma.id;
+                if (!aulasPorTurma[turmaId]) {
+                    aulasPorTurma[turmaId] = [];
+                }
+                aulasPorTurma[turmaId].push(aula);
+            });
+
+            // 3. Agora, iteramos sobre TODAS as turmas existentes no sistema.
+            // Esta é a mudança principal: a fonte de verdade agora é a lista de turmas.
+            let html = '';
+            turmas.forEach(turma => {
+                // Para cada turma, pegamos suas aulas correspondentes do objeto que criamos.
+                // Se não houver aulas para essa turma, 'aulasDaTurma' será um array vazio.
+                const aulasDaTurma = aulasPorTurma[turma.id] || [];
+                
+                // Chamamos a função para renderizar a grade da turma, passando
+                // a turma e suas aulas (que podem estar vazias).
+                // A sua função renderGradeTurma já sabe como criar uma grade vazia com '+'.
+                html += renderGradeTurma(turma, aulasDaTurma);
+            });
+
+            // 4. Inserimos o HTML gerado no container.
+            container.innerHTML = html;
+        }
             // Agrupar por turma
             const gradePorTurma = {};
             gradeHoraria.forEach(aula => {
