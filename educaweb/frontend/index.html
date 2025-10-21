@@ -2029,8 +2029,104 @@
 
         // Função para adicionar aula à grade
         function addAulaGrade(turmaId, diaSemana, horario) {
-            showNotification(`Adicionar aula para turma ${turmaId} em ${diaSemana} às ${horario}`, 'info');
-            // TODO: Implementar modal para adicionar aula
+            // Remove qualquer modal de adição que possa ter ficado aberto
+            const existingModal = document.getElementById('addAulaModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Validação: Garante que temos dados para preencher os seletores
+            if (disciplinas.length === 0 || professores.length === 0 || salas.length === 0) {
+                showNotification('É necessário cadastrar disciplinas, professores e salas antes de adicionar uma aula.', 'error');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.id = 'addAulaModal';
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Adicionar Aula</h3>
+                        <button class="close-btn" onclick="closeModal('addAulaModal')">&times;</button>
+                    </div>
+                    
+                    <!-- O onsubmit chama a nova função handleAddAula, passando os dados da célula -->
+                    <form id="addAulaForm" onsubmit="handleAddAula(event, '${turmaId}', '${diaSemana}', '${horario}')">
+                        
+                        <div class="form-group">
+                            <label for="aulaDisciplina">Disciplina:</label>
+                            <select id="aulaDisciplina" name="disciplinaId" required>
+                                <option value="">Selecione uma disciplina...</option>
+                                ${disciplinas.map(d => `<option value="${d.id}">${d.nome}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="aulaProfessor">Professor:</label>
+                            <select id="aulaProfessor" name="professorId" required>
+                                <option value="">Selecione um professor...</option>
+                                ${professores.map(p => `<option value="${p.id}">${p.nome}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="aulaSala">Sala:</label>
+                            <select id="aulaSala" name="salaId" required>
+                                <option value="">Selecione uma sala...</option>
+                                ${salas.map(s => `<option value="${s.id}">${s.nome} (Cap: ${s.capacidade})</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="closeModal('addAulaModal')">Cancelar</button>
+                            <button type="submit" class="btn-primary">Salvar Aula</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        async function handleAddAula(event, turmaId, diaSemana, horarioInicio) {
+            event.preventDefault(); // Impede o recarregamento da página
+
+            const disciplinaId = document.getElementById('aulaDisciplina').value;
+            const professorId = document.getElementById('aulaProfessor').value;
+            const salaId = document.getElementById('aulaSala').value;
+
+            // Validação simples
+            if (!disciplinaId || !professorId || !salaId) {
+                showNotification('Todos os campos são obrigatórios!', 'error');
+                return;
+            }
+
+            // Monta o objeto de dados para enviar à API
+            const data = {
+                turmaId: parseInt(turmaId),
+                disciplinaId: parseInt(disciplinaId),
+                professorId: parseInt(professorId),
+                salaId: parseInt(salaId),
+                diaSemana: diaSemana,
+                horarioInicio: horarioInicio,
+                // O horário de fim pode ser calculado no backend ou definido como +1 hora aqui
+                horarioFim: (parseInt(horarioInicio.split(':')[0]) + 1).toString().padStart(2, '0') + ':00'
+            };
+
+            try {
+                const response = await apiRequest('/grade-horaria', 'POST', data);
+                if (response.success) {
+                    showNotification('Aula adicionada com sucesso!', 'success');
+                    closeModal('addAulaModal');
+                    await loadGradeHoraria(); // Recarrega a grade para mostrar a nova aula
+                } else {
+                    // Exibe a mensagem de erro específica vinda do backend (ex: conflito de horário)
+                    showNotification(response.error || 'Erro ao adicionar a aula', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar aula:', error);
+                showNotification('Ocorreu um erro de comunicação ao salvar a aula.', 'error');
+            }
         }
 
         // Função para editar aula da grade
