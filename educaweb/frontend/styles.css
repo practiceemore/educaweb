@@ -3091,6 +3091,21 @@ body {
   text-align: center;
 }
 
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
 /* Responsividade para tabelas de turmas e salas */
 @media (max-width: 768px) {
   .turmas-table-container,
@@ -3137,19 +3152,5 @@ body {
     height: 32px;
     font-size: 0.8rem;
   }
-  .btn-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s;
- }
-
-.btn-danger:hover {
-    background-color: #c82333;
- }
 }
 
