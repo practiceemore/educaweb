@@ -3095,10 +3095,10 @@ body {
   background-color: #dc3545;
   color: white;
   border: none;
-  /* padding: 10px 20px; */
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.8rem;
   transition: background-color 0.2s;
 }
 
