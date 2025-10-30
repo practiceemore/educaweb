@@ -155,17 +155,20 @@ router.post('/', async (req: Request, res: Response) => {
     }: CreateProfessorRequest = req.body;
 
     // Validar dados
-    if (!nome || !email || !especialidade) {
+    if (!nome || !especialidade) {
       return res.status(400).json({
         success: false,
-        error: 'Nome, email e especialidade são obrigatórios'
+        error: 'Nome e especialidade são obrigatórios'
       });
     }
+
+    // Normalizar email vazio para null (evita conflitos com índice único quando string vazia)
+    const normalizedEmail = (email && email.trim() !== '') ? email : null;
 
     const professor = await prisma.professor.create({
       data: {
         nome,
-        email,
+        email: normalizedEmail as any,
         telefone,
         especialidade,
         aulasContratadas: 0, // Valor padrão

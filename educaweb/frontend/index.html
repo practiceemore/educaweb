@@ -134,7 +134,7 @@
             <div class="logo" id="logo" style="display: none;">
                 <img src="logo.png" alt="EducaWeb" class="logo-img">
             </div>
-            <nav class="nav" id="mainNav" style="display: none;">
+                <nav class="nav" id="mainNav" style="display: none;">
                 <div class="nav-items">
                     <div class="nav-chip" onclick="showView('grade')">📅 Grade Horária</div>
                     <div class="nav-chip" onclick="showView('disciplinas')">📚 Disciplinas</div>
@@ -142,7 +142,7 @@
                     <div class="nav-chip" onclick="showView('turmas')">👥 Turmas</div>
                     <div class="nav-chip" onclick="showView('salas')">🏫 Salas</div>
                     <div class="nav-chip" onclick="showView('dashboard')">📊 Dashboard</div>
-                </div>
+            </div>
             </nav>
         </header>
 
@@ -851,22 +851,22 @@
                         <h3>Adicionar Professor</h3>
                         <button class="close-btn" onclick="closeModal('addProfessorModal')">&times;</button>
                     </div>
-                    <form id="addProfessorForm" onsubmit="handleAddProfessor(event)">
+                    <form id="addProfessorForm" onsubmit="handleAddProfessor(event)" novalidate>
                         <div class="form-group">
-                            <label for="professorNome">Nome:</label>
+                            <label for="professorNome">Nome *</label>
                             <input type="text" id="professorNome" name="nome" required>
                         </div>
                         <div class="form-group">
                             <label for="professorEmail">Email:</label>
-                            <input type="email" id="professorEmail" name="email" required>
+                            <input type="email" id="professorEmail" name="email">
                         </div>
                         <div class="form-group">
                             <label for="professorTelefone">Telefone:</label>
                             <input type="tel" id="professorTelefone" name="telefone">
                         </div>
                         <div class="form-group">
-                            <label for="professorEspecialidade">Especialidade:</label>
-                            <input type="text" id="professorEspecialidade" name="especialidade">
+                            <label for="professorEspecialidade">Especialidade *</label>
+                            <input type="text" id="professorEspecialidade" name="especialidade" required>
                         </div>
                         <div class="modal-actions">
                             <button type="button" class="btn-secondary" onclick="closeModal('addProfessorModal')">Cancelar</button>

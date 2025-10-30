@@ -43,7 +43,7 @@ export interface UpdateDisciplinaRequest {
 // Tipos para professores
 export interface CreateProfessorRequest {
   nome: string;
-  email: string;
+  email?: string;
   telefone?: string;
   especialidade: string;
   aulasContratadas?: number;
