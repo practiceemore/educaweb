@@ -1985,6 +1985,7 @@ body {
     width: 100%;
     max-width: 400px;
     text-align: center;
+    transform: translateY(-32px);
 }
 
 .login-card h2 {
@@ -2091,6 +2092,7 @@ body {
     .login-card {
         padding: 30px 20px;
         margin: 10px;
+        transform: translateY(-20px);
     }
     
     .login-card h2 {
