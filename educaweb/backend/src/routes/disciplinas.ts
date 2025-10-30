@@ -12,12 +12,14 @@ router.get('/', async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const where = search ? {
+    const userId = (req as any).user?.id;
+    const base = search ? {
       OR: [
         { nome: { contains: search as string, mode: 'insensitive' as const } },
         { descricao: { contains: search as string, mode: 'insensitive' as const } }
       ]
     } : {};
+    const where = userId ? { ...base, userId } : base;
 
     const [disciplinas, total] = await Promise.all([
       prisma.disciplina.findMany({

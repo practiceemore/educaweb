@@ -13,6 +13,7 @@ router.get('/', async (req: Request, res: Response) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     const where: any = {};
+    const userId = (req as any).user?.id;
     
     if (search) {
       where.OR = [
@@ -23,6 +24,10 @@ router.get('/', async (req: Request, res: Response) => {
 
     if (ativa !== undefined) {
       where.ativa = ativa === 'true';
+    }
+
+    if (userId) {
+      where.userId = userId;
     }
 
     const [turmas, total] = await Promise.all([
