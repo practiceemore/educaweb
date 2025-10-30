@@ -635,7 +635,7 @@
                                     ${professores.map(p => `
                                         <tr>
                                             <td>${p.nome}</td>
-                                            <td>${p.email}</td>
+                                            <td>${p.email || '—'}</td>
                                             <td>${p.telefone || '-'}</td>
                                             <td>${p.especialidade || '-'}</td>
                                             <td>
@@ -1106,7 +1106,7 @@
                         </div>
                         <div class="form-group">
                             <label for="editProfessorEmail">Email:</label>
-                            <input type="email" id="editProfessorEmail" name="email" value="${professor.email}" required>
+                            <input type="email" id="editProfessorEmail" name="email" value="${professor.email || ''}">
                         </div>
                         <div class="form-group">
                             <label for="editProfessorTelefone">Telefone:</label>
