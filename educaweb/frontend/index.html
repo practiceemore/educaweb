@@ -2007,8 +2007,8 @@
 
                 // Enviar comando para IA gerar grade
                 const prompt = turmaId 
-                    ? `Gere uma grade horária para a turma ${turmas.find(t => t.id == turmaId)?.nome}.`
-                    : 'Gere uma grade horária para todas as turmas da escola.';
+                    ? `Gere uma grade horária para a turma ${turmas.find(t => t.id == turmaId)?.nome}. Dê preferência a aulas duplas consecutivas quando possível.`
+                    : 'Gere uma grade horária para todas as turmas da escola. Dê preferência a aulas duplas consecutivas quando possível.';
 
                 const response = await apiRequest('/chat/send', 'POST', {
                     mensagem: prompt

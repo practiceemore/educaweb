@@ -362,6 +362,7 @@ REGRAS PARA GERAÇÃO DE GRADE:
 - Cada sala só pode ser usada por uma turma por horário
 - Respeitar a carga horária semanal de cada disciplina
 - Distribuir as aulas ao longo da semana de forma equilibrada
+- Preferir aulas duplas consecutivas sempre que possível, respeitando restrições e cargas horárias
 - Usar horários padrão: 07:00-08:00, 08:00-09:00, 09:00-10:00, 10:00-11:00, 11:00-12:00, 13:00-14:00, 14:00-15:00, 15:00-16:00, 16:00-17:00
 - Dias da semana: segunda, terca, quarta, quinta, sexta`;
 
