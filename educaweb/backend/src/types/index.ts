@@ -1,10 +1,9 @@
 import { Request } from 'express';
 import { User } from '@prisma/client';
 
-// Extensão do Request para incluir usuário autenticado
-export interface AuthRequest extends Request {
-  user?: User;
-}
+// Extensão do Request para incluir usuário autenticado, preservando body/params/query/header
+export type AuthRequest<P = any, ResBody = any, ReqBody = any, ReqQuery = any> =
+  Request<P, ResBody, ReqBody, ReqQuery> & { user?: User };
 
 // Tipos para autenticação
 export interface LoginRequest {
