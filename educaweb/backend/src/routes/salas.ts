@@ -1,4 +1,6 @@
 import { Router, Request, Response } from 'express';
+import { authMiddleware } from '../middleware/auth';
+import { AuthRequest } from '../types';
 import { prisma } from '../index';
 import { CreateSalaRequest, UpdateSalaRequest } from '../types';
 
@@ -121,7 +123,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Criar nova sala
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { nome, capacidade, tipo, recursos, status = 'disponivel' }: CreateSalaRequest = req.body;
 
@@ -145,9 +147,9 @@ router.post('/', async (req: Request, res: Response) => {
         nome,
         capacidade,
         tipo,
-        recursos: recursos ? recursos.join(', ') : '',
+        recursos: recursos ? (Array.isArray(recursos) ? recursos.join(', ') : recursos) : '',
         status,
-        userId: (req as any).user.id
+        userId: req.user.id
       }
     });
 
