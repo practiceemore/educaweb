@@ -89,11 +89,11 @@ model ProfessorDisciplina {
 model Turma {
   id                Int      @id @default(autoincrement())
   nome              String
-  serie             String
+  serie             String?
   turno             String   // manha, tarde, noite
-  capacidade        Int
+  capacidade        Int?
   alunosMatriculados Int     @default(0)
-  anoLetivo         String
+  anoLetivo         String?
   ativa             Boolean  @default(true)
   userId            Int      // Relacionamento com usuário
   createdAt         DateTime @default(now())

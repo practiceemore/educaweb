@@ -127,36 +127,46 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
     const { nome, serie, turno, capacidade, alunosMatriculados = 0, anoLetivo }: CreateTurmaRequest = req.body;
 
     // Validar dados
-    if (!nome || !serie || !turno || !capacidade || !anoLetivo) {
+    if (!nome || !turno) {
       return res.status(400).json({
         success: false,
-        error: 'Nome, série, turno, capacidade e ano letivo são obrigatórios'
+        error: 'Nome e turno são obrigatórios'
       });
     }
 
-    if (capacidade <= 0) {
+    if (capacidade !== undefined && capacidade !== null && capacidade <= 0) {
       return res.status(400).json({
         success: false,
         error: 'Capacidade deve ser maior que zero'
       });
     }
 
-    if (alunosMatriculados < 0 || alunosMatriculados > capacidade) {
+    if (capacidade !== undefined && capacidade !== null && (alunosMatriculados < 0 || alunosMatriculados > capacidade)) {
       return res.status(400).json({
         success: false,
         error: 'Alunos matriculados deve estar entre 0 e a capacidade da turma'
       });
     }
+    
+    // Se alunosMatriculados for fornecido mas capacidade não, apenas validar que não é negativo
+    if (capacidade === null || capacidade === undefined) {
+      if (alunosMatriculados < 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Alunos matriculados não pode ser negativo'
+        });
+      }
+    }
 
     const turma = await prisma.turma.create({
       data: {
         nome,
-        serie,
+        serie: serie || null,
         turno,
-        capacidade,
+        capacidade: capacidade || null,
         alunosMatriculados,
         userId: req.user.id,
-        anoLetivo
+        anoLetivo: anoLetivo || null
       }
     });
 

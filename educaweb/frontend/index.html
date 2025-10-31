@@ -885,17 +885,17 @@
                         <h3>Adicionar Turma</h3>
                         <button class="close-btn" onclick="closeModal('addTurmaModal')">&times;</button>
                     </div>
-                    <form id="addTurmaForm" onsubmit="handleAddTurma(event)">
+                    <form id="addTurmaForm" onsubmit="handleAddTurma(event)" novalidate>
                         <div class="form-group">
-                            <label for="turmaNome">Nome:</label>
+                            <label for="turmaNome">Nome *:</label>
                             <input type="text" id="turmaNome" name="nome" required>
                         </div>
                         <div class="form-group">
                             <label for="turmaSerie">Série:</label>
-                            <input type="text" id="turmaSerie" name="serie" required>
+                            <input type="text" id="turmaSerie" name="serie">
                         </div>
                         <div class="form-group">
-                            <label for="turmaTurno">Turno:</label>
+                            <label for="turmaTurno">Turno *:</label>
                             <select id="turmaTurno" name="turno" required>
                                 <option value="">Selecione...</option>
                                 <option value="Manhã">Manhã</option>
@@ -905,11 +905,11 @@
                         </div>
                         <div class="form-group">
                             <label for="turmaCapacidade">Capacidade:</label>
-                            <input type="number" id="turmaCapacidade" name="capacidade" min="1" required>
+                            <input type="number" id="turmaCapacidade" name="capacidade" min="1">
                         </div>
                         <div class="form-group">
                             <label for="turmaAnoLetivo">Ano Letivo:</label>
-                            <input type="text" id="turmaAnoLetivo" name="anoLetivo" placeholder="Ex: 2024" required>
+                            <input type="text" id="turmaAnoLetivo" name="anoLetivo" placeholder="Ex: 2024">
                         </div>
                         <div class="modal-actions">
                             <button type="button" class="btn-secondary" onclick="closeModal('addTurmaModal')">Cancelar</button>
@@ -1172,12 +1172,23 @@
         async function handleAddTurma(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
+            
+            // Validar campos obrigatórios
+            const nome = formData.get('nome');
+            const turno = formData.get('turno');
+            
+            if (!nome || !turno) {
+                showNotification('Nome e turno são obrigatórios', 'error');
+                return;
+            }
+            
+            const capacidadeValue = formData.get('capacidade');
             const data = {
-                nome: formData.get('nome'),
-                serie: formData.get('serie'),
-                turno: formData.get('turno'),
-                capacidade: parseInt(formData.get('capacidade')),
-                anoLetivo: formData.get('anoLetivo')
+                nome: nome,
+                serie: formData.get('serie') || null,
+                turno: turno,
+                capacidade: capacidadeValue && capacidadeValue.toString().trim() !== '' ? parseInt(capacidadeValue) : null,
+                anoLetivo: formData.get('anoLetivo') || null
             };
 
             try {

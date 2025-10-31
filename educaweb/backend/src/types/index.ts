@@ -68,11 +68,11 @@ export interface UpdateProfessorRequest {
 // Tipos para turmas
 export interface CreateTurmaRequest {
   nome: string;
-  serie: string;
+  serie?: string;
   turno: string;
-  capacidade: number;
+  capacidade?: number;
   alunosMatriculados?: number;
-  anoLetivo: string;
+  anoLetivo?: string;
   userId: number;
 }
 
