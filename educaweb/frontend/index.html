@@ -821,11 +821,11 @@
                     </div>
                     <form id="addDisciplinaForm" onsubmit="handleAddDisciplina(event)">
                         <div class="form-group">
-                            <label for="disciplinaNome">Nome da Disciplina:</label>
+                            <label for="disciplinaNome">Nome da Disciplina</label>
                             <input type="text" id="disciplinaNome" name="nome" required>
                         </div>
                         <div class="form-group">
-                            <label for="disciplinaDescricao">Descrição:</label>
+                            <label for="disciplinaDescricao">Descrição</label>
                             <textarea id="disciplinaDescricao" name="descricao" rows="3"></textarea>
                         </div>
                         <div class="modal-actions">
@@ -854,11 +854,11 @@
                             <input type="text" id="professorNome" name="nome" required>
                         </div>
                         <div class="form-group">
-                            <label for="professorEmail">Email:</label>
+                            <label for="professorEmail">Email</label>
                             <input type="email" id="professorEmail" name="email">
                         </div>
                         <div class="form-group">
-                            <label for="professorTelefone">Telefone:</label>
+                            <label for="professorTelefone">Telefone</label>
                             <input type="tel" id="professorTelefone" name="telefone">
                         </div>
                         <div class="form-group">
@@ -887,15 +887,15 @@
                     </div>
                     <form id="addTurmaForm" onsubmit="handleAddTurma(event)">
                         <div class="form-group">
-                            <label for="turmaNome">Nome *:</label>
+                            <label for="turmaNome">Nome *</label>
                             <input type="text" id="turmaNome" name="nome" required>
                         </div>
                         <div class="form-group">
-                            <label for="turmaSerie">Série:</label>
+                            <label for="turmaSerie">Série</label>
                             <input type="text" id="turmaSerie" name="serie">
                         </div>
                         <div class="form-group">
-                            <label for="turmaTurno">Turno *:</label>
+                            <label for="turmaTurno">Turno *</label>
                             <select id="turmaTurno" name="turno" required>
                                 <option value="">Selecione...</option>
                                 <option value="Manhã">Manhã</option>
@@ -904,11 +904,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="turmaCapacidade">Capacidade:</label>
+                            <label for="turmaCapacidade">Capacidade</label>
                             <input type="number" id="turmaCapacidade" name="capacidade" min="1">
                         </div>
                         <div class="form-group">
-                            <label for="turmaAnoLetivo">Ano Letivo:</label>
+                            <label for="turmaAnoLetivo">Ano Letivo</label>
                             <input type="text" id="turmaAnoLetivo" name="anoLetivo" placeholder="Ex: 2024">
                         </div>
                         <div class="modal-actions">
@@ -933,11 +933,11 @@
                     </div>
                     <form id="addSalaForm" onsubmit="handleAddSala(event)">
                         <div class="form-group">
-                            <label for="salaNome">Nome:</label>
+                            <label for="salaNome">Nome</label>
                             <input type="text" id="salaNome" name="nome" required>
                         </div>
                         <div class="form-group">
-                            <label for="salaTipo">Tipo:</label>
+                            <label for="salaTipo">Tipo</label>
                             <select id="salaTipo" name="tipo" required>
                                 <option value="">Selecione...</option>
                                 <option value="Sala de Aula">Sala de Aula</option>
@@ -948,11 +948,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="salaCapacidade">Capacidade:</label>
+                            <label for="salaCapacidade">Capacidade</label>
                             <input type="number" id="salaCapacidade" name="capacidade" min="1" required>
                         </div>
                         <div class="form-group">
-                            <label for="salaRecursos">Recursos (separados por vírgula):</label>
+                            <label for="salaRecursos">Recursos (separados por vírgula)</label>
                             <textarea id="salaRecursos" name="recursos" rows="3" placeholder="Ex: Projetor, Ar condicionado, Quadro branco"></textarea>
                         </div>
                         <div class="modal-actions">
@@ -1012,11 +1012,11 @@
                     </div>
                     <form id="editDisciplinaForm" onsubmit="handleEditDisciplina(event, ${id})">
                         <div class="form-group">
-                            <label for="editDisciplinaNome">Nome da Disciplina:</label>
+                            <label for="editDisciplinaNome">Nome da Disciplina</label>
                             <input type="text" id="editDisciplinaNome" name="nome" value="${disciplina.nome}" required>
                         </div>
                         <div class="form-group">
-                            <label for="editDisciplinaDescricao">Descrição:</label>
+                            <label for="editDisciplinaDescricao">Descrição</label>
                             <textarea id="editDisciplinaDescricao" name="descricao" rows="3">${disciplina.descricao || ''}</textarea>
                         </div>
                         <div class="modal-actions">
@@ -1109,19 +1109,19 @@
                     </div>
                     <form id="editProfessorForm" onsubmit="handleEditProfessor(event, ${id})">
                         <div class="form-group">
-                            <label for="editProfessorNome">Nome:</label>
+                            <label for="editProfessorNome">Nome</label>
                             <input type="text" id="editProfessorNome" name="nome" value="${professor.nome}" required>
                         </div>
                         <div class="form-group">
-                            <label for="editProfessorEmail">Email:</label>
+                            <label for="editProfessorEmail">Email</label>
                             <input type="email" id="editProfessorEmail" name="email" value="${professor.email || ''}">
                         </div>
                         <div class="form-group">
-                            <label for="editProfessorTelefone">Telefone:</label>
+                            <label for="editProfessorTelefone">Telefone</label>
                             <input type="tel" id="editProfessorTelefone" name="telefone" value="${professor.telefone || ''}">
                         </div>
                         <div class="form-group">
-                            <label for="editProfessorEspecialidade">Especialidade:</label>
+                            <label for="editProfessorEspecialidade">Especialidade</label>
                             <input type="text" id="editProfessorEspecialidade" name="especialidade" value="${professor.especialidade || ''}">
                         </div>
                         <div class="modal-actions">
@@ -1241,15 +1241,15 @@
                     </div>
                     <form id="editTurmaForm" onsubmit="handleEditTurma(event, ${id})">
                         <div class="form-group">
-                            <label for="editTurmaNome">Nome:</label>
+                            <label for="editTurmaNome">Nome</label>
                             <input type="text" id="editTurmaNome" name="nome" value="${turma.nome}" required>
                         </div>
                         <div class="form-group">
-                            <label for="editTurmaSerie">Série:</label>
+                            <label for="editTurmaSerie">Série</label>
                             <input type="text" id="editTurmaSerie" name="serie" value="${turma.serie || ''}">
                         </div>
                         <div class="form-group">
-                            <label for="editTurmaTurno">Turno:</label>
+                            <label for="editTurmaTurno">Turno</label>
                             <select id="editTurmaTurno" name="turno" required>
                                 <option value="">Selecione...</option>
                                 <option value="Manhã" ${turma.turno === 'Manhã' ? 'selected' : ''}>Manhã</option>
@@ -1258,11 +1258,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="editTurmaCapacidade">Capacidade:</label>
+                            <label for="editTurmaCapacidade">Capacidade</label>
                             <input type="number" id="editTurmaCapacidade" name="capacidade" value="${turma.capacidade || ''}" min="1">
                         </div>
                         <div class="form-group">
-                            <label for="editTurmaAnoLetivo">Ano Letivo:</label>
+                            <label for="editTurmaAnoLetivo">Ano Letivo</label>
                             <input type="text" id="editTurmaAnoLetivo" name="anoLetivo" value="${turma.anoLetivo || ''}" placeholder="Ex: 2024" required>
                         </div>
                         <div class="modal-actions">
@@ -1371,11 +1371,11 @@
                     </div>
                     <form id="editSalaForm" onsubmit="handleEditSala(event, ${id})">
                         <div class="form-group">
-                            <label for="editSalaNome">Nome:</label>
+                            <label for="editSalaNome">Nome</label>
                             <input type="text" id="editSalaNome" name="nome" value="${sala.nome}" required>
                         </div>
                         <div class="form-group">
-                            <label for="editSalaTipo">Tipo:</label>
+                            <label for="editSalaTipo">Tipo</label>
                             <select id="editSalaTipo" name="tipo" required>
                                 <option value="">Selecione...</option>
                                 <option value="Sala de Aula" ${sala.tipo === 'Sala de Aula' ? 'selected' : ''}>Sala de Aula</option>
@@ -1386,11 +1386,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="editSalaCapacidade">Capacidade:</label>
+                            <label for="editSalaCapacidade">Capacidade</label>
                             <input type="number" id="editSalaCapacidade" name="capacidade" value="${sala.capacidade}" min="1" required>
                         </div>
                         <div class="form-group">
-                            <label for="editSalaRecursos">Recursos (separados por vírgula):</label>
+                            <label for="editSalaRecursos">Recursos (separados por vírgula)</label>
                             <textarea id="editSalaRecursos" name="recursos" rows="3" placeholder="Ex: Projetor, Ar condicionado, Quadro branco">${recursosTexto}</textarea>
                         </div>
                         <div class="modal-actions">
