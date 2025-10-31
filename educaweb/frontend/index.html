@@ -848,7 +848,7 @@
                         <h3>Adicionar Professor</h3>
                         <button class="close-btn" onclick="closeModal('addProfessorModal')">&times;</button>
                     </div>
-                    <form id="addProfessorForm" onsubmit="handleAddProfessor(event)" novalidate>
+                    <form id="addProfessorForm" onsubmit="handleAddProfessor(event)">
                         <div class="form-group">
                             <label for="professorNome">Nome *</label>
                             <input type="text" id="professorNome" name="nome" required>
@@ -1055,7 +1055,21 @@
 
         async function handleAddProfessor(event) {
             event.preventDefault();
-            const formData = new FormData(event.target);
+            const form = event.target;
+            
+            // Verificar validação HTML5 nativa
+            if (!form.checkValidity()) {
+                // Focar no primeiro campo inválido
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+                // Mostrar mensagens de validação nativas
+                form.reportValidity();
+                return;
+            }
+            
+            const formData = new FormData(form);
             const data = {
                 nome: formData.get('nome'),
                 email: formData.get('email'),
