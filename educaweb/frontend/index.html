@@ -307,7 +307,6 @@
                     localStorage.setItem('authToken', authToken);
                     localStorage.setItem('user', JSON.stringify(currentUser));
                     
-                    showNotification('Login realizado com sucesso!', 'success');
                     await loadData();
                     showGradeView();
                     showNavigation();
@@ -324,7 +323,6 @@
             currentUser = null;
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
-            showNotification('Logout realizado com sucesso!', 'success');
             showLoginScreen();
             hideNavigation();
         }
