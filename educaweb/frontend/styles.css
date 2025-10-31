@@ -357,7 +357,7 @@ body {
   max-width: 75%;
   padding: 12px 16px;
   border-radius: 18px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.4;
   margin-bottom: 12px;
   word-wrap: break-word;
@@ -2340,7 +2340,7 @@ body {
 
 .message-text {
     line-height: 1.4;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .message-time {
