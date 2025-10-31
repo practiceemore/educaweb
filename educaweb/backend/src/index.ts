@@ -18,6 +18,7 @@ import gradeRoutes from './routes/grades';
 import turmaDisciplinaRoutes from './routes/turma-disciplinas';
 import gradeHorariaRoutes from './routes/grade-horaria';
 import setupRoutes from './routes/setup';
+import relatoriosRoutes from './routes/relatorios';
 
 // Importar middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -72,6 +73,7 @@ app.use('/api/chat', authMiddleware, chatRoutes);
 app.use('/api/grades', authMiddleware, gradeRoutes);
 app.use('/api/turma-disciplinas', authMiddleware, turmaDisciplinaRoutes);
 app.use('/api/grade-horaria', authMiddleware, gradeHorariaRoutes);
+app.use('/api/relatorios', authMiddleware, relatoriosRoutes);
 
 // Middleware de tratamento de erros
 app.use(errorHandler);

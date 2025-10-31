@@ -3157,3 +3157,231 @@ body {
   }
 }
 
+
+/* ===== ESTILOS PARA RELATÓRIOS ===== */
+
+.relatorios-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 0 20px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #666;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: #667eea;
+  background-color: #f8f9fa;
+}
+
+.tab-btn.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  font-weight: 600;
+}
+
+.relatorio-content {
+  padding: 20px;
+  min-height: 400px;
+}
+
+.relatorio-section {
+  margin-bottom: 30px;
+}
+
+.relatorio-section h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 8px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stats-grid .stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.relatorio-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.relatorio-table thead {
+  background-color: #f8f9fa;
+}
+
+.relatorio-table th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.relatorio-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #555;
+}
+
+.relatorio-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.disciplinas-list,
+.turmas-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.disciplina-badge,
+.turma-badge {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-disponivel {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-ocupada {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-manutencao {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.diff-positive {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.diff-negative {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.diff-neutral {
+  color: #666;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.error {
+  padding: 20px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border-radius: 8px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .relatorios-tabs {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .tab-btn {
+    width: 100%;
+    text-align: left;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .export-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .export-buttons button {
+    width: 100%;
+  }
+  
+  .view-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .relatorio-table {
+    font-size: 0.85rem;
+  }
+  
+  .relatorio-table th,
+  .relatorio-table td {
+    padding: 8px 10px;
+  }
+}

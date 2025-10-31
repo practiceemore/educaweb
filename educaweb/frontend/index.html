@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EducaWeb - Sistema de Gestão Educacional</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Bibliotecas para exportação -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         /* ===== ESTILOS DOS MODAIS ===== */
         .modal-overlay {
@@ -142,6 +145,7 @@
                     <div class="nav-chip" onclick="showView('turmas')">👥 Turmas</div>
                     <div class="nav-chip" onclick="showView('salas')">🏫 Salas</div>
                     <div class="nav-chip" onclick="showView('dashboard')">📊 Dashboard</div>
+                    <div class="nav-chip" onclick="showView('relatorios')">📋 Relatórios</div>
             </div>
             </nav>
         </header>
@@ -559,6 +563,9 @@
                 case 'grade':
                     showGradeView();
                     break;
+                case 'relatorios':
+                    showRelatoriosView();
+                    break;
                 case 'ai':
                     showAIView();
                     break;
@@ -770,6 +777,638 @@
                         </div>
                     </div>
                 `;
+            }
+        }
+
+        let relatoriosData = null;
+        let relatoriosAnalytics = null;
+
+        async function showRelatoriosView() {
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="view-container">
+                        <div class="view-header">
+                            <h2>📋 Relatórios Analíticos</h2>
+                            <div class="export-buttons">
+                                <button class="btn-secondary" onclick="exportRelatorioPDF()" title="Exportar PDF">📄 PDF</button>
+                                <button class="btn-secondary" onclick="exportRelatorioExcel()" title="Exportar Excel">📊 Excel</button>
+                                <button class="btn-secondary" onclick="exportRelatorioCSV()" title="Exportar CSV">📥 CSV</button>
+                            </div>
+                        </div>
+                        
+                        <div class="relatorios-tabs">
+                            <button class="tab-btn active" onclick="showRelatorioTab('carga-horaria')">⏰ Carga Horária</button>
+                            <button class="tab-btn" onclick="showRelatorioTab('ocupacao-salas')">🏫 Ocupação de Salas</button>
+                            <button class="tab-btn" onclick="showRelatorioTab('distribuicao-professores')">👨‍🏫 Distribuição de Professores</button>
+                        </div>
+
+                        <div id="relatorioContent" class="relatorio-content">
+                            <div class="loading">Carregando relatórios...</div>
+                        </div>
+                    </div>
+                `;
+                
+                await loadRelatoriosData();
+            }
+        }
+
+        async function loadRelatoriosData() {
+            try {
+                const [dataResponse, analyticsResponse] = await Promise.all([
+                    apiRequest('/relatorios/school-data', 'GET'),
+                    apiRequest('/relatorios/analytics', 'GET')
+                ]);
+
+                if (dataResponse.success && analyticsResponse.success) {
+                    relatoriosData = dataResponse.data;
+                    relatoriosAnalytics = analyticsResponse.data;
+                    showRelatorioTab('carga-horaria');
+                } else {
+                    showNotification('Erro ao carregar dados dos relatórios', 'error');
+                    document.getElementById('relatorioContent').innerHTML = '<div class="error">Erro ao carregar dados</div>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar relatórios:', error);
+                showNotification('Erro ao carregar relatórios', 'error');
+                document.getElementById('relatorioContent').innerHTML = '<div class="error">Erro ao carregar dados</div>';
+            }
+        }
+
+        function showRelatorioTab(tabName) {
+            // Atualizar tabs ativos
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(tabName === 'carga-horaria' ? 'Carga Horária' : 
+                    tabName === 'ocupacao-salas' ? 'Ocupação' : 'Distribuição')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            const content = document.getElementById('relatorioContent');
+            
+            if (!relatoriosAnalytics || !relatoriosData) {
+                content.innerHTML = '<div class="loading">Carregando dados...</div>';
+                return;
+            }
+
+            switch(tabName) {
+                case 'carga-horaria':
+                    showCargaHorariaTab();
+                    break;
+                case 'ocupacao-salas':
+                    showOcupacaoSalasTab();
+                    break;
+                case 'distribuicao-professores':
+                    showDistribuicaoProfessoresTab();
+                    break;
+            }
+        }
+
+        function showCargaHorariaTab() {
+            const analytics = relatoriosAnalytics;
+            const content = document.getElementById('relatorioContent');
+            
+            content.innerHTML = `
+                <div class="relatorio-section">
+                    <h3>📊 Resumo Geral</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total de Aulas/Semana</div>
+                            <div class="stat-value">${analytics.resumo.totalAulasSemana}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Turmas</div>
+                            <div class="stat-value">${analytics.resumo.totalTurmas}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Disciplinas</div>
+                            <div class="stat-value">${analytics.resumo.totalDisciplinas}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relatorio-section">
+                    <h3>📚 Carga Horária por Turma</h3>
+                    <div class="table-container">
+                        <table class="relatorio-table">
+                            <thead>
+                                <tr>
+                                    <th>Turma</th>
+                                    <th>Série</th>
+                                    <th>Turno</th>
+                                    <th>Total Aulas/Semana</th>
+                                    <th>Disciplinas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${analytics.cargaHorariaPorTurma.map(t => `
+                                    <tr>
+                                        <td><strong>${t.turmaNome}</strong></td>
+                                        <td>${t.serie || '-'}</td>
+                                        <td>${t.turno || '-'}</td>
+                                        <td><strong>${t.totalAulasSemana}</strong></td>
+                                        <td>
+                                            <div class="disciplinas-list">
+                                                ${t.disciplinas.map(d => 
+                                                    `<span class="disciplina-badge">${d.disciplinaNome} (${d.aulasPorSemana}a/sem)</span>`
+                                                ).join('')}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="relatorio-section">
+                    <h3>📖 Carga Horária por Disciplina</h3>
+                    <div class="table-container">
+                        <table class="relatorio-table">
+                            <thead>
+                                <tr>
+                                    <th>Disciplina</th>
+                                    <th>Turmas</th>
+                                    <th>Total Aulas/Semana</th>
+                                    <th>Turmas Atendidas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${analytics.cargaHorariaPorDisciplina.map(d => `
+                                    <tr>
+                                        <td><strong>${d.disciplinaNome}</strong></td>
+                                        <td>${d.totalTurmas}</td>
+                                        <td><strong>${d.totalAulasSemana}</strong></td>
+                                        <td>
+                                            <div class="turmas-list">
+                                                ${d.turmas.map(t => 
+                                                    `<span class="turma-badge">${t.turmaNome} (${t.aulasPorSemana}a/sem)</span>`
+                                                ).join('')}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showOcupacaoSalasTab() {
+            const analytics = relatoriosAnalytics;
+            const content = document.getElementById('relatorioContent');
+            
+            content.innerHTML = `
+                <div class="relatorio-section">
+                    <h3>📊 Resumo de Salas</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total de Salas</div>
+                            <div class="stat-value">${analytics.resumo.totalSalas}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Disponíveis</div>
+                            <div class="stat-value" style="color: #28a745;">${analytics.resumo.salasDisponiveis}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Ocupadas</div>
+                            <div class="stat-value" style="color: #ffc107;">${relatoriosData.estatisticas.salasOcupadas || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Manutenção</div>
+                            <div class="stat-value" style="color: #dc3545;">${relatoriosData.estatisticas.salasManutencao || 0}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relatorio-section">
+                    <h3>📈 Distribuição por Tipo</h3>
+                    <div class="table-container">
+                        <table class="relatorio-table">
+                            <thead>
+                                <tr>
+                                    <th>Tipo de Sala</th>
+                                    <th>Total</th>
+                                    <th>Disponíveis</th>
+                                    <th>Ocupadas</th>
+                                    <th>Manutenção</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${analytics.distribuicaoSalasPorTipo.map(tipo => `
+                                    <tr>
+                                        <td><strong>${tipo.tipo}</strong></td>
+                                        <td>${tipo.total}</td>
+                                        <td style="color: #28a745;">${tipo.disponiveis}</td>
+                                        <td style="color: #ffc107;">${tipo.ocupadas}</td>
+                                        <td style="color: #dc3545;">${tipo.manutencao}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="relatorio-section">
+                    <h3>🏫 Detalhamento de Salas</h3>
+                    <div class="table-container">
+                        <table class="relatorio-table">
+                            <thead>
+                                <tr>
+                                    <th>Sala</th>
+                                    <th>Tipo</th>
+                                    <th>Capacidade</th>
+                                    <th>Status</th>
+                                    <th>Recursos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${analytics.ocupacaoSalas.map(s => `
+                                    <tr>
+                                        <td><strong>${s.salaNome}</strong></td>
+                                        <td>${s.tipo}</td>
+                                        <td>${s.capacidade}</td>
+                                        <td>
+                                            <span class="status-badge status-${s.status}">
+                                                ${s.disponibilidade}
+                                            </span>
+                                        </td>
+                                        <td>${s.recursos || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showDistribuicaoProfessoresTab() {
+            const analytics = relatoriosAnalytics;
+            const content = document.getElementById('relatorioContent');
+            
+            const professoresComDisciplina = analytics.distribuicaoProfessores.filter(p => p.totalDisciplinas > 0);
+            const professoresSemDisciplina = analytics.distribuicaoProfessores.filter(p => p.totalDisciplinas === 0);
+            
+            content.innerHTML = `
+                <div class="relatorio-section">
+                    <h3>📊 Resumo de Professores</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total de Professores</div>
+                            <div class="stat-value">${analytics.resumo.totalProfessores}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Com Disciplina</div>
+                            <div class="stat-value" style="color: #28a745;">${analytics.resumo.professoresComDisciplina}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Sem Disciplina</div>
+                            <div class="stat-value" style="color: #ffc107;">${professoresSemDisciplina.length}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relatorio-section">
+                    <h3>👨‍🏫 Distribuição de Professores</h3>
+                    <div class="table-container">
+                        <table class="relatorio-table">
+                            <thead>
+                                <tr>
+                                    <th>Professor</th>
+                                    <th>Especialidade</th>
+                                    <th>Aulas Contratadas</th>
+                                    <th>Aulas Atribuídas</th>
+                                    <th>Diferença</th>
+                                    <th>Disciplinas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${analytics.distribuicaoProfessores.map(p => {
+                                    const diffClass = p.diferenca > 0 ? 'positive' : p.diferenca < 0 ? 'negative' : 'neutral';
+                                    const diffText = p.diferenca > 0 ? `+${p.diferenca}` : p.diferenca < 0 ? p.diferenca : '0';
+                                    return `
+                                        <tr>
+                                            <td><strong>${p.professorNome}</strong></td>
+                                            <td>${p.especialidade}</td>
+                                            <td>${p.aulasContratadas}</td>
+                                            <td>${p.aulasAtribuidas}</td>
+                                            <td class="diff-${diffClass}">${diffText}</td>
+                                            <td>
+                                                <div class="disciplinas-list">
+                                                    ${p.disciplinas.length > 0 
+                                                        ? p.disciplinas.map(d => `<span class="disciplina-badge">${d}</span>`).join('')
+                                                        : '<span style="color: #999;">Nenhuma disciplina</span>'
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                ${professoresSemDisciplina.length > 0 ? `
+                    <div class="relatorio-section">
+                        <h3>⚠️ Professores sem Disciplina Atribuída</h3>
+                        <div class="table-container">
+                            <table class="relatorio-table">
+                                <thead>
+                                    <tr>
+                                        <th>Professor</th>
+                                        <th>Especialidade</th>
+                                        <th>Aulas Contratadas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${professoresSemDisciplina.map(p => `
+                                        <tr>
+                                            <td><strong>${p.professorNome}</strong></td>
+                                            <td>${p.especialidade}</td>
+                                            <td>${p.aulasContratadas}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function exportRelatorioPDF() {
+            if (!relatoriosAnalytics || !relatoriosData) {
+                showNotification('Carregue os relatórios primeiro', 'error');
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                let yPos = 20;
+                const pageHeight = doc.internal.pageSize.height;
+                const margin = 14;
+
+                // Título
+                doc.setFontSize(18);
+                doc.text('Relatórios Analíticos - EducaWeb', margin, yPos);
+                yPos += 10;
+                
+                doc.setFontSize(10);
+                doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, yPos);
+                yPos += 15;
+
+                // Resumo Geral
+                doc.setFontSize(14);
+                doc.text('Resumo Geral', margin, yPos);
+                yPos += 8;
+                
+                doc.setFontSize(10);
+                const resumo = relatoriosAnalytics.resumo;
+                doc.text(`Total de Turmas: ${resumo.totalTurmas}`, margin, yPos);
+                yPos += 6;
+                doc.text(`Total de Salas: ${resumo.totalSalas}`, margin, yPos);
+                yPos += 6;
+                doc.text(`Total de Professores: ${resumo.totalProfessores}`, margin, yPos);
+                yPos += 6;
+                doc.text(`Total de Disciplinas: ${resumo.totalDisciplinas}`, margin, yPos);
+                yPos += 6;
+                doc.text(`Total de Aulas/Semana: ${resumo.totalAulasSemana}`, margin, yPos);
+                yPos += 12;
+
+                // Carga Horária por Turma
+                if (yPos > pageHeight - 40) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.setFontSize(14);
+                doc.text('Carga Horária por Turma', margin, yPos);
+                yPos += 8;
+                
+                doc.setFontSize(9);
+                relatoriosAnalytics.cargaHorariaPorTurma.forEach(turma => {
+                    if (yPos > pageHeight - 30) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.setFont(undefined, 'bold');
+                    doc.text(turma.turmaNome, margin, yPos);
+                    doc.setFont(undefined, 'normal');
+                    yPos += 5;
+                    doc.text(`  Total: ${turma.totalAulasSemana} aulas/semana`, margin + 5, yPos);
+                    yPos += 4;
+                    turma.disciplinas.forEach(d => {
+                        if (yPos > pageHeight - 20) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                        doc.text(`  - ${d.disciplinaNome}: ${d.aulasPorSemana} aulas/sem`, margin + 10, yPos);
+                        yPos += 4;
+                    });
+                    yPos += 3;
+                });
+                yPos += 8;
+
+                // Ocupação de Salas
+                if (yPos > pageHeight - 40) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.setFontSize(14);
+                doc.text('Ocupação de Salas', margin, yPos);
+                yPos += 8;
+                
+                doc.setFontSize(9);
+                relatoriosAnalytics.ocupacaoSalas.forEach(sala => {
+                    if (yPos > pageHeight - 20) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.text(`${sala.salaNome} (${sala.tipo}) - Status: ${sala.disponibilidade}`, margin, yPos);
+                    yPos += 5;
+                });
+                yPos += 8;
+
+                // Distribuição de Professores
+                if (yPos > pageHeight - 40) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.setFontSize(14);
+                doc.text('Distribuição de Professores', margin, yPos);
+                yPos += 8;
+                
+                doc.setFontSize(9);
+                relatoriosAnalytics.distribuicaoProfessores.forEach(prof => {
+                    if (yPos > pageHeight - 25) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.setFont(undefined, 'bold');
+                    doc.text(prof.professorNome, margin, yPos);
+                    doc.setFont(undefined, 'normal');
+                    yPos += 5;
+                    doc.text(`  Contratadas: ${prof.aulasContratadas} | Atribuídas: ${prof.aulasAtribuidas} | Diferença: ${prof.diferenca}`, margin + 5, yPos);
+                    yPos += 4;
+                    if (prof.disciplinas.length > 0) {
+                        doc.text(`  Disciplinas: ${prof.disciplinas.join(', ')}`, margin + 5, yPos);
+                        yPos += 4;
+                    }
+                    yPos += 3;
+                });
+
+                doc.save(`relatorio_educaweb_${Date.now()}.pdf`);
+                showNotification('Relatório PDF gerado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                showNotification('Erro ao gerar PDF', 'error');
+            }
+        }
+
+        function exportRelatorioExcel() {
+            if (!relatoriosAnalytics || !relatoriosData) {
+                showNotification('Carregue os relatórios primeiro', 'error');
+                return;
+            }
+
+            try {
+                const wb = XLSX.utils.book_new();
+
+                // Resumo
+                const resumoData = [
+                    ['Relatórios Analíticos - EducaWeb'],
+                    [`Gerado em: ${new Date().toLocaleString('pt-BR')}`],
+                    [],
+                    ['RESUMO GERAL'],
+                    ['Total de Turmas', relatoriosAnalytics.resumo.totalTurmas],
+                    ['Total de Salas', relatoriosAnalytics.resumo.totalSalas],
+                    ['Total de Professores', relatoriosAnalytics.resumo.totalProfessores],
+                    ['Total de Disciplinas', relatoriosAnalytics.resumo.totalDisciplinas],
+                    ['Total de Aulas/Semana', relatoriosAnalytics.resumo.totalAulasSemana]
+                ];
+                const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
+                XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+                // Carga Horária por Turma
+                const cargaTurmaData = [
+                    ['Turma', 'Série', 'Turno', 'Total Aulas/Semana', 'Disciplinas']
+                ];
+                relatoriosAnalytics.cargaHorariaPorTurma.forEach(t => {
+                    cargaTurmaData.push([
+                        t.turmaNome,
+                        t.serie || '',
+                        t.turno || '',
+                        t.totalAulasSemana,
+                        t.disciplinas.map(d => `${d.disciplinaNome} (${d.aulasPorSemana}a/sem)`).join(', ')
+                    ]);
+                });
+                const wsCargaTurma = XLSX.utils.aoa_to_sheet(cargaTurmaData);
+                XLSX.utils.book_append_sheet(wb, wsCargaTurma, 'Carga por Turma');
+
+                // Carga Horária por Disciplina
+                const cargaDisciplinaData = [
+                    ['Disciplina', 'Total Turmas', 'Total Aulas/Semana', 'Turmas']
+                ];
+                relatoriosAnalytics.cargaHorariaPorDisciplina.forEach(d => {
+                    cargaDisciplinaData.push([
+                        d.disciplinaNome,
+                        d.totalTurmas,
+                        d.totalAulasSemana,
+                        d.turmas.map(t => `${t.turmaNome} (${t.aulasPorSemana}a/sem)`).join(', ')
+                    ]);
+                });
+                const wsCargaDisciplina = XLSX.utils.aoa_to_sheet(cargaDisciplinaData);
+                XLSX.utils.book_append_sheet(wb, wsCargaDisciplina, 'Carga por Disciplina');
+
+                // Ocupação de Salas
+                const ocupacaoData = [
+                    ['Sala', 'Tipo', 'Capacidade', 'Status', 'Recursos']
+                ];
+                relatoriosAnalytics.ocupacaoSalas.forEach(s => {
+                    ocupacaoData.push([
+                        s.salaNome,
+                        s.tipo,
+                        s.capacidade,
+                        s.disponibilidade,
+                        s.recursos || ''
+                    ]);
+                });
+                const wsOcupacao = XLSX.utils.aoa_to_sheet(ocupacaoData);
+                XLSX.utils.book_append_sheet(wb, wsOcupacao, 'Ocupação Salas');
+
+                // Distribuição de Professores
+                const professoresData = [
+                    ['Professor', 'Especialidade', 'Aulas Contratadas', 'Aulas Atribuídas', 'Diferença', 'Disciplinas']
+                ];
+                relatoriosAnalytics.distribuicaoProfessores.forEach(p => {
+                    professoresData.push([
+                        p.professorNome,
+                        p.especialidade,
+                        p.aulasContratadas,
+                        p.aulasAtribuidas,
+                        p.diferenca,
+                        p.disciplinas.join(', ')
+                    ]);
+                });
+                const wsProfessores = XLSX.utils.aoa_to_sheet(professoresData);
+                XLSX.utils.book_append_sheet(wb, wsProfessores, 'Distribuição Professores');
+
+                XLSX.writeFile(wb, `relatorio_educaweb_${Date.now()}.xlsx`);
+                showNotification('Relatório Excel gerado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar Excel:', error);
+                showNotification('Erro ao gerar Excel', 'error');
+            }
+        }
+
+        function exportRelatorioCSV() {
+            if (!relatoriosAnalytics || !relatoriosData) {
+                showNotification('Carregue os relatórios primeiro', 'error');
+                return;
+            }
+
+            try {
+                // Gerar CSV para Carga Horária por Turma
+                let csv = 'Relatórios Analíticos - EducaWeb\n';
+                csv += `Gerado em: ${new Date().toLocaleString('pt-BR')}\n\n`;
+                csv += 'CARGA HORÁRIA POR TURMA\n';
+                csv += 'Turma,Série,Turno,Total Aulas/Semana,Disciplinas\n';
+                
+                relatoriosAnalytics.cargaHorariaPorTurma.forEach(t => {
+                    const disciplinas = t.disciplinas.map(d => `${d.disciplinaNome}(${d.aulasPorSemana}a/sem)`).join('; ');
+                    csv += `"${t.turmaNome}","${t.serie || ''}","${t.turno || ''}",${t.totalAulasSemana},"${disciplinas}"\n`;
+                });
+
+                csv += '\nOCUPAÇÃO DE SALAS\n';
+                csv += 'Sala,Tipo,Capacidade,Status,Recursos\n';
+                relatoriosAnalytics.ocupacaoSalas.forEach(s => {
+                    csv += `"${s.salaNome}","${s.tipo}",${s.capacidade},"${s.disponibilidade}","${s.recursos || ''}"\n`;
+                });
+
+                csv += '\nDISTRIBUIÇÃO DE PROFESSORES\n';
+                csv += 'Professor,Especialidade,Aulas Contratadas,Aulas Atribuídas,Diferença,Disciplinas\n';
+                relatoriosAnalytics.distribuicaoProfessores.forEach(p => {
+                    csv += `"${p.professorNome}","${p.especialidade}",${p.aulasContratadas},${p.aulasAtribuidas},${p.diferenca},"${p.disciplinas.join(', ')}"\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `relatorio_educaweb_${Date.now()}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showNotification('Relatório CSV gerado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar CSV:', error);
+                showNotification('Erro ao gerar CSV', 'error');
             }
         }
 
