@@ -90,16 +90,6 @@ router.get('/school-data', async (req: AuthRequest, res: Response) => {
       })
     ]);
 
-    // Buscar grades horárias para análise de ocupação
-    const gradesHoraria = await prisma.gradeHoraria.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        turmaId: true,
-        status: true
-      }
-    });
-
     // Organizar dados da escola
     const schoolData = {
       turmas: turmas.map(t => ({
@@ -152,7 +142,7 @@ router.get('/analytics', async (req: AuthRequest, res: Response) => {
     const userId = req.user!.id;
 
     // Buscar dados necessários
-    const [turmas, salas, professores, disciplinas, turmaDisciplinas, gradeHoraria] = await Promise.all([
+    const [turmas, salas, professores, disciplinas, turmaDisciplinas] = await Promise.all([
       prisma.turma.findMany({
         where: { userId },
         select: {
@@ -207,14 +197,6 @@ router.get('/analytics', async (req: AuthRequest, res: Response) => {
               nome: true
             }
           }
-        }
-      }),
-      prisma.gradeHoraria.findMany({
-        where: { userId },
-        select: {
-          id: true,
-          turmaId: true,
-          status: true
         }
       })
     ]);
