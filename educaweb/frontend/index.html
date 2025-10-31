@@ -983,7 +983,6 @@
             try {
                 const response = await apiRequest('/disciplinas', 'POST', data);
                 if (response.success) {
-                    showNotification('Disciplina adicionada com sucesso!', 'success');
                     closeModal('addDisciplinaModal');
                     await loadData();
                     showDisciplinasView();
@@ -1042,7 +1041,6 @@
             try {
                 const response = await apiRequest(`/disciplinas/${id}`, 'PUT', data);
                 if (response.success) {
-                    showNotification('Disciplina atualizada com sucesso!', 'success');
                     closeModal('editDisciplinaModal');
                     await loadData();
                     showDisciplinasView();
@@ -1068,7 +1066,6 @@
             try {
                 const response = await apiRequest('/professores', 'POST', data);
                 if (response.success) {
-                    showNotification('Professor adicionado com sucesso!', 'success');
                     closeModal('addProfessorModal');
                     await loadData();
                     showProfessoresView();
@@ -1137,7 +1134,6 @@
             try {
                 const response = await apiRequest(`/professores/${id}`, 'PUT', data);
                 if (response.success) {
-                    showNotification('Professor atualizado com sucesso!', 'success');
                     closeModal('editProfessorModal');
                     await loadData();
                     showProfessoresView();
@@ -1161,7 +1157,6 @@
                 try {
                     const response = await apiRequest(`/professores/${id}`, 'DELETE');
                     if (response.success) {
-                        showNotification('Professor excluído com sucesso!', 'success');
                         await loadData();
                         showProfessoresView();
                     } else {
@@ -1188,7 +1183,6 @@
             try {
                 const response = await apiRequest('/turmas', 'POST', data);
                 if (response.success) {
-                    showNotification('Turma adicionada com sucesso!', 'success');
                     closeModal('addTurmaModal');
                     await loadData();
                     showTurmasView();
@@ -1267,7 +1261,6 @@
             try {
                 const response = await apiRequest(`/turmas/${id}`, 'PUT', data);
                 if (response.success) {
-                    showNotification('Turma atualizada com sucesso!', 'success');
                     closeModal('editTurmaModal');
                     await loadData();
                     showTurmasView();
@@ -1291,7 +1284,6 @@
                 try {
                     const response = await apiRequest(`/turmas/${id}`, 'DELETE');
                     if (response.success) {
-                        showNotification('Turma excluída com sucesso!', 'success');
                         await loadData();
                         showTurmasView();
                     } else {
@@ -1319,7 +1311,6 @@
             try {
                 const response = await apiRequest('/salas', 'POST', data);
                 if (response.success) {
-                    showNotification('Sala adicionada com sucesso!', 'success');
                     closeModal('addSalaModal');
                     await loadData();
                     showSalasView();
@@ -1399,7 +1390,6 @@
             try {
                 const response = await apiRequest(`/salas/${id}`, 'PUT', data);
                 if (response.success) {
-                    showNotification('Sala atualizada com sucesso!', 'success');
                     closeModal('editSalaModal');
                     await loadData();
                     showSalasView();
@@ -1423,7 +1413,6 @@
                 try {
                     const response = await apiRequest(`/salas/${id}`, 'DELETE');
                     if (response.success) {
-                        showNotification('Sala excluída com sucesso!', 'success');
                         await loadData();
                         showSalasView();
                     } else {
@@ -1445,10 +1434,9 @@
 
             if (confirm(`Tem certeza que deseja excluir a disciplina "${disciplina.nome}"?`)) {
                 try {
-                    const response = await apiRequest(`/disciplinas/${id}`, 'DELETE');
-                    if (response.success) {
-                        showNotification('Disciplina excluída com sucesso!', 'success');
-                        await loadData();
+                const response = await apiRequest(`/disciplinas/${id}`, 'DELETE');
+                if (response.success) {
+                    await loadData();
                         showDisciplinasView();
                     } else {
                         showNotification(response.error || 'Erro ao excluir disciplina', 'error');
@@ -1570,7 +1558,6 @@
                     if (index !== -1) {
                         turmaDisciplinas[index].aulasPorSemana = aulas;
                     }
-                    showNotification('Aulas por semana atualizadas!', 'success');
                 } else {
                     throw new Error(response.error || 'Erro ao atualizar');
                 }
@@ -1595,7 +1582,6 @@
                     
                     // Recarregar modal
                     await showTurmaDisciplinasModal(turmaAtual.id);
-                    showNotification('Disciplina removida da turma!', 'success');
                 } else {
                     throw new Error(response.error || 'Erro ao remover');
                 }
@@ -1701,7 +1687,6 @@
                     closeModal("addDisciplinaToTurmaModal");
                     // Recarregar modal de disciplinas
                     await showTurmaDisciplinasModal(turmaAtual.id);
-                    showNotification("Disciplina adicionada à turma!", "success");
                 } else {
                     throw new Error(response.error || 'Erro ao adicionar disciplina');
                 }
@@ -2009,7 +1994,6 @@
 
                 if (response.success) {
                     closeModal("generateGradeModal");
-                    showNotification('Grade horária gerada com sucesso!', 'success');
                     // A grade será carregada automaticamente quando o usuário for redirecionado
                 } else {
                     throw new Error(response.error || 'Erro ao gerar grade');
@@ -2109,7 +2093,6 @@
             try {
                 const response = await apiRequest('/grade-horaria', 'POST', data);
                 if (response.success) {
-                    showNotification('Aula adicionada com sucesso!', 'success');
                     closeModal('addAulaModal');
                     await loadGradeHoraria(); // Recarrega a grade para mostrar a nova aula
                 } else {
@@ -2218,7 +2201,6 @@
                 // Usamos o método PUT para atualizar um recurso existente
                 const response = await apiRequest(`/grade-horaria/${aulaId}`, 'PUT', data);
                 if (response.success) {
-                    showNotification('Aula atualizada com sucesso!', 'success');
                     closeModal('editAulaModal');
                     await loadGradeHoraria(); // Recarrega a grade para mostrar as alterações
                 } else {
@@ -2241,7 +2223,6 @@
                 // Usamos o método DELETE para remover o recurso
                 const response = await apiRequest(`/grade-horaria/${aulaId}`, 'DELETE');
                 if (response.success) {
-                    showNotification('Aula excluída com sucesso!', 'success');
                     closeModal('editAulaModal');
                     await loadGradeHoraria(); // Recarrega a grade para remover a aula
                 } else {
@@ -2273,7 +2254,6 @@
                     }
                     
                     if (deletedCount > 0) {
-                        showNotification(`✅ ${deletedCount} aulas removidas com sucesso!`, 'success');
                         // Recarregar a grade horária (que agora estará vazia)
                         await loadGradeHoraria();
                     } else {
@@ -2356,7 +2336,6 @@
                     if (response.data.gradeGenerated) {
                         // NÃO processar resposta da IA, apenas confirmar
                         addChatMessage('✅ Grade horária gerada com sucesso! Você pode visualizá-la na aba "Grade Horária".', 'assistant');
-                        showNotification('Grade horária gerada com sucesso!', 'success');
                         
                         // Recarregar grade automaticamente em background
                         await loadGradeHoraria();
@@ -2505,8 +2484,6 @@
                     
                     // Limpar array local
                     chatMessages.length = 0;
-                    
-                    showNotification('Histórico do chat limpo com sucesso!', 'success');
                 } else {
                     throw new Error(response.error || 'Erro ao limpar histórico');
                 }
