@@ -675,9 +675,9 @@
                                     ${turmas.map(t => `
                                         <tr>
                                             <td>${t.nome}</td>
-                                            <td>${t.serie}</td>
+                                            <td>${t.serie || '-'}</td>
                                             <td>${t.turno}</td>
-                                            <td>${t.capacidade}</td>
+                                            <td>${t.capacidade || '-'}</td>
                                             <td>
                                                 <div class="action-buttons">
                                                     <button class="action-btn edit" onclick="editTurma('${t.id}')" title="Editar">✏️</button>
@@ -1246,7 +1246,7 @@
                         </div>
                         <div class="form-group">
                             <label for="editTurmaSerie">Série:</label>
-                            <input type="text" id="editTurmaSerie" name="serie" value="${turma.serie}" required>
+                            <input type="text" id="editTurmaSerie" name="serie" value="${turma.serie || ''}">
                         </div>
                         <div class="form-group">
                             <label for="editTurmaTurno">Turno:</label>
@@ -1259,7 +1259,7 @@
                         </div>
                         <div class="form-group">
                             <label for="editTurmaCapacidade">Capacidade:</label>
-                            <input type="number" id="editTurmaCapacidade" name="capacidade" value="${turma.capacidade}" min="1" required>
+                            <input type="number" id="editTurmaCapacidade" name="capacidade" value="${turma.capacidade || ''}" min="1">
                         </div>
                         <div class="form-group">
                             <label for="editTurmaAnoLetivo">Ano Letivo:</label>
@@ -1901,7 +1901,7 @@
 
             let html = `
                 <div class="grade-turma">
-                    <h3>📚 ${turma.nome} - ${turma.serie}</h3>
+                    <h3>📚 ${turma.nome}${turma.serie ? ' - ' + turma.serie : ''}</h3>
                     <div class="grade-table-container">
                         <table class="grade-table">
                             <thead>
