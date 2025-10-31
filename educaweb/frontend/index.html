@@ -885,7 +885,7 @@
                         <h3>Adicionar Turma</h3>
                         <button class="close-btn" onclick="closeModal('addTurmaModal')">&times;</button>
                     </div>
-                    <form id="addTurmaForm" onsubmit="handleAddTurma(event)" novalidate>
+                    <form id="addTurmaForm" onsubmit="handleAddTurma(event)">
                         <div class="form-group">
                             <label for="turmaNome">Nome *:</label>
                             <input type="text" id="turmaNome" name="nome" required>
@@ -1171,22 +1171,26 @@
 
         async function handleAddTurma(event) {
             event.preventDefault();
-            const formData = new FormData(event.target);
+            const form = event.target;
             
-            // Validar campos obrigatórios
-            const nome = formData.get('nome');
-            const turno = formData.get('turno');
-            
-            if (!nome || !turno) {
-                showNotification('Nome e turno são obrigatórios', 'error');
+            // Verificar validação HTML5 nativa
+            if (!form.checkValidity()) {
+                // Focar no primeiro campo inválido
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+                // Mostrar mensagens de validação nativas
+                form.reportValidity();
                 return;
             }
             
+            const formData = new FormData(form);
             const capacidadeValue = formData.get('capacidade');
             const data = {
-                nome: nome,
+                nome: formData.get('nome'),
                 serie: formData.get('serie') || null,
-                turno: turno,
+                turno: formData.get('turno'),
                 capacidade: capacidadeValue && capacidadeValue.toString().trim() !== '' ? parseInt(capacidadeValue) : null,
                 anoLetivo: formData.get('anoLetivo') || null
             };
