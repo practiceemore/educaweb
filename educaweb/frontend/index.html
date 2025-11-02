@@ -3130,204 +3130,250 @@
                         .replace(/\n/g, '<br>');
                 };
 
-                // Criar HTML formatado para PDF
-                const htmlContent = `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <style>
-                            @page { margin: 2cm; }
-                            body {
-                                font-family: 'Times New Roman', serif;
-                                font-size: 12pt;
-                                line-height: 1.5;
-                                color: #000;
-                            }
-                            .report-cover {
-                                text-align: center;
-                                margin-bottom: 3cm;
-                            }
-                            .report-title {
-                                font-size: 16pt;
-                                font-weight: bold;
-                                margin-bottom: 0.5cm;
-                            }
-                            .report-subtitle {
-                                font-size: 14pt;
-                                margin-bottom: 1cm;
-                            }
-                            .report-meta {
-                                font-size: 10pt;
-                                margin-top: 2cm;
-                            }
-                            .report-section {
-                                margin-top: 1cm;
-                                margin-bottom: 1cm;
-                            }
-                            .report-section h1 { font-size: 14pt; font-weight: bold; margin-top: 1cm; }
-                            .report-section h2 { font-size: 12pt; font-weight: bold; margin-top: 0.8cm; }
-                            .report-section h3 { font-size: 11pt; font-weight: bold; margin-top: 0.6cm; }
-                            .report-section p { margin-bottom: 0.5cm; text-align: justify; }
-                            .report-section ul, .report-section ol { margin-left: 1.5cm; margin-bottom: 0.5cm; }
-                            .report-section table { width: 100%; border-collapse: collapse; margin: 0.5cm 0; }
-                            .report-section table th, .report-section table td {
-                                border: 1px solid #000;
-                                padding: 0.3cm;
-                                text-align: left;
-                            }
-                            .report-references {
-                                list-style: decimal;
-                                margin-left: 2cm;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="report-cover">
-                            <div class="report-title">${metadata.titulo || 'Relatório'}</div>
-                            ${metadata.subtitulo ? `<div class="report-subtitle">${metadata.subtitulo}</div>` : ''}
-                            <div class="report-meta">
-                                ${metadata.autor ? `<div>Autor: ${metadata.autor}</div>` : ''}
-                                ${metadata.data ? `<div>Data: ${metadata.data}</div>` : ''}
-                                <div>Gerado por EducaWeb</div>
-                            </div>
-                        </div>
-                        <div class="report-content">
-                            ${content.resumo ? `<div class="report-section">${renderMarkdown(content.resumo)}</div>` : ''}
-                            ${content.secoes ? content.secoes.map(sec => `
-                                <div class="report-section">${renderMarkdown(sec.conteudo)}</div>
-                            `).join('') : ''}
-                            ${content.referencias && content.referencias.length > 0 ? `
-                                <div class="report-section">
-                                    <h2>Referências</h2>
-                                    <ol class="report-references">
-                                        ${content.referencias.map(ref => `<li>${ref}</li>`).join('')}
-                                    </ol>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </body>
-                    </html>
-                `;
-
-                // Criar elemento temporário no DOM para gerar PDF
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = htmlContent;
-                tempDiv.style.position = 'absolute';
-                tempDiv.style.left = '-9999px';
-                tempDiv.style.top = '0';
-                tempDiv.style.width = '210mm'; // Largura A4
-                tempDiv.style.padding = '20mm';
-                document.body.appendChild(tempDiv);
-
-                // Aguardar um momento para renderização e gerar PDF
-                setTimeout(() => {
-                    // Usar o tempDiv completo que contém toda a estrutura (capa + conteúdo)
-                    const element = tempDiv;
+                // Usar jsPDF diretamente (mais confiável)
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
                     
-                    if (typeof html2pdf !== 'undefined') {
-                        html2pdf().set({
-                            margin: [20, 20, 20, 20],
-                            filename: `relatorio_${(metadata.titulo || 'relatorio').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
-                            image: { type: 'jpeg', quality: 0.98 },
-                            html2canvas: { scale: 2, useCORS: true },
-                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                        }).from(element).save().then(() => {
-                            document.body.removeChild(tempDiv);
-                            showNotification('Relatório PDF gerado com sucesso!', 'success');
-                        }).catch(err => {
-                            console.error('Erro ao gerar PDF:', err);
-                            document.body.removeChild(tempDiv);
-                            showNotification('Erro ao gerar PDF. Tentando método alternativo...', 'warning');
-                            // Fallback: usar jsPDF diretamente
-                            try {
-                                const { jsPDF } = window.jspdf;
-                                const doc = new jsPDF();
-                                
-                                // Capa com título
-                                doc.setFontSize(16);
-                                doc.setFont(undefined, 'bold');
-                                const title = metadata.titulo || 'Relatório';
-                                const titleLines = doc.splitTextToSize(title, 180);
-                                let yPos = 60;
-                                
-                                // Título centralizado
-                                titleLines.forEach(line => {
-                                    const textWidth = doc.getTextWidth(line);
-                                    const xPos = (210 - textWidth) / 2; // Centralizar em A4 (210mm)
-                                    doc.text(line, xPos, yPos);
-                                    yPos += 10;
-                                });
-                                
-                                // Subtítulo se existir
-                                if (metadata.subtitulo) {
-                                    yPos += 5;
-                                    doc.setFontSize(14);
-                                    doc.setFont(undefined, 'normal');
-                                    const subtitleLines = doc.splitTextToSize(metadata.subtitulo, 180);
-                                    subtitleLines.forEach(line => {
-                                        const textWidth = doc.getTextWidth(line);
-                                        const xPos = (210 - textWidth) / 2;
-                                        doc.text(line, xPos, yPos);
-                                        yPos += 8;
-                                    });
-                                }
-                                
-                                // Metadados (autor, data)
-                                yPos += 20;
-                                doc.setFontSize(10);
-                                if (metadata.autor) {
-                                    doc.text(`Autor: ${metadata.autor}`, 105, yPos, { align: 'center' });
-                                    yPos += 6;
-                                }
-                                if (metadata.data) {
-                                    doc.text(`Data: ${metadata.data}`, 105, yPos, { align: 'center' });
-                                    yPos += 6;
-                                }
-                                doc.text('Gerado por EducaWeb', 105, yPos, { align: 'center' });
-                                
-                                // Nova página para conteúdo
+                    // Capa com título
+                    doc.setFontSize(16);
+                    doc.setFont(undefined, 'bold');
+                    const title = metadata.titulo || 'Relatório';
+                    const titleLines = doc.splitTextToSize(title, 180);
+                    let yPos = 60;
+                    
+                    // Título centralizado
+                    titleLines.forEach(line => {
+                        const textWidth = doc.getTextWidth(line);
+                        const xPos = (210 - textWidth) / 2; // Centralizar em A4 (210mm)
+                        doc.text(line, xPos, yPos);
+                        yPos += 10;
+                    });
+                    
+                    // Subtítulo se existir
+                    if (metadata.subtitulo) {
+                        yPos += 5;
+                        doc.setFontSize(14);
+                        doc.setFont(undefined, 'normal');
+                        const subtitleLines = doc.splitTextToSize(metadata.subtitulo, 180);
+                        subtitleLines.forEach(line => {
+                            const textWidth = doc.getTextWidth(line);
+                            const xPos = (210 - textWidth) / 2;
+                            doc.text(line, xPos, yPos);
+                            yPos += 8;
+                        });
+                    }
+                    
+                    // Metadados (autor, data)
+                    yPos += 20;
+                    doc.setFontSize(10);
+                    if (metadata.autor) {
+                        doc.text(`Autor: ${metadata.autor}`, 105, yPos, { align: 'center' });
+                        yPos += 6;
+                    }
+                    if (metadata.data) {
+                        doc.text(`Data: ${metadata.data}`, 105, yPos, { align: 'center' });
+                        yPos += 6;
+                    }
+                    doc.text('Gerado por EducaWeb', 105, yPos, { align: 'center' });
+                    
+                    // Nova página para conteúdo
+                    doc.addPage();
+                    yPos = 20;
+                    doc.setFontSize(10);
+                    
+                    // Função auxiliar para processar texto Markdown simples
+                    const processMarkdownText = (text) => {
+                        // Remover formatação markdown básica para texto simples
+                        return text
+                            .replace(/^#+\s*/gm, '')  // Remove títulos markdown
+                            .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove negrito
+                            .replace(/\*(.*?)\*/g, '$1')  // Remove itálico
+                            .replace(/`(.*?)`/g, '$1');  // Remove código inline
+                    };
+                    
+                    // Resumo
+                    if (content.resumo) {
+                        doc.setFontSize(12);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('Resumo', 14, yPos);
+                        yPos += 8;
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'normal');
+                        const resumoText = processMarkdownText(content.resumo);
+                        const resumoLines = doc.splitTextToSize(resumoText, 180);
+                        resumoLines.forEach(line => {
+                            if (yPos > 280) {
                                 doc.addPage();
                                 yPos = 20;
-                                doc.setFontSize(10);
-                                if (content.resumo) {
-                                    doc.text('Resumo:', 14, yPos);
-                                    yPos += 10;
-                                    const resumoText = content.resumo.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').replace(/\*/g, '');
-                                    doc.text(doc.splitTextToSize(resumoText, 180), 14, yPos);
-                                    yPos += 20;
-                                }
-                                if (content.secoes) {
-                                    content.secoes.forEach(sec => {
-                                        if (yPos > 280) {
-                                            doc.addPage();
-                                            yPos = 20;
-                                        }
-                                        doc.setFontSize(11);
-                                        doc.setFont(undefined, 'bold');
-                                        const secTitle = sec.titulo || 'Seção';
-                                        doc.text(secTitle, 14, yPos);
-                                        yPos += 8;
-                                        doc.setFontSize(10);
-                                        doc.setFont(undefined, 'normal');
-                                        const secText = sec.conteudo.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').replace(/\*/g, '');
-                                        const lines = doc.splitTextToSize(secText, 180);
-                                        doc.text(lines, 14, yPos);
-                                        yPos += lines.length * 5 + 10;
-                                    });
-                                }
-                                doc.save(`relatorio_${(metadata.titulo || 'relatorio').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
-                                showNotification('Relatório PDF gerado com sucesso!', 'success');
-                            } catch (fallbackErr) {
-                                console.error('Erro no fallback:', fallbackErr);
-                                showNotification('Erro ao gerar PDF', 'error');
                             }
+                            doc.text(line, 14, yPos);
+                            yPos += 6;
                         });
-                    } else {
-                        document.body.removeChild(tempDiv);
-                        showNotification('Biblioteca html2pdf não carregada', 'error');
+                        yPos += 5;
                     }
-                }, 300);
+                    
+                    // Seções
+                    if (content.secoes) {
+                        content.secoes.forEach(sec => {
+                            if (yPos > 275) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            
+                            // Título da seção
+                            doc.setFontSize(12);
+                            doc.setFont(undefined, 'bold');
+                            const secTitle = sec.titulo || 'Seção';
+                            doc.text(secTitle, 14, yPos);
+                            yPos += 8;
+                            
+                            // Conteúdo da seção
+                            doc.setFontSize(10);
+                            doc.setFont(undefined, 'normal');
+                            const secText = processMarkdownText(sec.conteudo);
+                            
+                            // Processar parágrafos e listas
+                            const paragraphs = secText.split(/\n\n+/);
+                            paragraphs.forEach(para => {
+                                if (para.trim()) {
+                                    // Verificar se é lista
+                                    if (para.match(/^[-*]\s/)) {
+                                        const items = para.split(/\n[-*]\s/);
+                                        items.forEach(item => {
+                                            if (item.trim()) {
+                                                if (yPos > 280) {
+                                                    doc.addPage();
+                                                    yPos = 20;
+                                                }
+                                                const itemText = item.replace(/^[-*]\s/, '').trim();
+                                                if (itemText) {
+                                                    doc.text(`  • ${itemText}`, 14, yPos);
+                                                    yPos += 6;
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        // Parágrafo normal
+                                        const lines = doc.splitTextToSize(para.trim(), 180);
+                                        lines.forEach(line => {
+                                            if (yPos > 280) {
+                                                doc.addPage();
+                                                yPos = 20;
+                                            }
+                                            doc.text(line, 14, yPos);
+                                            yPos += 6;
+                                        });
+                                    }
+                                    yPos += 3;
+                                }
+                            });
+                            yPos += 5;
+                        });
+                    }
+                    
+                    // Referências
+                    if (content.referencias && content.referencias.length > 0) {
+                        if (yPos > 275) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                        doc.setFontSize(12);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('Referências', 14, yPos);
+                        yPos += 8;
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'normal');
+                        content.referencias.forEach((ref, idx) => {
+                            if (yPos > 280) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            doc.text(`${idx + 1}. ${ref}`, 14, yPos);
+                            yPos += 6;
+                        });
+                    }
+                    
+                    doc.save(`relatorio_${(metadata.titulo || 'relatorio').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
+                    showNotification('Relatório PDF gerado com sucesso!', 'success');
+                    
+                } catch (error) {
+                    console.error('Erro ao gerar PDF:', error);
+                    showNotification('Erro ao gerar PDF', 'error');
+                    
+                    // Tentar método alternativo com html2pdf se disponível
+                    if (typeof html2pdf !== 'undefined') {
+                        try {
+                            // Criar elemento DOM simples para html2pdf
+                            const tempDiv = document.createElement('div');
+                            tempDiv.style.width = '210mm';
+                            tempDiv.style.padding = '20mm';
+                            tempDiv.style.position = 'absolute';
+                            tempDiv.style.left = '-9999px';
+                            
+                            // Renderizar Markdown
+                            const renderMarkdown = (markdown) => {
+                                if (typeof marked !== 'undefined') {
+                                    return marked.parse(markdown);
+                                }
+                                return markdown.replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                                    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                                    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                    .replace(/\n/g, '<br>');
+                            };
+                            
+                            tempDiv.innerHTML = `
+                                <div style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5;">
+                                    <div style="text-align: center; margin-bottom: 3cm;">
+                                        <h1 style="font-size: 16pt; font-weight: bold; margin-bottom: 0.5cm;">${metadata.titulo || 'Relatório'}</h1>
+                                        ${metadata.subtitulo ? `<h2 style="font-size: 14pt; margin-bottom: 1cm;">${metadata.subtitulo}</h2>` : ''}
+                                        <div style="font-size: 10pt; margin-top: 2cm;">
+                                            ${metadata.autor ? `<div>Autor: ${metadata.autor}</div>` : ''}
+                                            ${metadata.data ? `<div>Data: ${metadata.data}</div>` : ''}
+                                            <div>Gerado por EducaWeb</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        ${content.resumo ? `<div>${renderMarkdown(content.resumo)}</div>` : ''}
+                                        ${content.secoes ? content.secoes.map(sec => `<div>${renderMarkdown(sec.conteudo)}</div>`).join('') : ''}
+                                        ${content.referencias && content.referencias.length > 0 ? `
+                                            <div>
+                                                <h2>Referências</h2>
+                                                <ol>
+                                                    ${content.referencias.map(ref => `<li>${ref}</li>`).join('')}
+                                                </ol>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `;
+                            
+                            document.body.appendChild(tempDiv);
+                            
+                            setTimeout(() => {
+                                html2pdf().set({
+                                    margin: [20, 20, 20, 20],
+                                    filename: `relatorio_${(metadata.titulo || 'relatorio').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+                                    image: { type: 'jpeg', quality: 0.98 },
+                                    html2canvas: { scale: 2, useCORS: true },
+                                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                                }).from(tempDiv).save().then(() => {
+                                    document.body.removeChild(tempDiv);
+                                    showNotification('Relatório PDF gerado com sucesso!', 'success');
+                                }).catch(err2 => {
+                                    console.error('Erro ao gerar PDF com html2pdf:', err2);
+                                    document.body.removeChild(tempDiv);
+                                    showNotification('Erro ao gerar PDF', 'error');
+                                });
+                            }, 300);
+                        } catch (err2) {
+                            console.error('Erro no método alternativo:', err2);
+                            showNotification('Erro ao gerar PDF', 'error');
+                        }
+                    }
+                }
 
             } catch (error) {
                 console.error('Erro ao exportar relatório:', error);
