@@ -3210,7 +3210,8 @@
 
                 // Aguardar um momento para renderização e gerar PDF
                 setTimeout(() => {
-                    const element = tempDiv.querySelector('.report-content') || tempDiv;
+                    // Selecionar o elemento completo que inclui capa e conteúdo
+                    const element = tempDiv.querySelector('body') || tempDiv;
                     
                     if (typeof html2pdf !== 'undefined') {
                         html2pdf().set({
@@ -3230,9 +3231,53 @@
                             try {
                                 const { jsPDF } = window.jspdf;
                                 const doc = new jsPDF();
-                                doc.setFontSize(12);
-                                doc.text(metadata.titulo || 'Relatório', 14, 20);
-                                let yPos = 30;
+                                
+                                // Capa com título
+                                doc.setFontSize(16);
+                                doc.setFont(undefined, 'bold');
+                                const title = metadata.titulo || 'Relatório';
+                                const titleLines = doc.splitTextToSize(title, 180);
+                                let yPos = 60;
+                                
+                                // Título centralizado
+                                titleLines.forEach(line => {
+                                    const textWidth = doc.getTextWidth(line);
+                                    const xPos = (210 - textWidth) / 2; // Centralizar em A4 (210mm)
+                                    doc.text(line, xPos, yPos);
+                                    yPos += 10;
+                                });
+                                
+                                // Subtítulo se existir
+                                if (metadata.subtitulo) {
+                                    yPos += 5;
+                                    doc.setFontSize(14);
+                                    doc.setFont(undefined, 'normal');
+                                    const subtitleLines = doc.splitTextToSize(metadata.subtitulo, 180);
+                                    subtitleLines.forEach(line => {
+                                        const textWidth = doc.getTextWidth(line);
+                                        const xPos = (210 - textWidth) / 2;
+                                        doc.text(line, xPos, yPos);
+                                        yPos += 8;
+                                    });
+                                }
+                                
+                                // Metadados (autor, data)
+                                yPos += 20;
+                                doc.setFontSize(10);
+                                if (metadata.autor) {
+                                    doc.text(`Autor: ${metadata.autor}`, 105, yPos, { align: 'center' });
+                                    yPos += 6;
+                                }
+                                if (metadata.data) {
+                                    doc.text(`Data: ${metadata.data}`, 105, yPos, { align: 'center' });
+                                    yPos += 6;
+                                }
+                                doc.text('Gerado por EducaWeb', 105, yPos, { align: 'center' });
+                                
+                                // Nova página para conteúdo
+                                doc.addPage();
+                                yPos = 20;
+                                doc.setFontSize(10);
                                 doc.setFontSize(10);
                                 if (content.resumo) {
                                     doc.text('Resumo:', 14, yPos);
