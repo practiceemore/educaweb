@@ -448,12 +448,12 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
       // Primeiro, remover marcadores de código markdown (```json e ```)
       let cleanResponse = resposta;
       
-      // Remover ```json no início
-      cleanResponse = cleanResponse.replace(/^```json\s*/i, '');
-      cleanResponse = cleanResponse.replace(/^```\s*/i, '');
+      // Remover blocos de código markdown (pode estar em qualquer lugar)
+      cleanResponse = cleanResponse.replace(/```json\s*/gi, '');
+      cleanResponse = cleanResponse.replace(/```\s*/g, '');
       
-      // Remover ``` no final
-      cleanResponse = cleanResponse.replace(/\s*```\s*$/i, '');
+      // Também remover se estiver no início/fim após a limpeza acima
+      cleanResponse = cleanResponse.trim();
       
       // Tentar encontrar JSON completo - procurar por início e fim do objeto JSON
       let jsonStart = cleanResponse.indexOf('"action":');
