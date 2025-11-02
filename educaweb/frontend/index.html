@@ -2062,47 +2062,71 @@
                 existingModal.remove();
             }
 
+            // Garantir que todas as disciplinas estão carregadas
+            if (disciplinas.length === 0) {
+                try {
+                    const response = await apiRequest('/disciplinas?limit=1000');
+                    if (response.success) {
+                        disciplinas = response.data;
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar disciplinas:', error);
+                }
+            }
+
             // Carregar disciplinas da turma
             await loadTurmaDisciplinas(turmaId);
+
+            // Criar um mapa de disciplinas da turma para fácil acesso
+            const turmaDisciplinasMap = {};
+            turmaDisciplinas.forEach(td => {
+                turmaDisciplinasMap[td.disciplina.id] = {
+                    id: td.id,
+                    aulasPorSemana: td.aulasPorSemana
+                };
+            });
+
+            // Combinar todas as disciplinas com as da turma
+            const todasDisciplinasComAulas = disciplinas.map(disciplina => {
+                const turmaDisc = turmaDisciplinasMap[disciplina.id];
+                return {
+                    disciplina: disciplina,
+                    turmaDisciplinaId: turmaDisc ? turmaDisc.id : null,
+                    aulasPorSemana: turmaDisc ? turmaDisc.aulasPorSemana : 0
+                };
+            });
 
             // Criar modal
             const modal = document.createElement("div");
             modal.className = "modal-overlay";
             modal.id = "turmaDisciplinasModal";
             modal.innerHTML = `
-                <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-content" style="max-width: 600px;">
                     <div class="modal-header">
                         <h3>📚 Disciplinas da Turma: ${turmaAtual.nome}</h3>
                         <span class="close" onclick="closeModal('turmaDisciplinasModal')">&times;</span>
                     </div>
                     <div class="modal-body">
-                        <div style="margin-bottom: 20px;">
-                            <button class="btn-primary" onclick="showAddDisciplinaToTurmaModal()">➕ Adicionar Disciplina</button>
-                        </div>
                         <div class="table-container">
                             <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Disciplina</th>
                                         <th>Aulas por Semana</th>
-                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="turmaDisciplinasTableBody">
-                                    ${turmaDisciplinas.map(td => `
+                                    ${todasDisciplinasComAulas.map(item => `
                                         <tr>
-                                            <td>${td.disciplina.nome}</td>
+                                            <td>${item.disciplina.nome}</td>
                                             <td>
                                                 <input type="number" 
-                                                       id="aulas-${td.id}" 
-                                                       value="${td.aulasPorSemana}" 
-                                                       min="1" 
+                                                       id="aulas-${item.disciplina.id}" 
+                                                       value="${item.aulasPorSemana}" 
+                                                       min="0" 
                                                        max="20" 
                                                        style="width: 80px; padding: 5px;"
-                                                       onchange="updateAulasPorSemana(${td.id}, this.value)">
-                                            </td>
-                                            <td>
-                                                <button class="btn-delete" onclick="removeDisciplinaFromTurma(${td.id})">🗑️</button>
+                                                       onchange="updateAulasPorSemana(${item.disciplina.id}, ${item.turmaDisciplinaId !== null ? item.turmaDisciplinaId : 'null'}, this.value)">
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -2141,161 +2165,92 @@
         }
 
         // Função para atualizar aulas por semana
-        async function updateAulasPorSemana(turmaDisciplinaId, novasAulas) {
+        async function updateAulasPorSemana(disciplinaId, turmaDisciplinaId, novasAulas) {
+            // Converter IDs para números
+            disciplinaId = parseInt(disciplinaId);
+            
+            // Converter turmaDisciplinaId se vier como string 'null'
+            if (turmaDisciplinaId === 'null' || turmaDisciplinaId === null) {
+                turmaDisciplinaId = null;
+            } else {
+                turmaDisciplinaId = parseInt(turmaDisciplinaId);
+            }
+            
             const aulas = parseInt(novasAulas);
-            if (aulas < 1 || aulas > 20) {
-                showNotification('Aulas por semana deve ser entre 1 e 20', 'error');
+            
+            if (isNaN(aulas) || aulas < 0 || aulas > 20) {
+                showNotification('Aulas por semana deve ser entre 0 e 20', 'error');
+                // Restaurar valor anterior no input
+                const input = document.getElementById(`aulas-${disciplinaId}`);
+                if (input && turmaDisciplinaId) {
+                    const existing = turmaDisciplinas.find(td => td.id === turmaDisciplinaId);
+                    input.value = existing ? existing.aulasPorSemana : 0;
+                } else {
+                    input.value = 0;
+                }
                 return;
             }
 
             try {
-                const response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'PUT', {
-                    aulasPorSemana: aulas
-                });
+                let response;
 
-                if (response.success) {
-                    // Atualizar dados locais
-                    const index = turmaDisciplinas.findIndex(td => td.id === turmaDisciplinaId);
-                    if (index !== -1) {
-                        turmaDisciplinas[index].aulasPorSemana = aulas;
+                if (aulas === 0 && turmaDisciplinaId) {
+                    // Deletar registro se aulas = 0 e existe registro
+                    response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'DELETE');
+                    
+                    if (response.success) {
+                        // Remover dos dados locais
+                        turmaDisciplinas = turmaDisciplinas.filter(td => td.id !== turmaDisciplinaId);
+                        showNotification('Disciplina removida da turma', 'success');
+                    } else {
+                        throw new Error(response.error || 'Erro ao remover');
+                    }
+                } else if (aulas > 0 && turmaDisciplinaId) {
+                    // Atualizar registro existente
+                    response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'PUT', {
+                        aulasPorSemana: aulas
+                    });
+
+                    if (response.success) {
+                        // Atualizar dados locais
+                        const index = turmaDisciplinas.findIndex(td => td.id === turmaDisciplinaId);
+                        if (index !== -1) {
+                            turmaDisciplinas[index].aulasPorSemana = aulas;
+                        }
+                        showNotification('Aulas por semana atualizadas', 'success');
+                    } else {
+                        throw new Error(response.error || 'Erro ao atualizar');
+                    }
+                } else if (aulas > 0 && !turmaDisciplinaId) {
+                    // Criar novo registro
+                    response = await apiRequest("/turma-disciplinas", "POST", {
+                        turmaId: turmaAtual.id,
+                        disciplinaId: disciplinaId,
+                        aulasPorSemana: aulas
+                    });
+
+                    if (response.success) {
+                        // Adicionar aos dados locais
+                        turmaDisciplinas.push(response.data);
+                        showNotification('Disciplina adicionada à turma', 'success');
+                    } else {
+                        throw new Error(response.error || 'Erro ao adicionar');
                     }
                 } else {
-                    throw new Error(response.error || 'Erro ao atualizar');
+                    // aulas === 0 && !turmaDisciplinaId - não fazer nada
+                    return;
                 }
+
+                // Recarregar modal para atualizar a tabela
+                await showTurmaDisciplinasModal(turmaAtual.id);
             } catch (error) {
                 console.error('Erro ao atualizar aulas por semana:', error);
-                showNotification('Erro ao atualizar aulas por semana', 'error');
+                showNotification('Erro ao atualizar aulas por semana: ' + (error.message || 'Erro desconhecido'), 'error');
+                // Recarregar modal para restaurar valores
+                await showTurmaDisciplinasModal(turmaAtual.id);
             }
         }
 
-        // Função para remover disciplina da turma
-        async function removeDisciplinaFromTurma(turmaDisciplinaId) {
-            if (!confirm("Tem certeza que deseja remover esta disciplina da turma?")) {
-                return;
-            }
-
-            try {
-                const response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'DELETE');
-
-                if (response.success) {
-                    // Remover dos dados locais
-                    turmaDisciplinas = turmaDisciplinas.filter(td => td.id !== turmaDisciplinaId);
-                    
-                    // Recarregar modal
-                    await showTurmaDisciplinasModal(turmaAtual.id);
-                } else {
-                    throw new Error(response.error || 'Erro ao remover');
-                }
-            } catch (error) {
-                console.error('Erro ao remover disciplina da turma:', error);
-                showNotification('Erro ao remover disciplina da turma', 'error');
-            }
-        }
-
-        // Função para mostrar modal de adicionar disciplina à turma
-        async function showAddDisciplinaToTurmaModal() {
-            // Remover modal existente se houver
-            const existingModal = document.getElementById("addDisciplinaToTurmaModal");
-            if (existingModal) {
-                existingModal.remove();
-            }
-
-            // Carregar disciplinas disponíveis
-            let disciplinasDisponiveis = [];
-            try {
-                const response = await apiRequest(`/turma-disciplinas/disciplinas-disponiveis/${turmaAtual.id}`, 'GET');
-                if (response.success) {
-                    disciplinasDisponiveis = response.data;
-                }
-            } catch (error) {
-                console.error('Erro ao carregar disciplinas disponíveis:', error);
-                showNotification('Erro ao carregar disciplinas disponíveis', 'error');
-            }
-
-            if (disciplinasDisponiveis.length === 0) {
-                showNotification('Não há disciplinas disponíveis para adicionar', 'info');
-                return;
-            }
-
-            // Criar modal
-            const modal = document.createElement("div");
-            modal.className = "modal";
-            modal.id = "addDisciplinaToTurmaModal";
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Adicionar Disciplina à Turma</h3>
-                        <span class="close" onclick="closeModal('addDisciplinaToTurmaModal')">&times;</span>
-                    </div>
-                    <div class="modal-body">
-                        <form id="addDisciplinaToTurmaForm">
-                            <div class="form-group">
-                                <label for="disciplinaSelect">Disciplina:</label>
-                                <select id="disciplinaSelect" required>
-                                    <option value="">Selecione uma disciplina</option>
-                                    ${disciplinasDisponiveis.map(d => `
-                                        <option value="${d.id}">${d.nome}</option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="aulasPorSemana">Aulas por Semana:</label>
-                                <input type="number" id="aulasPorSemana" required min="1" max="20" value="2">
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn-secondary" onclick="closeModal('addDisciplinaToTurmaModal')">Cancelar</button>
-                        <button type="button" class="btn-primary" onclick="addDisciplinaToTurma()">Adicionar</button>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-            modal.style.display = "block";
-
-            // Fechar modal ao clicar fora dele
-            modal.onclick = function(event) {
-                if (event.target === modal) {
-                    closeModal("addDisciplinaToTurmaModal");
-                }
-            };
-        }
-
-        // Função para adicionar disciplina à turma
-        async function addDisciplinaToTurma() {
-            const disciplinaId = document.getElementById("disciplinaSelect").value;
-            const aulasPorSemana = parseInt(document.getElementById("aulasPorSemana").value);
-
-            if (!disciplinaId) {
-                showNotification("Selecione uma disciplina", "error");
-                return;
-            }
-
-            if (!aulasPorSemana || aulasPorSemana < 1 || aulasPorSemana > 20) {
-                showNotification("Aulas por semana deve ser entre 1 e 20", "error");
-                return;
-            }
-
-            try {
-                const response = await apiRequest("/turma-disciplinas", "POST", {
-                    turmaId: turmaAtual.id,
-                    disciplinaId: parseInt(disciplinaId),
-                    aulasPorSemana: aulasPorSemana
-                });
-
-                if (response.success) {
-                    closeModal("addDisciplinaToTurmaModal");
-                    // Recarregar modal de disciplinas
-                    await showTurmaDisciplinasModal(turmaAtual.id);
-                } else {
-                    throw new Error(response.error || 'Erro ao adicionar disciplina');
-                }
-            } catch (error) {
-                console.error('Erro ao adicionar disciplina à turma:', error);
-                showNotification('Erro ao adicionar disciplina à turma', 'error');
-            }
-        }
 
         // ===== GRADE HORÁRIA =====
 
