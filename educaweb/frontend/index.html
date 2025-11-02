@@ -3471,15 +3471,15 @@
                             spacing: { after: 100 }
                         }));
                         
-                        // Conteúdo do resumo em texto normal
+                        // Conteúdo do resumo em texto normal (12pt)
                         children.push(new Paragraph({
-                            text: resumoContent,
+                            children: [new TextRun({ text: resumoContent, size: 24 })],
                             spacing: { after: 200 }
                         }));
                     } else {
-                        // Se não começar com "Resumo", manter comportamento original (todo em negrito)
+                        // Se não começar com "Resumo", manter comportamento original (todo em negrito, 12pt)
                         children.push(new Paragraph({
-                            children: [new TextRun({ text: resumoText, bold: true })],
+                            children: [new TextRun({ text: resumoText, bold: true, size: 24 })],
                             spacing: { after: 200 }
                         }));
                     }
@@ -3511,7 +3511,7 @@
                                             const itemText = item.replace(/^[-*]\s/, '').trim();
                                             if (itemText) {
                                                 children.push(new Paragraph({
-                                                    text: itemText,
+                                                    children: [new TextRun({ text: itemText, size: 24 })],
                                                     bullet: { level: 0 },
                                                     spacing: { after: 50 }
                                                 }));
@@ -3519,9 +3519,9 @@
                                         }
                                     });
                                 } else {
-                                    // Parágrafo normal
+                                    // Parágrafo normal (12pt)
                                     children.push(new Paragraph({
-                                        text: para.trim(),
+                                        children: [new TextRun({ text: para.trim(), size: 24 })],
                                         spacing: { after: 100 }
                                     }));
                                 }
@@ -3540,7 +3540,7 @@
                     
                     content.referencias.forEach((ref, idx) => {
                         children.push(new Paragraph({
-                            text: `${idx + 1}. ${ref}`,
+                            children: [new TextRun({ text: `${idx + 1}. ${ref}`, size: 24 })],
                             spacing: { after: 50 }
                         }));
                     });
