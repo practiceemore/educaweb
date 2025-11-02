@@ -445,20 +445,24 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
     // Verificar se a resposta contém dados de relatório
     let reportData = null;
     try {
-      // Tentar extrair JSON da resposta
-      const jsonMatch = resposta.match(/\{[\s\S]*"action":\s*"generate_report"[\s\S]*\}/);
+      // Tentar extrair JSON da resposta - usar regex mais flexível para capturar JSON completo
+      const jsonMatch = resposta.match(/\{[\s\S]*?"action"\s*:\s*"generate_report"[\s\S]*?\}/);
       if (jsonMatch) {
         const jsonStr = jsonMatch[0];
+        console.log('JSON encontrado para relatório:', jsonStr.substring(0, 200) + '...');
         const parsed = JSON.parse(jsonStr);
         if (parsed.action === 'generate_report' && parsed.metadata && parsed.content) {
           reportData = {
             metadata: parsed.metadata,
             content: parsed.content
           };
+          console.log('Relatório detectado com sucesso!');
         }
+      } else {
+        console.log('Nenhum JSON de relatório encontrado na resposta');
       }
     } catch (error) {
-      console.log('Resposta não contém dados de relatório ou JSON inválido');
+      console.log('Erro ao processar dados de relatório:', error);
     }
 
     // Processar dados da grade horária se encontrados

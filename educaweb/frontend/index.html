@@ -2930,6 +2930,11 @@
                     // Remover indicador de carregamento
                     removeChatMessage(loadingId);
                     
+                    // Debug: verificar resposta
+                    console.log('Response data:', response.data);
+                    console.log('reportGenerated:', response.data.reportGenerated);
+                    console.log('reportData:', response.data.reportData);
+                    
                     // Verificar se uma grade foi gerada
                     if (response.data.gradeGenerated) {
                         // NÃO processar resposta da IA, apenas confirmar
@@ -2939,6 +2944,7 @@
                         await loadGradeHoraria();
                     } else if (response.data.reportGenerated && response.data.reportData) {
                         // Relatório foi gerado - renderizar formatado
+                        console.log('Renderizando relatório no chat');
                         renderReportInChat(response.data.reportData);
                         
                         chatMessages.push({
