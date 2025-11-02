@@ -445,21 +445,74 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
     // Verificar se a resposta contém dados de relatório
     let reportData = null;
     try {
-      // Tentar extrair JSON da resposta - usar regex mais flexível para capturar JSON completo
-      const jsonMatch = resposta.match(/\{[\s\S]*?"action"\s*:\s*"generate_report"[\s\S]*?\}/);
-      if (jsonMatch) {
-        const jsonStr = jsonMatch[0];
-        console.log('JSON encontrado para relatório:', jsonStr.substring(0, 200) + '...');
-        const parsed = JSON.parse(jsonStr);
-        if (parsed.action === 'generate_report' && parsed.metadata && parsed.content) {
-          reportData = {
-            metadata: parsed.metadata,
-            content: parsed.content
-          };
-          console.log('Relatório detectado com sucesso!');
+      // Tentar encontrar JSON completo - procurar por início e fim do objeto JSON
+      // Primeiro, encontrar onde começa o JSON (pode estar entre ```json ou apenas {)
+      let jsonStart = resposta.indexOf('"action":');
+      if (jsonStart === -1) {
+        jsonStart = resposta.indexOf('"action" :');
+      }
+      if (jsonStart === -1) {
+        jsonStart = resposta.indexOf('generate_report');
+      }
+      
+      if (jsonStart !== -1) {
+        // Encontrar o início do objeto { antes do "action"
+        let startIdx = resposta.lastIndexOf('{', jsonStart);
+        if (startIdx === -1) startIdx = resposta.indexOf('{', jsonStart);
+        
+        if (startIdx !== -1) {
+          // Encontrar o final do objeto JSON - contar chaves
+          let braceCount = 0;
+          let inString = false;
+          let escapeNext = false;
+          
+          for (let i = startIdx; i < resposta.length; i++) {
+            const char = resposta[i];
+            
+            if (escapeNext) {
+              escapeNext = false;
+              continue;
+            }
+            
+            if (char === '\\') {
+              escapeNext = true;
+              continue;
+            }
+            
+            if (char === '"' && !escapeNext) {
+              inString = !inString;
+              continue;
+            }
+            
+            if (!inString) {
+              if (char === '{') braceCount++;
+              if (char === '}') {
+                braceCount--;
+                if (braceCount === 0) {
+                  // Encontrou o final do objeto
+                  const jsonStr = resposta.substring(startIdx, i + 1);
+                  try {
+                    const parsed = JSON.parse(jsonStr);
+                    if (parsed.action === 'generate_report' && parsed.metadata && parsed.content) {
+                      reportData = {
+                        metadata: parsed.metadata,
+                        content: parsed.content
+                      };
+                      console.log('Relatório detectado com sucesso!');
+                      break;
+                    }
+                  } catch (parseError) {
+                    console.log('Erro ao fazer parse do JSON:', parseError);
+                  }
+                }
+              }
+            }
+          }
         }
-      } else {
-        console.log('Nenhum JSON de relatório encontrado na resposta');
+      }
+      
+      if (!reportData) {
+        console.log('Nenhum JSON de relatório válido encontrado na resposta');
       }
     } catch (error) {
       console.log('Erro ao processar dados de relatório:', error);
