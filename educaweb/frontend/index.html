@@ -3453,13 +3453,36 @@
                     }));
                 }
                 
-                // Resumo (negrito)
+                // Resumo (título separado do conteúdo)
                 if (content.resumo) {
                     const resumoText = processMarkdownText(content.resumo);
-                    children.push(new Paragraph({
-                        children: [new TextRun({ text: resumoText, bold: true })],
-                        spacing: { after: 200 }
-                    }));
+                    
+                    // Verificar se o texto começa com "Resumo" (case-insensitive)
+                    const resumoMatch = resumoText.match(/^resumo\s+(.+)/i);
+                    
+                    if (resumoMatch) {
+                        // Separar título "Resumo" do conteúdo
+                        const resumoTitle = 'Resumo';
+                        const resumoContent = resumoMatch[1].trim();
+                        
+                        // Título "Resumo" em negrito
+                        children.push(new Paragraph({
+                            children: [new TextRun({ text: resumoTitle, bold: true })],
+                            spacing: { after: 100 }
+                        }));
+                        
+                        // Conteúdo do resumo em texto normal
+                        children.push(new Paragraph({
+                            text: resumoContent,
+                            spacing: { after: 200 }
+                        }));
+                    } else {
+                        // Se não começar com "Resumo", manter comportamento original (todo em negrito)
+                        children.push(new Paragraph({
+                            children: [new TextRun({ text: resumoText, bold: true })],
+                            spacing: { after: 200 }
+                        }));
+                    }
                 }
                 
                 // Seções
