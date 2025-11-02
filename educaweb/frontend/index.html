@@ -204,6 +204,8 @@
         // Variáveis para disciplinas da turma
         let turmaDisciplinas = [];
         let turmaAtual = null;
+        let turmaDisciplinasChanges = {}; // Armazenar alterações pendentes: { disciplinaId: { turmaDisciplinaId, aulasPorSemana } }
+        let turmaDisciplinasInitialState = {}; // Estado inicial para comparação
 
         // ===== FUNÇÕES DE UTILIDADE =====
 
@@ -2077,6 +2079,10 @@
             // Carregar disciplinas da turma
             await loadTurmaDisciplinas(turmaId);
 
+            // Inicializar alterações pendentes e estado inicial
+            turmaDisciplinasChanges = {};
+            turmaDisciplinasInitialState = {};
+
             // Criar um mapa de disciplinas da turma para fácil acesso
             const turmaDisciplinasMap = {};
             turmaDisciplinas.forEach(td => {
@@ -2084,16 +2090,42 @@
                     id: td.id,
                     aulasPorSemana: td.aulasPorSemana
                 };
+                // Armazenar estado inicial
+                turmaDisciplinasInitialState[td.disciplina.id] = {
+                    turmaDisciplinaId: td.id,
+                    aulasPorSemana: td.aulasPorSemana
+                };
             });
 
-            // Combinar todas as disciplinas com as da turma
+            // Inicializar estado inicial para disciplinas não na turma (0 aulas)
+            disciplinas.forEach(d => {
+                if (!turmaDisciplinasInitialState[d.id]) {
+                    turmaDisciplinasInitialState[d.id] = {
+                        turmaDisciplinaId: null,
+                        aulasPorSemana: 0
+                    };
+                }
+            });
+
+            // Combinar todas as disciplinas com as da turma (considerando alterações pendentes)
             const todasDisciplinasComAulas = disciplinas.map(disciplina => {
                 const turmaDisc = turmaDisciplinasMap[disciplina.id];
-                return {
-                    disciplina: disciplina,
-                    turmaDisciplinaId: turmaDisc ? turmaDisc.id : null,
-                    aulasPorSemana: turmaDisc ? turmaDisc.aulasPorSemana : 0
-                };
+                const change = turmaDisciplinasChanges[disciplina.id];
+                
+                // Se há alteração pendente, usar ela; senão usar valor atual
+                if (change !== undefined) {
+                    return {
+                        disciplina: disciplina,
+                        turmaDisciplinaId: change.turmaDisciplinaId,
+                        aulasPorSemana: change.aulasPorSemana
+                    };
+                } else {
+                    return {
+                        disciplina: disciplina,
+                        turmaDisciplinaId: turmaDisc ? turmaDisc.id : null,
+                        aulasPorSemana: turmaDisc ? turmaDisc.aulasPorSemana : 0
+                    };
+                }
             });
 
             // Criar modal
@@ -2104,7 +2136,7 @@
                 <div class="modal-content" style="max-width: 600px;">
                     <div class="modal-header">
                         <h3>📚 Disciplinas da Turma: ${turmaAtual.nome}</h3>
-                        <span class="close" onclick="closeModal('turmaDisciplinasModal')">&times;</span>
+                        <span class="close" onclick="closeTurmaDisciplinasModal()">&times;</span>
                     </div>
                     <div class="modal-body">
                         <div class="table-container">
@@ -2143,7 +2175,7 @@
             // Fechar modal ao clicar fora dele
             modal.onclick = function(event) {
                 if (event.target === modal) {
-                    closeModal("turmaDisciplinasModal");
+                    closeTurmaDisciplinasModal();
                 }
             };
         }
@@ -2164,8 +2196,108 @@
             }
         }
 
-        // Função para atualizar aulas por semana
-        async function updateAulasPorSemana(disciplinaId, turmaDisciplinaId, novasAulas) {
+        // Função para salvar todas as alterações pendentes
+        async function saveTurmaDisciplinasChanges() {
+            if (!turmaAtual || Object.keys(turmaDisciplinasChanges).length === 0) {
+                return; // Nenhuma alteração para salvar
+            }
+
+            const errors = [];
+            const operations = [];
+
+            // Processar cada alteração
+            for (const [disciplinaId, change] of Object.entries(turmaDisciplinasChanges)) {
+                const disciplinaIdNum = parseInt(disciplinaId);
+                const initialState = turmaDisciplinasInitialState[disciplinaIdNum];
+                
+                if (!initialState) {
+                    continue; // Estado inicial não encontrado, pular
+                }
+
+                const { turmaDisciplinaId: newTurmaDisciplinaId, aulasPorSemana: novasAulas } = change;
+                const { turmaDisciplinaId: initialTurmaDisciplinaId, aulasPorSemana: aulasIniciais } = initialState;
+
+                // Verificar se realmente houve mudança
+                if (novasAulas === aulasIniciais && newTurmaDisciplinaId === initialTurmaDisciplinaId) {
+                    continue; // Sem mudança real
+                }
+
+                try {
+                    if (novasAulas === 0 && initialTurmaDisciplinaId !== null) {
+                        // Deletar registro
+                        operations.push({
+                            type: 'delete',
+                            turmaDisciplinaId: initialTurmaDisciplinaId,
+                            disciplinaId: disciplinaIdNum
+                        });
+                    } else if (novasAulas > 0 && initialTurmaDisciplinaId !== null) {
+                        // Atualizar registro existente
+                        operations.push({
+                            type: 'update',
+                            turmaDisciplinaId: initialTurmaDisciplinaId,
+                            disciplinaId: disciplinaIdNum,
+                            aulasPorSemana: novasAulas
+                        });
+                    } else if (novasAulas > 0 && initialTurmaDisciplinaId === null) {
+                        // Criar novo registro
+                        operations.push({
+                            type: 'create',
+                            disciplinaId: disciplinaIdNum,
+                            aulasPorSemana: novasAulas
+                        });
+                    }
+                } catch (error) {
+                    errors.push(`Erro ao processar disciplina ${disciplinaId}: ${error.message}`);
+                }
+            }
+
+            // Executar todas as operações
+            for (const op of operations) {
+                try {
+                    let response;
+                    if (op.type === 'delete') {
+                        response = await apiRequest(`/turma-disciplinas/${op.turmaDisciplinaId}`, 'DELETE');
+                        if (!response.success) {
+                            throw new Error(response.error || 'Erro ao deletar');
+                        }
+                    } else if (op.type === 'update') {
+                        response = await apiRequest(`/turma-disciplinas/${op.turmaDisciplinaId}`, 'PUT', {
+                            aulasPorSemana: op.aulasPorSemana
+                        });
+                        if (!response.success) {
+                            throw new Error(response.error || 'Erro ao atualizar');
+                        }
+                    } else if (op.type === 'create') {
+                        response = await apiRequest("/turma-disciplinas", "POST", {
+                            turmaId: turmaAtual.id,
+                            disciplinaId: op.disciplinaId,
+                            aulasPorSemana: op.aulasPorSemana
+                        });
+                        if (!response.success) {
+                            throw new Error(response.error || 'Erro ao criar');
+                        }
+                    }
+                } catch (error) {
+                    errors.push(`Erro ao ${op.type} disciplina ${op.disciplinaId}: ${error.message}`);
+                }
+            }
+
+            // Limpar alterações pendentes após salvar
+            turmaDisciplinasChanges = {};
+
+            if (errors.length > 0) {
+                showNotification('Algumas alterações não puderam ser salvas: ' + errors.join('; '), 'error');
+            }
+        }
+
+        // Função para fechar modal de disciplinas da turma (salva antes de fechar)
+        async function closeTurmaDisciplinasModal() {
+            await saveTurmaDisciplinasChanges();
+            closeModal("turmaDisciplinasModal");
+        }
+
+        // Função para atualizar aulas por semana (apenas armazena localmente)
+        function updateAulasPorSemana(disciplinaId, turmaDisciplinaId, novasAulas) {
             // Converter IDs para números
             disciplinaId = parseInt(disciplinaId);
             
@@ -2180,73 +2312,45 @@
             
             if (isNaN(aulas) || aulas < 0 || aulas > 20) {
                 showNotification('Aulas por semana deve ser entre 0 e 20', 'error');
-                // Restaurar valor anterior no input
+                // Restaurar valor anterior no input baseado no estado inicial ou alterações pendentes
                 const input = document.getElementById(`aulas-${disciplinaId}`);
-                if (input && turmaDisciplinaId) {
-                    const existing = turmaDisciplinas.find(td => td.id === turmaDisciplinaId);
-                    input.value = existing ? existing.aulasPorSemana : 0;
+                const initialState = turmaDisciplinasInitialState[disciplinaId];
+                const pendingChange = turmaDisciplinasChanges[disciplinaId];
+                if (pendingChange !== undefined) {
+                    input.value = pendingChange.aulasPorSemana;
+                } else if (initialState) {
+                    input.value = initialState.aulasPorSemana;
                 } else {
                     input.value = 0;
                 }
                 return;
             }
 
-            try {
-                let response;
+            // Buscar estado inicial para determinar turmaDisciplinaId correto
+            const initialState = turmaDisciplinasInitialState[disciplinaId];
+            const currentTurmaDisciplinaId = initialState ? initialState.turmaDisciplinaId : null;
+            
+            // Determinar turmaDisciplinaId final:
+            // - Se aulas = 0, turmaDisciplinaId deve ser null (será deletado se existir)
+            // - Se aulas > 0 e já existia registro, manter o ID atual
+            // - Se aulas > 0 e não existia registro, manter null (será criado)
+            let finalTurmaDisciplinaId = null;
+            if (aulas > 0 && currentTurmaDisciplinaId !== null) {
+                finalTurmaDisciplinaId = currentTurmaDisciplinaId; // Manter ID existente
+            } else if (aulas === 0) {
+                finalTurmaDisciplinaId = null; // Será deletado se existir
+            }
 
-                if (aulas === 0 && turmaDisciplinaId) {
-                    // Deletar registro se aulas = 0 e existe registro
-                    response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'DELETE');
-                    
-                    if (response.success) {
-                        // Remover dos dados locais
-                        turmaDisciplinas = turmaDisciplinas.filter(td => td.id !== turmaDisciplinaId);
-                        showNotification('Disciplina removida da turma', 'success');
-                    } else {
-                        throw new Error(response.error || 'Erro ao remover');
-                    }
-                } else if (aulas > 0 && turmaDisciplinaId) {
-                    // Atualizar registro existente
-                    response = await apiRequest(`/turma-disciplinas/${turmaDisciplinaId}`, 'PUT', {
-                        aulasPorSemana: aulas
-                    });
-
-                    if (response.success) {
-                        // Atualizar dados locais
-                        const index = turmaDisciplinas.findIndex(td => td.id === turmaDisciplinaId);
-                        if (index !== -1) {
-                            turmaDisciplinas[index].aulasPorSemana = aulas;
-                        }
-                    } else {
-                        throw new Error(response.error || 'Erro ao atualizar');
-                    }
-                } else if (aulas > 0 && !turmaDisciplinaId) {
-                    // Criar novo registro
-                    response = await apiRequest("/turma-disciplinas", "POST", {
-                        turmaId: turmaAtual.id,
-                        disciplinaId: disciplinaId,
-                        aulasPorSemana: aulas
-                    });
-
-                    if (response.success) {
-                        // Adicionar aos dados locais
-                        turmaDisciplinas.push(response.data);
-                        showNotification('Disciplina adicionada à turma', 'success');
-                    } else {
-                        throw new Error(response.error || 'Erro ao adicionar');
-                    }
-                } else {
-                    // aulas === 0 && !turmaDisciplinaId - não fazer nada
-                    return;
-                }
-
-                // Recarregar modal para atualizar a tabela
-                await showTurmaDisciplinasModal(turmaAtual.id);
-            } catch (error) {
-                console.error('Erro ao atualizar aulas por semana:', error);
-                showNotification('Erro ao atualizar aulas por semana: ' + (error.message || 'Erro desconhecido'), 'error');
-                // Recarregar modal para restaurar valores
-                await showTurmaDisciplinasModal(turmaAtual.id);
+            // Armazenar alteração pendente
+            turmaDisciplinasChanges[disciplinaId] = {
+                turmaDisciplinaId: finalTurmaDisciplinaId,
+                aulasPorSemana: aulas
+            };
+            
+            // Atualizar valor do input para refletir a mudança (caso o input ainda exista)
+            const input = document.getElementById(`aulas-${disciplinaId}`);
+            if (input) {
+                input.value = aulas;
             }
         }
 
