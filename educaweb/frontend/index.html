@@ -3135,53 +3135,6 @@
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF();
                     
-                    // Capa com título
-                    doc.setFontSize(16);
-                    doc.setFont(undefined, 'bold');
-                    const title = metadata.titulo || 'Relatório';
-                    const titleLines = doc.splitTextToSize(title, 180);
-                    let yPos = 60;
-                    
-                    // Título centralizado
-                    titleLines.forEach(line => {
-                        const textWidth = doc.getTextWidth(line);
-                        const xPos = (210 - textWidth) / 2; // Centralizar em A4 (210mm)
-                        doc.text(line, xPos, yPos);
-                        yPos += 10;
-                    });
-                    
-                    // Subtítulo se existir
-                    if (metadata.subtitulo) {
-                        yPos += 5;
-                        doc.setFontSize(14);
-                        doc.setFont(undefined, 'normal');
-                        const subtitleLines = doc.splitTextToSize(metadata.subtitulo, 180);
-                        subtitleLines.forEach(line => {
-                            const textWidth = doc.getTextWidth(line);
-                            const xPos = (210 - textWidth) / 2;
-                            doc.text(line, xPos, yPos);
-                            yPos += 8;
-                        });
-                    }
-                    
-                    // Metadados (autor, data)
-                    yPos += 20;
-                    doc.setFontSize(10);
-                    if (metadata.autor) {
-                        doc.text(`Autor: ${metadata.autor}`, 105, yPos, { align: 'center' });
-                        yPos += 6;
-                    }
-                    if (metadata.data) {
-                        doc.text(`Data: ${metadata.data}`, 105, yPos, { align: 'center' });
-                        yPos += 6;
-                    }
-                    doc.text('Gerado por EducaWeb', 105, yPos, { align: 'center' });
-                    
-                    // Nova página para conteúdo
-                    doc.addPage();
-                    yPos = 20;
-                    doc.setFontSize(10);
-                    
                     // Função auxiliar para processar texto Markdown simples
                     const processMarkdownText = (text) => {
                         // Remover formatação markdown básica para texto simples
@@ -3192,11 +3145,41 @@
                             .replace(/`(.*?)`/g, '$1');  // Remove código inline
                     };
                     
-                    // Resumo
-                    if (content.resumo) {
+                    // Iniciar na primeira página
+                    let yPos = 20;
+                    
+                    // Título (alinhado à esquerda)
+                    doc.setFontSize(16);
+                    doc.setFont(undefined, 'bold');
+                    const title = metadata.titulo || 'Relatório';
+                    const titleLines = doc.splitTextToSize(title, 180);
+                    titleLines.forEach(line => {
+                        if (yPos > 280) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                        doc.text(line, 14, yPos);
+                        yPos += 10;
+                    });
+                    
+                    // Subtítulo se existir
+                    if (metadata.subtitulo) {
+                        yPos += 5;
                         doc.setFontSize(12);
-                        doc.setFont(undefined, 'bold');
-                        doc.text('Resumo', 14, yPos);
+                        doc.setFont(undefined, 'normal');
+                        const subtitleLines = doc.splitTextToSize(metadata.subtitulo, 180);
+                        subtitleLines.forEach(line => {
+                            if (yPos > 280) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+                            doc.text(line, 14, yPos);
+                            yPos += 8;
+                        });
+                    }
+                    
+                    // Resumo (sem cabeçalho, apenas conteúdo)
+                    if (content.resumo) {
                         yPos += 8;
                         doc.setFontSize(10);
                         doc.setFont(undefined, 'normal');
