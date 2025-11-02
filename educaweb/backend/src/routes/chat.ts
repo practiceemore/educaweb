@@ -445,20 +445,29 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
     // Verificar se a resposta contém dados de relatório
     let reportData = null;
     try {
+      // Primeiro, remover marcadores de código markdown (```json e ```)
+      let cleanResponse = resposta;
+      
+      // Remover ```json no início
+      cleanResponse = cleanResponse.replace(/^```json\s*/i, '');
+      cleanResponse = cleanResponse.replace(/^```\s*/i, '');
+      
+      // Remover ``` no final
+      cleanResponse = cleanResponse.replace(/\s*```\s*$/i, '');
+      
       // Tentar encontrar JSON completo - procurar por início e fim do objeto JSON
-      // Primeiro, encontrar onde começa o JSON (pode estar entre ```json ou apenas {)
-      let jsonStart = resposta.indexOf('"action":');
+      let jsonStart = cleanResponse.indexOf('"action":');
       if (jsonStart === -1) {
-        jsonStart = resposta.indexOf('"action" :');
+        jsonStart = cleanResponse.indexOf('"action" :');
       }
       if (jsonStart === -1) {
-        jsonStart = resposta.indexOf('generate_report');
+        jsonStart = cleanResponse.indexOf('generate_report');
       }
       
       if (jsonStart !== -1) {
         // Encontrar o início do objeto { antes do "action"
-        let startIdx = resposta.lastIndexOf('{', jsonStart);
-        if (startIdx === -1) startIdx = resposta.indexOf('{', jsonStart);
+        let startIdx = cleanResponse.lastIndexOf('{', jsonStart);
+        if (startIdx === -1) startIdx = cleanResponse.indexOf('{', jsonStart);
         
         if (startIdx !== -1) {
           // Encontrar o final do objeto JSON - contar chaves
@@ -466,8 +475,8 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
           let inString = false;
           let escapeNext = false;
           
-          for (let i = startIdx; i < resposta.length; i++) {
-            const char = resposta[i];
+          for (let i = startIdx; i < cleanResponse.length; i++) {
+            const char = cleanResponse[i];
             
             if (escapeNext) {
               escapeNext = false;
@@ -490,7 +499,7 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
                 braceCount--;
                 if (braceCount === 0) {
                   // Encontrou o final do objeto
-                  const jsonStr = resposta.substring(startIdx, i + 1);
+                  const jsonStr = cleanResponse.substring(startIdx, i + 1);
                   try {
                     const parsed = JSON.parse(jsonStr);
                     if (parsed.action === 'generate_report' && parsed.metadata && parsed.content) {
