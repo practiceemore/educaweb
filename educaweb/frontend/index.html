@@ -3049,8 +3049,11 @@
             const metadata = reportData.metadata || {};
             const content = reportData.content || {};
             
+            // Escapar JSON para uso seguro em HTML (usar encodeURIComponent)
+            const reportDataJson = JSON.stringify(reportData);
+            
             const reportHTML = `
-                <div class="chat-report" id="${messageId}" data-report='${JSON.stringify(reportData)}'>
+                <div class="chat-report" id="${messageId}" data-report-json="${encodeURIComponent(reportDataJson)}">
                     <div class="report-header">
                         <h3 class="report-title">${metadata.titulo || 'Relatório'}</h3>
                         ${metadata.subtitulo ? `<p class="report-subtitle">${metadata.subtitulo}</p>` : ''}
@@ -3103,7 +3106,8 @@
                     return;
                 }
 
-                const reportData = JSON.parse(reportElement.getAttribute('data-report'));
+                const reportDataJson = reportElement.getAttribute('data-report-json');
+                const reportData = JSON.parse(decodeURIComponent(reportDataJson));
                 const metadata = reportData.metadata || {};
                 const content = reportData.content || {};
 
