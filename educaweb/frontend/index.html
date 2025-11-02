@@ -3032,6 +3032,33 @@
             }
         }
 
+        // Função auxiliar para remover cabeçalhos markdown iniciais que correspondem ao título da seção
+        function removeLeadingHeadingFromMarkdown(markdownText, sectionTitle) {
+            if (!markdownText || !sectionTitle) return markdownText;
+            
+            // Remover números e formatação do título para comparação
+            const cleanTitle = sectionTitle.replace(/^\d+\.\s*/, '').trim();
+            
+            // Escapar caracteres especiais para regex
+            const escapedTitle = cleanTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            
+            // Regex para encontrar cabeçalhos markdown (##, ###, etc.) seguidos do título
+            // Pode ter número opcional antes do título: ## 1. Título ou ## Título
+            const patterns = [
+                // Padrão com número: ## 1. Título ou ### 1. Título
+                new RegExp(`^#{1,6}\\s*\\d+\\.\\s*${escapedTitle}\\s*\\n?`, 'im'),
+                // Padrão sem número: ## Título ou ### Título
+                new RegExp(`^#{1,6}\\s*${escapedTitle}\\s*\\n?`, 'im')
+            ];
+            
+            let result = markdownText;
+            for (const pattern of patterns) {
+                result = result.replace(pattern, '').trim();
+            }
+            
+            return result;
+        }
+
         // Renderizar relatório no chat
         function renderReportInChat(reportData) {
             const chatMessages = document.getElementById('chatMessages');
@@ -3133,33 +3160,6 @@
                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
                         .replace(/\n/g, '<br>');
                 };
-
-                // Função auxiliar para remover cabeçalhos markdown iniciais que correspondem ao título da seção
-                function removeLeadingHeadingFromMarkdown(markdownText, sectionTitle) {
-                    if (!markdownText || !sectionTitle) return markdownText;
-                    
-                    // Remover números e formatação do título para comparação
-                    const cleanTitle = sectionTitle.replace(/^\d+\.\s*/, '').trim();
-                    
-                    // Escapar caracteres especiais para regex
-                    const escapedTitle = cleanTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    
-                    // Regex para encontrar cabeçalhos markdown (##, ###, etc.) seguidos do título
-                    // Pode ter número opcional antes do título: ## 1. Título ou ## Título
-                    const patterns = [
-                        // Padrão com número: ## 1. Título ou ### 1. Título
-                        new RegExp(`^#{1,6}\\s*\\d+\\.\\s*${escapedTitle}\\s*\\n?`, 'im'),
-                        // Padrão sem número: ## Título ou ### Título
-                        new RegExp(`^#{1,6}\\s*${escapedTitle}\\s*\\n?`, 'im')
-                    ];
-                    
-                    let result = markdownText;
-                    for (const pattern of patterns) {
-                        result = result.replace(pattern, '').trim();
-                    }
-                    
-                    return result;
-                }
 
                 // Usar jsPDF diretamente (mais confiável)
                 try {
