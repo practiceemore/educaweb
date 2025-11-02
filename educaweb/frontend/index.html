@@ -3070,11 +3070,15 @@
                     </div>
                     <div class="report-content">
                         ${content.resumo ? `<div class="report-section"><div class="report-text">${renderMarkdown(content.resumo)}</div></div>` : ''}
-                        ${content.secoes ? content.secoes.map(sec => `
+                        ${content.secoes ? content.secoes.map((sec, index) => {
+                            const cleanedContent = removeLeadingHeadingFromMarkdown(sec.conteudo, sec.titulo);
+                            return `
                             <div class="report-section">
-                                <div class="report-text">${renderMarkdown(sec.conteudo)}</div>
+                                <h3 class="report-section-title">${index + 1}. ${sec.titulo}</h3>
+                                <div class="report-text">${renderMarkdown(cleanedContent)}</div>
                             </div>
-                        `).join('') : ''}
+                        `;
+                        }).join('') : ''}
                         ${content.referencias && content.referencias.length > 0 ? `
                             <div class="report-section">
                                 <h4>Referências</h4>
@@ -3129,6 +3133,33 @@
                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
                         .replace(/\n/g, '<br>');
                 };
+
+                // Função auxiliar para remover cabeçalhos markdown iniciais que correspondem ao título da seção
+                function removeLeadingHeadingFromMarkdown(markdownText, sectionTitle) {
+                    if (!markdownText || !sectionTitle) return markdownText;
+                    
+                    // Remover números e formatação do título para comparação
+                    const cleanTitle = sectionTitle.replace(/^\d+\.\s*/, '').trim();
+                    
+                    // Escapar caracteres especiais para regex
+                    const escapedTitle = cleanTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    
+                    // Regex para encontrar cabeçalhos markdown (##, ###, etc.) seguidos do título
+                    // Pode ter número opcional antes do título: ## 1. Título ou ## Título
+                    const patterns = [
+                        // Padrão com número: ## 1. Título ou ### 1. Título
+                        new RegExp(`^#{1,6}\\s*\\d+\\.\\s*${escapedTitle}\\s*\\n?`, 'im'),
+                        // Padrão sem número: ## Título ou ### Título
+                        new RegExp(`^#{1,6}\\s*${escapedTitle}\\s*\\n?`, 'im')
+                    ];
+                    
+                    let result = markdownText;
+                    for (const pattern of patterns) {
+                        result = result.replace(pattern, '').trim();
+                    }
+                    
+                    return result;
+                }
 
                 // Usar jsPDF diretamente (mais confiável)
                 try {
@@ -3198,23 +3229,24 @@
                     
                     // Seções
                     if (content.secoes) {
-                        content.secoes.forEach(sec => {
+                        content.secoes.forEach((sec, index) => {
                             if (yPos > 275) {
                                 doc.addPage();
                                 yPos = 20;
                             }
                             
-                            // Título da seção
+                            // Título da seção (numerado e em negrito)
                             doc.setFontSize(12);
                             doc.setFont(undefined, 'bold');
                             const secTitle = sec.titulo || 'Seção';
-                            doc.text(secTitle, 14, yPos);
+                            doc.text(`${index + 1}. ${secTitle}`, 14, yPos);
                             yPos += 8;
                             
-                            // Conteúdo da seção
+                            // Conteúdo da seção (remover cabeçalho markdown duplicado)
                             doc.setFontSize(10);
                             doc.setFont(undefined, 'normal');
-                            const secText = processMarkdownText(sec.conteudo);
+                            const cleanedContent = removeLeadingHeadingFromMarkdown(sec.conteudo, sec.titulo);
+                            const secText = processMarkdownText(cleanedContent);
                             
                             // Processar parágrafos e listas
                             const paragraphs = secText.split(/\n\n+/);
