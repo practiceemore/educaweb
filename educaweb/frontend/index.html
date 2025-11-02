@@ -3200,30 +3200,78 @@
                     </html>
                 `;
 
-                // Criar elemento temporário para gerar PDF
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(htmlContent);
-                printWindow.document.close();
+                // Criar elemento temporário no DOM para gerar PDF
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlContent;
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.top = '0';
+                document.body.appendChild(tempDiv);
 
-                // Aguardar carregamento e gerar PDF
-                printWindow.onload = function() {
-                    setTimeout(() => {
-                        html2pdf().from(printWindow.document.body).set({
+                // Aguardar um momento para renderização e gerar PDF
+                setTimeout(() => {
+                    const element = tempDiv.querySelector('.report-content') || tempDiv;
+                    
+                    if (typeof html2pdf !== 'undefined') {
+                        html2pdf().set({
                             margin: [20, 20, 20, 20],
-                            filename: `relatorio_${metadata.titulo?.replace(/[^a-z0-9]/gi, '_') || 'relatorio'}_${Date.now()}.pdf`,
+                            filename: `relatorio_${(metadata.titulo || 'relatorio').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
                             image: { type: 'jpeg', quality: 0.98 },
-                            html2canvas: { scale: 2 },
+                            html2canvas: { scale: 2, useCORS: true },
                             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                        }).save().then(() => {
-                            printWindow.close();
+                        }).from(element).save().then(() => {
+                            document.body.removeChild(tempDiv);
                             showNotification('Relatório PDF gerado com sucesso!', 'success');
                         }).catch(err => {
                             console.error('Erro ao gerar PDF:', err);
-                            showNotification('Erro ao gerar PDF', 'error');
-                            printWindow.close();
+                            document.body.removeChild(tempDiv);
+                            showNotification('Erro ao gerar PDF. Tentando método alternativo...', 'warning');
+                            // Fallback: usar jsPDF diretamente
+                            try {
+                                const { jsPDF } = window.jspdf;
+                                const doc = new jsPDF();
+                                doc.setFontSize(12);
+                                doc.text(metadata.titulo || 'Relatório', 14, 20);
+                                let yPos = 30;
+                                doc.setFontSize(10);
+                                if (content.resumo) {
+                                    doc.text('Resumo:', 14, yPos);
+                                    yPos += 10;
+                                    const resumoText = content.resumo.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').replace(/\*/g, '');
+                                    doc.text(doc.splitTextToSize(resumoText, 180), 14, yPos);
+                                    yPos += 20;
+                                }
+                                if (content.secoes) {
+                                    content.secoes.forEach(sec => {
+                                        if (yPos > 280) {
+                                            doc.addPage();
+                                            yPos = 20;
+                                        }
+                                        doc.setFontSize(11);
+                                        doc.setFont(undefined, 'bold');
+                                        const secTitle = sec.titulo || 'Seção';
+                                        doc.text(secTitle, 14, yPos);
+                                        yPos += 8;
+                                        doc.setFontSize(10);
+                                        doc.setFont(undefined, 'normal');
+                                        const secText = sec.conteudo.replace(/^#+\s*/gm, '').replace(/\*\*/g, '').replace(/\*/g, '');
+                                        const lines = doc.splitTextToSize(secText, 180);
+                                        doc.text(lines, 14, yPos);
+                                        yPos += lines.length * 5 + 10;
+                                    });
+                                }
+                                doc.save(`relatorio_${(metadata.titulo || 'relatorio').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
+                                showNotification('Relatório PDF gerado com sucesso!', 'success');
+                            } catch (fallbackErr) {
+                                console.error('Erro no fallback:', fallbackErr);
+                                showNotification('Erro ao gerar PDF', 'error');
+                            }
                         });
-                    }, 500);
-                };
+                    } else {
+                        document.body.removeChild(tempDiv);
+                        showNotification('Biblioteca html2pdf não carregada', 'error');
+                    }
+                }, 300);
 
             } catch (error) {
                 console.error('Erro ao exportar relatório:', error);
