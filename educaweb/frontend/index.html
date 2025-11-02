@@ -11,6 +11,9 @@
     <!-- Bibliotecas para Markdown e HTML to PDF -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Bibliotecas para exportação DOCX -->
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.0.0/build/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <style>
         /* ===== ESTILOS DOS MODAIS ===== */
         .modal-overlay {
@@ -3119,6 +3122,9 @@
                         <button class="btn-report-pdf" onclick="exportRelatorioIAPDF('${messageId}')" title="Exportar PDF">
                             📄 Exportar PDF
                         </button>
+                        <button class="btn-report-docx" onclick="exportRelatorioIADOCX('${messageId}')" title="Exportar DOCX">
+                            📝 Exportar DOCX
+                        </button>
                     </div>
                 </div>
             `;
@@ -3393,6 +3399,161 @@
             } catch (error) {
                 console.error('Erro ao exportar relatório:', error);
                 showNotification('Erro ao exportar relatório', 'error');
+            }
+        }
+
+        // Exportar relatório para DOCX
+        async function exportRelatorioIADOCX(messageId) {
+            try {
+                const reportElement = document.getElementById(messageId);
+                if (!reportElement) {
+                    showNotification('Relatório não encontrado', 'error');
+                    return;
+                }
+
+                const reportDataJson = reportElement.getAttribute('data-report-json');
+                const reportData = JSON.parse(decodeURIComponent(reportDataJson));
+                const metadata = reportData.metadata || {};
+                const content = reportData.content || {};
+
+                // Função auxiliar para processar texto Markdown simples
+                const processMarkdownText = (text) => {
+                    // Remover formatação markdown básica para texto simples
+                    return text
+                        .replace(/^#+\s*/gm, '')  // Remove títulos markdown
+                        .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove negrito
+                        .replace(/\*(.*?)\*/g, '$1')  // Remove itálico
+                        .replace(/`(.*?)`/g, '$1');  // Remove código inline
+                };
+
+                // Verificar se docx está disponível
+                if (typeof docx === 'undefined') {
+                    showNotification('Biblioteca docx não carregada', 'error');
+                    return;
+                }
+
+                const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
+                
+                // Criar parágrafos do documento
+                const children = [];
+                
+                // Título
+                children.push(new Paragraph({
+                    text: metadata.titulo || 'Relatório',
+                    heading: HeadingLevel.HEADING_1,
+                    spacing: { after: 200 }
+                }));
+                
+                // Subtítulo se existir
+                if (metadata.subtitulo) {
+                    children.push(new Paragraph({
+                        text: metadata.subtitulo,
+                        heading: HeadingLevel.HEADING_2,
+                        spacing: { after: 200 }
+                    }));
+                }
+                
+                // Resumo (negrito)
+                if (content.resumo) {
+                    const resumoText = processMarkdownText(content.resumo);
+                    children.push(new Paragraph({
+                        children: [new TextRun({ text: resumoText, bold: true })],
+                        spacing: { after: 200 }
+                    }));
+                }
+                
+                // Seções
+                if (content.secoes) {
+                    content.secoes.forEach((sec, index) => {
+                        // Limpar conteúdo (remover cabeçalho markdown duplicado)
+                        const cleanedContent = removeLeadingHeadingFromMarkdown(sec.conteudo, sec.titulo);
+                        const secText = processMarkdownText(cleanedContent);
+                        
+                        // Título da seção
+                        children.push(new Paragraph({
+                            text: `${index + 1}. ${sec.titulo}`,
+                            heading: HeadingLevel.HEADING_2,
+                            spacing: { before: 200, after: 100 }
+                        }));
+                        
+                        // Conteúdo da seção
+                        const paragraphs = secText.split(/\n\n+/);
+                        paragraphs.forEach(para => {
+                            if (para.trim()) {
+                                // Verificar se é lista
+                                if (para.match(/^[-*]\s/)) {
+                                    const items = para.split(/\n[-*]\s/);
+                                    items.forEach(item => {
+                                        if (item.trim()) {
+                                            const itemText = item.replace(/^[-*]\s/, '').trim();
+                                            if (itemText) {
+                                                children.push(new Paragraph({
+                                                    text: itemText,
+                                                    bullet: { level: 0 },
+                                                    spacing: { after: 50 }
+                                                }));
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    // Parágrafo normal
+                                    children.push(new Paragraph({
+                                        text: para.trim(),
+                                        spacing: { after: 100 }
+                                    }));
+                                }
+                            }
+                        });
+                    });
+                }
+                
+                // Referências
+                if (content.referencias && content.referencias.length > 0) {
+                    children.push(new Paragraph({
+                        text: 'Referências',
+                        heading: HeadingLevel.HEADING_2,
+                        spacing: { before: 200, after: 100 }
+                    }));
+                    
+                    content.referencias.forEach((ref, idx) => {
+                        children.push(new Paragraph({
+                            text: `${idx + 1}. ${ref}`,
+                            spacing: { after: 50 }
+                        }));
+                    });
+                }
+                
+                // Criar documento
+                const doc = new Document({
+                    sections: [{
+                        children: children
+                    }]
+                });
+                
+                // Gerar e fazer download
+                const blob = await Packer.toBlob(doc);
+                const filename = `relatorio_${(metadata.titulo || 'relatorio').replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.docx`;
+                
+                // Verificar se saveAs está disponível (file-saver)
+                if (typeof saveAs !== 'undefined') {
+                    saveAs(blob, filename);
+                } else {
+                    // Fallback manual
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }
+                
+                showNotification('Relatório DOCX gerado com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao exportar relatório DOCX:', error);
+                showNotification('Erro ao exportar relatório DOCX', 'error');
             }
         }
 

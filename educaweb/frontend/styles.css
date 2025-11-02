@@ -3516,9 +3516,14 @@ body {
   padding-top: 15px;
   border-top: 1px solid #e0e0e0;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.btn-report-pdf {
+.btn-report-pdf,
+.btn-report-docx {
   background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
   color: white;
   border: none;
@@ -3528,9 +3533,11 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.3s ease;
+  margin: 0 5px;
 }
 
-.btn-report-pdf:hover {
+.btn-report-pdf:hover,
+.btn-report-docx:hover {
   background: linear-gradient(135deg, #3AA890 0%, #2E8B73 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
