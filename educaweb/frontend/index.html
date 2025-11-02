@@ -144,7 +144,6 @@
                     <div class="nav-chip" onclick="showView('professores')">👨‍🏫 Professores</div>
                     <div class="nav-chip" onclick="showView('turmas')">👥 Turmas</div>
                     <div class="nav-chip" onclick="showView('salas')">🏫 Salas</div>
-                    <div class="nav-chip" onclick="showView('dashboard')">📊 Dashboard</div>
                     <div class="nav-chip" onclick="showView('relatorios')">📋 Painel</div>
             </div>
             </nav>
@@ -346,8 +345,6 @@
                 professores = professoresData;
                 turmas = turmasData;
                 salas = salasData;
-
-                updateDashboard();
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
                 showNotification('Erro ao carregar dados: ' + error.message, 'error');
@@ -394,72 +391,6 @@
             }
         }
 
-        function showDashboard() {
-            const mainContent = document.querySelector('main');
-            if (mainContent) {
-                mainContent.innerHTML = `
-                    <div class="dashboard">
-                        <div class="dashboard-header">
-                            <h1>📊 Dashboard</h1>
-                            <div class="user-info">
-                                <span class="user-name" id="userName">${currentUser ? currentUser.name : 'Usuário'}</span>
-                                <button class="btn-secondary" onclick="logout()">Sair</button>
-                            </div>
-                        </div>
-                        
-                        <div class="dashboard-stats">
-                            <div class="stat-card">
-                                <div class="stat-icon">📚</div>
-                                <div class="stat-content">
-                                    <div class="stat-number" id="totalDisciplinas">${disciplinas.length}</div>
-                                    <div class="stat-label">Disciplinas</div>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">👨‍🏫</div>
-                                <div class="stat-content">
-                                    <div class="stat-number" id="totalProfessores">${professores.length}</div>
-                                    <div class="stat-label">Professores</div>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">👥</div>
-                                <div class="stat-content">
-                                    <div class="stat-number" id="totalTurmas">${turmas.length}</div>
-                                    <div class="stat-label">Turmas</div>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">🏫</div>
-                                <div class="stat-content">
-                                    <div class="stat-number" id="totalSalas">${salas.length}</div>
-                                    <div class="stat-label">Salas</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="dashboard-content">
-                            <div class="welcome-message">
-                                <h2>Bem-vindo ao EducaWeb!</h2>
-                                
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function updateDashboard() {
-            const totalDisciplinas = document.getElementById('totalDisciplinas');
-            const totalProfessores = document.getElementById('totalProfessores');
-            const totalTurmas = document.getElementById('totalTurmas');
-            const totalSalas = document.getElementById('totalSalas');
-            
-            if (totalDisciplinas) totalDisciplinas.textContent = disciplinas.length;
-            if (totalProfessores) totalProfessores.textContent = professores.length;
-            if (totalTurmas) totalTurmas.textContent = turmas.length;
-            if (totalSalas) totalSalas.textContent = salas.length;
-        }
 
         // ===== INICIALIZAÇÃO =====
 
@@ -545,9 +476,6 @@
             
             // Mostrar a view correspondente
             switch(viewName) {
-                case 'dashboard':
-                    showDashboard();
-                    break;
                 case 'disciplinas':
                     showDisciplinasView();
                     break;
