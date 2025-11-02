@@ -3465,9 +3465,9 @@
                         const resumoTitle = 'Resumo';
                         const resumoContent = resumoMatch[1].trim();
                         
-                        // Título "Resumo" em negrito
+                        // Título "Resumo" em negrito (12pt)
                         children.push(new Paragraph({
-                            children: [new TextRun({ text: resumoTitle, bold: true })],
+                            children: [new TextRun({ text: resumoTitle, bold: true, size: 24 })],
                             spacing: { after: 100 }
                         }));
                         
