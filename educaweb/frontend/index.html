@@ -3206,12 +3206,14 @@
                 tempDiv.style.position = 'absolute';
                 tempDiv.style.left = '-9999px';
                 tempDiv.style.top = '0';
+                tempDiv.style.width = '210mm'; // Largura A4
+                tempDiv.style.padding = '20mm';
                 document.body.appendChild(tempDiv);
 
                 // Aguardar um momento para renderização e gerar PDF
                 setTimeout(() => {
-                    // Selecionar o elemento completo que inclui capa e conteúdo
-                    const element = tempDiv.querySelector('body') || tempDiv;
+                    // Usar o tempDiv completo que contém toda a estrutura (capa + conteúdo)
+                    const element = tempDiv;
                     
                     if (typeof html2pdf !== 'undefined') {
                         html2pdf().set({
@@ -3277,7 +3279,6 @@
                                 // Nova página para conteúdo
                                 doc.addPage();
                                 yPos = 20;
-                                doc.setFontSize(10);
                                 doc.setFontSize(10);
                                 if (content.resumo) {
                                     doc.text('Resumo:', 14, yPos);
