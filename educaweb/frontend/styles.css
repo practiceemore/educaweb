@@ -126,15 +126,14 @@ body {
 
 .header {
   background: transparent;
-  padding: 0 2rem;
+  padding: 1rem 2rem;
 }
 
 .logo {
   float: left;
-  padding: 0;
+  padding: 2px 2px;
   display: flex;
-  align-items: flex-start;
-  margin-top: 0;
+  align-items: center;
 }
 
 .logo-img {
