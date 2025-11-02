@@ -8,6 +8,9 @@
     <!-- Bibliotecas para exportação -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Bibliotecas para Markdown e HTML to PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* ===== ESTILOS DOS MODAIS ===== */
         .modal-overlay {
@@ -2934,6 +2937,16 @@
                         
                         // Recarregar grade automaticamente em background
                         await loadGradeHoraria();
+                    } else if (response.data.reportGenerated && response.data.reportData) {
+                        // Relatório foi gerado - renderizar formatado
+                        renderReportInChat(response.data.reportData);
+                        
+                        chatMessages.push({
+                            id: response.data.id,
+                            mensagem: message,
+                            resposta: response.data.resposta,
+                            timestamp: response.data.timestamp
+                        });
                     } else {
                         // Resposta normal da IA
                         const aiResponse = response.data.aiMessage?.mensagem || response.data.resposta || 'Resposta não disponível';
@@ -3010,6 +3023,211 @@
             const message = document.getElementById(messageId);
             if (message) {
                 message.remove();
+            }
+        }
+
+        // Renderizar relatório no chat
+        function renderReportInChat(reportData) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageId = 'report_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Converter Markdown para HTML
+            const renderMarkdown = (markdown) => {
+                if (typeof marked !== 'undefined') {
+                    return marked.parse(markdown);
+                }
+                // Fallback simples se marked não estiver disponível
+                return markdown
+                    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br>');
+            };
+
+            const metadata = reportData.metadata || {};
+            const content = reportData.content || {};
+            
+            const reportHTML = `
+                <div class="chat-report" id="${messageId}" data-report='${JSON.stringify(reportData)}'>
+                    <div class="report-header">
+                        <h3 class="report-title">${metadata.titulo || 'Relatório'}</h3>
+                        ${metadata.subtitulo ? `<p class="report-subtitle">${metadata.subtitulo}</p>` : ''}
+                        <div class="report-meta">
+                            ${metadata.autor ? `<span>Autor: ${metadata.autor}</span>` : ''}
+                            ${metadata.data ? `<span>Data: ${metadata.data}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="report-content">
+                        ${content.resumo ? `<div class="report-section"><div class="report-text">${renderMarkdown(content.resumo)}</div></div>` : ''}
+                        ${content.secoes ? content.secoes.map(sec => `
+                            <div class="report-section">
+                                <div class="report-text">${renderMarkdown(sec.conteudo)}</div>
+                            </div>
+                        `).join('') : ''}
+                        ${content.referencias && content.referencias.length > 0 ? `
+                            <div class="report-section">
+                                <h4>Referências</h4>
+                                <ul class="report-references">
+                                    ${content.referencias.map(ref => `<li>${ref}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn-report-pdf" onclick="exportRelatorioIAPDF('${messageId}')" title="Exportar PDF">
+                            📄 Exportar PDF
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message assistant';
+            messageDiv.innerHTML = `
+                ${reportHTML}
+                <div class="message-time">${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Exportar relatório para PDF
+        async function exportRelatorioIAPDF(messageId) {
+            try {
+                const reportElement = document.getElementById(messageId);
+                if (!reportElement) {
+                    showNotification('Relatório não encontrado', 'error');
+                    return;
+                }
+
+                const reportData = JSON.parse(reportElement.getAttribute('data-report'));
+                const metadata = reportData.metadata || {};
+                const content = reportData.content || {};
+
+                // Renderizar Markdown para HTML
+                const renderMarkdown = (markdown) => {
+                    if (typeof marked !== 'undefined') {
+                        return marked.parse(markdown);
+                    }
+                    return markdown.replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>');
+                };
+
+                // Criar HTML formatado para PDF
+                const htmlContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            @page { margin: 2cm; }
+                            body {
+                                font-family: 'Times New Roman', serif;
+                                font-size: 12pt;
+                                line-height: 1.5;
+                                color: #000;
+                            }
+                            .report-cover {
+                                text-align: center;
+                                margin-bottom: 3cm;
+                            }
+                            .report-title {
+                                font-size: 16pt;
+                                font-weight: bold;
+                                margin-bottom: 0.5cm;
+                            }
+                            .report-subtitle {
+                                font-size: 14pt;
+                                margin-bottom: 1cm;
+                            }
+                            .report-meta {
+                                font-size: 10pt;
+                                margin-top: 2cm;
+                            }
+                            .report-section {
+                                margin-top: 1cm;
+                                margin-bottom: 1cm;
+                            }
+                            .report-section h1 { font-size: 14pt; font-weight: bold; margin-top: 1cm; }
+                            .report-section h2 { font-size: 12pt; font-weight: bold; margin-top: 0.8cm; }
+                            .report-section h3 { font-size: 11pt; font-weight: bold; margin-top: 0.6cm; }
+                            .report-section p { margin-bottom: 0.5cm; text-align: justify; }
+                            .report-section ul, .report-section ol { margin-left: 1.5cm; margin-bottom: 0.5cm; }
+                            .report-section table { width: 100%; border-collapse: collapse; margin: 0.5cm 0; }
+                            .report-section table th, .report-section table td {
+                                border: 1px solid #000;
+                                padding: 0.3cm;
+                                text-align: left;
+                            }
+                            .report-references {
+                                list-style: decimal;
+                                margin-left: 2cm;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="report-cover">
+                            <div class="report-title">${metadata.titulo || 'Relatório'}</div>
+                            ${metadata.subtitulo ? `<div class="report-subtitle">${metadata.subtitulo}</div>` : ''}
+                            <div class="report-meta">
+                                ${metadata.autor ? `<div>Autor: ${metadata.autor}</div>` : ''}
+                                ${metadata.data ? `<div>Data: ${metadata.data}</div>` : ''}
+                                <div>Gerado por EducaWeb</div>
+                            </div>
+                        </div>
+                        <div class="report-content">
+                            ${content.resumo ? `<div class="report-section">${renderMarkdown(content.resumo)}</div>` : ''}
+                            ${content.secoes ? content.secoes.map(sec => `
+                                <div class="report-section">${renderMarkdown(sec.conteudo)}</div>
+                            `).join('') : ''}
+                            ${content.referencias && content.referencias.length > 0 ? `
+                                <div class="report-section">
+                                    <h2>Referências</h2>
+                                    <ol class="report-references">
+                                        ${content.referencias.map(ref => `<li>${ref}</li>`).join('')}
+                                    </ol>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                // Criar elemento temporário para gerar PDF
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+
+                // Aguardar carregamento e gerar PDF
+                printWindow.onload = function() {
+                    setTimeout(() => {
+                        html2pdf().from(printWindow.document.body).set({
+                            margin: [20, 20, 20, 20],
+                            filename: `relatorio_${metadata.titulo?.replace(/[^a-z0-9]/gi, '_') || 'relatorio'}_${Date.now()}.pdf`,
+                            image: { type: 'jpeg', quality: 0.98 },
+                            html2canvas: { scale: 2 },
+                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        }).save().then(() => {
+                            printWindow.close();
+                            showNotification('Relatório PDF gerado com sucesso!', 'success');
+                        }).catch(err => {
+                            console.error('Erro ao gerar PDF:', err);
+                            showNotification('Erro ao gerar PDF', 'error');
+                            printWindow.close();
+                        });
+                    }, 500);
+                };
+
+            } catch (error) {
+                console.error('Erro ao exportar relatório:', error);
+                showNotification('Erro ao exportar relatório', 'error');
             }
         }
 

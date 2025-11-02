@@ -364,7 +364,56 @@ REGRAS PARA GERAÇÃO DE GRADE:
 - Distribuir as aulas ao longo da semana de forma equilibrada
 - Preferir aulas duplas consecutivas sempre que possível, respeitando restrições e cargas horárias
 - Usar horários padrão: 07:00-08:00, 08:00-09:00, 09:00-10:00, 10:00-11:00, 11:00-12:00, 13:00-14:00, 14:00-15:00, 15:00-16:00, 16:00-17:00
-- Dias da semana: segunda, terca, quarta, quinta, sexta`;
+- Dias da semana: segunda, terca, quarta, quinta, sexta
+
+FUNCIONALIDADE ESPECIAL - GERAÇÃO DE RELATÓRIOS:
+Se o usuário solicitar a criação de um relatório (usando frases como "faça um relatório", "gere um relatório sobre", "elabore um relatório", "crie um relatório"), você deve:
+1. Analisar o contexto da conversa para determinar o tema e título do relatório
+2. Decidir se deve usar os dados da escola fornecidos (apenas se relevante ao tema solicitado)
+3. Criar um relatório estruturado em formato científico/acadêmico
+4. Responder COM UM ÚNICO JSON estruturado no seguinte formato:
+
+{
+  "action": "generate_report",
+  "metadata": {
+    "titulo": "Título do relatório baseado no tema solicitado pelo usuário",
+    "subtitulo": "Subtítulo opcional",
+    "autor": "EducaWeb Sistema",
+    "data": "2025-10-31",
+    "usaDadosEscola": true/false
+  },
+  "content": {
+    "resumo": "# Resumo\n\nTexto do resumo em Markdown...",
+    "secoes": [
+      {
+        "titulo": "Introdução",
+        "nivel": 1,
+        "conteudo": "## Introdução\n\nConteúdo da seção em Markdown. Use formatação Markdown para:\n- Títulos (##, ###)\n- Listas (- ou *)\n- Tabelas\n- **Negrito** e *itálico*\n- Citações"
+      },
+      {
+        "titulo": "Desenvolvimento",
+        "nivel": 1,
+        "conteudo": "## Desenvolvimento\n\nMais conteúdo em Markdown..."
+      },
+      {
+        "titulo": "Conclusão",
+        "nivel": 1,
+        "conteudo": "## Conclusão\n\nConclusão do relatório em Markdown..."
+      }
+    ],
+    "referencias": ["Referência 1", "Referência 2"]
+  }
+}
+
+REGRAS PARA GERAÇÃO DE RELATÓRIOS:
+- O título deve ser gerado dinamicamente baseado no tema solicitado pelo usuário na conversa
+- Use os dados da escola APENAS se o tema do relatório for relacionado à escola do usuário (ex: "carga horária da minha escola", "análise dos professores da escola")
+- Se o tema for geral (ex: "educadores mais importantes do Brasil"), NÃO use dados da escola
+- Estrutura típica: Resumo, Introdução, Desenvolvimento/Metodologia, Resultados, Conclusão
+- Use Markdown para formatação (títulos, listas, tabelas, ênfase)
+- Se usar dados da escola, mencione números e nomes reais dos dados fornecidos
+- Seja objetivo, claro e profissional no texto
+- Referências são opcionais mas recomendadas para relatórios acadêmicos`;
 
     // Gerar resposta com Gemini
     let resposta: string;
@@ -391,6 +440,25 @@ REGRAS PARA GERAÇÃO DE GRADE:
       }
     } catch (error) {
       console.log('Resposta não contém dados de grade horária ou JSON inválido');
+    }
+
+    // Verificar se a resposta contém dados de relatório
+    let reportData = null;
+    try {
+      // Tentar extrair JSON da resposta
+      const jsonMatch = resposta.match(/\{[\s\S]*"action":\s*"generate_report"[\s\S]*\}/);
+      if (jsonMatch) {
+        const jsonStr = jsonMatch[0];
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.action === 'generate_report' && parsed.metadata && parsed.content) {
+          reportData = {
+            metadata: parsed.metadata,
+            content: parsed.content
+          };
+        }
+      }
+    } catch (error) {
+      console.log('Resposta não contém dados de relatório ou JSON inválido');
     }
 
     // Processar dados da grade horária se encontrados
@@ -447,6 +515,7 @@ REGRAS PARA GERAÇÃO DE GRADE:
 
     // Atualizar mensagem com resposta
     // Se grade foi gerada, NÃO salvar o JSON, apenas mensagem de confirmação
+    // Se relatório foi gerado, salvar o JSON completo para o frontend processar
     const respostaParaSalvar = gradeGenerated 
       ? '✅ Grade horária criada com sucesso! Você pode visualizá-la na aba "Grade Horária".'
       : resposta;
@@ -468,7 +537,9 @@ REGRAS PARA GERAÇÃO DE GRADE:
       data: {
         ...response,
         gradeGenerated,
-        gradeData: gradeGenerated ? gradeData : undefined
+        gradeData: gradeGenerated ? gradeData : undefined,
+        reportGenerated: !!reportData,
+        reportData: reportData || undefined
       }
     });
 

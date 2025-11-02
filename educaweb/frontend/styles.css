@@ -3385,3 +3385,168 @@ body {
     padding: 8px 10px;
   }
 }
+
+/* ===== ESTILOS PARA RELATÓRIOS NO CHAT ===== */
+
+.chat-report {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  max-width: 100%;
+}
+
+.report-header {
+  border-bottom: 2px solid #45C0A9;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.report-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.report-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0 0 10px 0;
+}
+
+.report-meta {
+  display: flex;
+  gap: 15px;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.report-content {
+  margin: 20px 0;
+}
+
+.report-section {
+  margin-bottom: 25px;
+}
+
+.report-text {
+  line-height: 1.6;
+  color: #333;
+}
+
+.report-text h1 {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #45C0A9;
+}
+
+.report-text h2 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.report-text h3 {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 6px;
+  color: #555;
+}
+
+.report-text p {
+  margin-bottom: 12px;
+  text-align: justify;
+}
+
+.report-text ul,
+.report-text ol {
+  margin-left: 20px;
+  margin-bottom: 12px;
+}
+
+.report-text li {
+  margin-bottom: 6px;
+}
+
+.report-text table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+
+.report-text table th,
+.report-text table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.report-text table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.report-text strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.report-text em {
+  font-style: italic;
+}
+
+.report-references {
+  list-style: decimal;
+  margin-left: 25px;
+}
+
+.report-references li {
+  margin-bottom: 8px;
+}
+
+.report-actions {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.btn-report-pdf {
+  background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-report-pdf:hover {
+  background: linear-gradient(135deg, #3AA890 0%, #2E8B73 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+  .chat-report {
+    padding: 15px;
+  }
+  
+  .report-title {
+    font-size: 1.2rem;
+  }
+  
+  .report-meta {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
