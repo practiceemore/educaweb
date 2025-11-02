@@ -3209,11 +3209,11 @@
                         });
                     }
                     
-                    // Resumo (sem cabeçalho, apenas conteúdo)
+                    // Resumo (sem cabeçalho, apenas conteúdo - em negrito)
                     if (content.resumo) {
                         yPos += 8;
                         doc.setFontSize(10);
-                        doc.setFont(undefined, 'normal');
+                        doc.setFont(undefined, 'bold');
                         const resumoText = processMarkdownText(content.resumo);
                         const resumoLines = doc.splitTextToSize(resumoText, 180);
                         resumoLines.forEach(line => {
