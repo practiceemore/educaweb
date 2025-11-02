@@ -3350,6 +3350,86 @@
             return content;
         }
 
+        // Função auxiliar para detectar e extrair relatório de uma resposta
+        function extractReportFromResponse(resposta) {
+            if (!resposta) return null;
+            
+            try {
+                // Remover marcadores markdown
+                let cleanResponse = resposta;
+                cleanResponse = cleanResponse.replace(/```json\s*/gi, '');
+                cleanResponse = cleanResponse.replace(/```\s*/g, '');
+                cleanResponse = cleanResponse.trim();
+                
+                // Tentar encontrar JSON completo
+                let jsonStart = cleanResponse.indexOf('"action":');
+                if (jsonStart === -1) {
+                    jsonStart = cleanResponse.indexOf('"action" :');
+                }
+                if (jsonStart === -1) {
+                    jsonStart = cleanResponse.indexOf('generate_report');
+                }
+                
+                if (jsonStart !== -1) {
+                    // Encontrar o início do objeto { antes do "action"
+                    let startIdx = cleanResponse.lastIndexOf('{', jsonStart);
+                    if (startIdx === -1) startIdx = cleanResponse.indexOf('{', jsonStart);
+                    
+                    if (startIdx !== -1) {
+                        // Encontrar o final do objeto JSON - contar chaves
+                        let braceCount = 0;
+                        let inString = false;
+                        let escapeNext = false;
+                        
+                        for (let i = startIdx; i < cleanResponse.length; i++) {
+                            const char = cleanResponse[i];
+                            
+                            if (escapeNext) {
+                                escapeNext = false;
+                                continue;
+                            }
+                            
+                            if (char === '\\') {
+                                escapeNext = true;
+                                continue;
+                            }
+                            
+                            if (char === '"' && !escapeNext) {
+                                inString = !inString;
+                                continue;
+                            }
+                            
+                            if (!inString) {
+                                if (char === '{') braceCount++;
+                                if (char === '}') {
+                                    braceCount--;
+                                    if (braceCount === 0) {
+                                        // Encontrou o final do objeto
+                                        const jsonStr = cleanResponse.substring(startIdx, i + 1);
+                                        try {
+                                            const parsed = JSON.parse(jsonStr);
+                                            if (parsed.action === 'generate_report' && parsed.metadata && parsed.content) {
+                                                return {
+                                                    metadata: parsed.metadata,
+                                                    content: parsed.content
+                                                };
+                                            }
+                                        } catch (parseError) {
+                                            return null;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao extrair relatório:', error);
+            }
+            
+            return null;
+        }
+
         // Carregar histórico do chat
         async function loadChatHistory() {
             try {
@@ -3368,7 +3448,15 @@
                     response.data.reverse().forEach(msg => {
                         addChatMessage(msg.mensagem, 'user');
                         if (msg.resposta) {
-                            addChatMessage(msg.resposta, 'assistant');
+                            // Verificar se a resposta contém um relatório
+                            const reportData = extractReportFromResponse(msg.resposta);
+                            if (reportData) {
+                                // Renderizar relatório formatado
+                                renderReportInChat(reportData);
+                            } else {
+                                // Resposta normal
+                                addChatMessage(msg.resposta, 'assistant');
+                            }
                         }
                     });
                     
