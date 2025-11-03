@@ -1447,13 +1447,13 @@
                         chatWidget.classList.add('fullscreen-mobile');
                     }
                     document.body.classList.add('chat-open-mobile');
+                } else {
+                    // Focar no input quando abrir apenas no desktop
+                    setTimeout(() => {
+                        const input = document.getElementById('chatInput');
+                        if (input) input.focus();
+                    }, 100);
                 }
-                
-                // Focar no input quando abrir
-                setTimeout(() => {
-                    const input = document.getElementById('chatInput');
-                    if (input) input.focus();
-                }, 100);
             }
         }
 
