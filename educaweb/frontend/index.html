@@ -143,6 +143,11 @@
             <div class="logo" id="logo" style="display: none;">
                 <img src="logo.png" alt="Edu" class="logo-img">
             </div>
+            <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileMenu()" style="display: none;" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
                 <nav class="nav" id="mainNav" style="display: none;">
                 <div class="nav-items">
                     <div class="nav-chip" onclick="showView('grade')">📅 Grade Horária</div>
@@ -154,6 +159,23 @@
             </div>
             </nav>
         </header>
+
+        <!-- Menu Mobile Dropdown -->
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="closeMobileMenu()"></div>
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-header">
+                <h3>Menu</h3>
+                <button class="mobile-menu-close" onclick="closeMobileMenu()" aria-label="Fechar menu">×</button>
+            </div>
+            <div class="mobile-menu-items">
+                <div class="mobile-nav-chip" onclick="showView('grade', this)">📅 Grade Horária</div>
+                <div class="mobile-nav-chip" onclick="showView('disciplinas', this)">📚 Disciplinas</div>
+                <div class="mobile-nav-chip" onclick="showView('professores', this)">👨‍🏫 Professores</div>
+                <div class="mobile-nav-chip" onclick="showView('turmas', this)">👥 Turmas</div>
+                <div class="mobile-nav-chip" onclick="showView('salas', this)">🏫 Salas</div>
+                <div class="mobile-nav-chip" onclick="showView('relatorios', this)">📋 Painel</div>
+            </div>
+        </div>
 
         <main class="main">
             <!-- Conteúdo será carregado dinamicamente -->
@@ -436,6 +458,7 @@
         function showNavigation() {
             const logo = document.getElementById('logo');
             const nav = document.getElementById('mainNav');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
             const chatWidget = document.getElementById('globalChatWidget');
             
             if (logo) {
@@ -444,6 +467,11 @@
             
             if (nav) {
                 nav.style.display = 'block';
+            }
+            
+            // Remover o inline style do hambúrguer para permitir que o CSS controle a visibilidade
+            if (hamburgerBtn) {
+                hamburgerBtn.style.display = '';
             }
             
             if (chatWidget) {
@@ -458,6 +486,7 @@
         function hideNavigation() {
             const logo = document.getElementById('logo');
             const nav = document.getElementById('mainNav');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
             const chatWidget = document.getElementById('globalChatWidget');
             
             if (logo) {
@@ -468,19 +497,53 @@
                 nav.style.display = 'none';
             }
             
+            if (hamburgerBtn) {
+                hamburgerBtn.style.display = 'none';
+            }
+            
+            // Fechar menu mobile se estiver aberto
+            closeMobileMenu();
+            
             if (chatWidget) {
                 chatWidget.style.display = 'none';
             }
         }
 
-        function showView(viewName) {
-            // Remover classe active de todos os nav-chips
-            document.querySelectorAll('.nav-chip').forEach(chip => {
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileMenuOverlay');
+            
+            if (menu && overlay) {
+                menu.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileMenuOverlay');
+            
+            if (menu && overlay) {
+                menu.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        }
+
+        function showView(viewName, clickedElement) {
+            // Remover classe active de todos os nav-chips (desktop e mobile)
+            document.querySelectorAll('.nav-chip, .mobile-nav-chip').forEach(chip => {
                 chip.classList.remove('active');
             });
             
             // Adicionar classe active ao nav-chip clicado
-            event.target.classList.add('active');
+            if (clickedElement) {
+                clickedElement.classList.add('active');
+            } else if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            // Fechar menu mobile após seleção
+            closeMobileMenu();
             
             // Mostrar a view correspondente
             switch(viewName) {
