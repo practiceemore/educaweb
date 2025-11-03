@@ -581,6 +581,50 @@ body {
   }
 }
 
+/* Chat Fullscreen no Mobile */
+@media (max-width: 768px) {
+  /* Quando o chat está aberto no mobile, widget ocupa toda a viewport */
+  .chat-widget.fullscreen-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 9999;
+  }
+  
+  /* Chat panel fullscreen no mobile */
+  .chat-widget.fullscreen-mobile .chat-panel.open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  
+  /* Botão toggle permanece visível mas reposicionado quando chat está aberto */
+  .chat-widget.fullscreen-mobile .chat-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10000;
+  }
+  
+  /* Desabilitar scroll do body quando chat está aberto no mobile */
+  body.chat-open-mobile {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+}
+
 /* View Management */
 .view {
   display: none;

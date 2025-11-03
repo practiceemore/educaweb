@@ -1413,16 +1413,42 @@
 
         // ===== CHAT FLUTUANTE =====
         
+        // Função auxiliar para detectar mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+        
         function toggleChat() {
             const chatPanel = document.getElementById('chatPanel');
             const chatToggle = document.getElementById('chatToggle');
+            const chatWidget = document.getElementById('globalChatWidget');
+            const isMobileDevice = isMobile();
             
             if (chatPanel.classList.contains('open')) {
+                // Fechar chat
                 chatPanel.classList.remove('open');
                 chatToggle.innerHTML = '💬';
+                
+                // Remover classes de fullscreen no mobile
+                if (isMobileDevice) {
+                    if (chatWidget) {
+                        chatWidget.classList.remove('fullscreen-mobile');
+                    }
+                    document.body.classList.remove('chat-open-mobile');
+                }
             } else {
+                // Abrir chat
                 chatPanel.classList.add('open');
                 chatToggle.innerHTML = '✕';
+                
+                // Aplicar fullscreen no mobile
+                if (isMobileDevice) {
+                    if (chatWidget) {
+                        chatWidget.classList.add('fullscreen-mobile');
+                    }
+                    document.body.classList.add('chat-open-mobile');
+                }
+                
                 // Focar no input quando abrir
                 setTimeout(() => {
                     const input = document.getElementById('chatInput');
