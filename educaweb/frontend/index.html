@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edu - Sistema de Gestão Educacional</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.webmanifest">
-    <meta name="theme-color" content="#45C0A9">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Edu">
     <!-- Bibliotecas para exportação -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -206,7 +200,7 @@
                     </div>
                 </div>
                 <div class="chat-input-container">
-                    <input type="text" class="chat-input" id="chatInput" name="chat-message" placeholder="Digite sua mensagem..." maxlength="500" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" enterkeyhint="send">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Digite sua mensagem..." maxlength="500">
                         <button class="chat-send" id="sendButton" onclick="sendChatMessage()" aria-label="Enviar" title="Enviar">
                             <span aria-hidden="true">➤</span>
                         </button>
