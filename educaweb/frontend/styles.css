@@ -632,12 +632,24 @@ body {
     background: white;
   }
   
-  /* Botão toggle permanece visível mas reposicionado quando chat está aberto */
+  /* Header no mobile com padding para safe area e espaço para o botão */
+  .chat-widget.fullscreen-mobile .chat-header {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    padding-right: 60px; /* Espaço para o botão de fechar não sobrepor */
+  }
+  
+  /* Botão toggle reposicionado dentro da área do header no mobile */
+  /* Posicionado relativo ao chat-widget (que é fixed) */
   .chat-widget.fullscreen-mobile .chat-toggle {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: calc(0.5rem + env(safe-area-inset-top, 0px));
+    right: 0.5rem;
     z-index: 10000;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    /* Não usar transform scale no mobile */
+    transform: none;
   }
   
   /* Desabilitar scroll do body quando chat está aberto no mobile */
