@@ -640,33 +640,37 @@ body {
   
   /* Botão toggle reposicionado dentro da área do header no mobile */
   /* Estilo igual ao menu-toggle: sem fundo circular, transparente, mesmo tamanho */
+  /* Posicionado relativo ao chat-widget (que é fixed) */
   .chat-widget.fullscreen-mobile .chat-toggle {
     position: absolute;
-    top: 50%;
+    /* Posicionar no topo, alinhado com o conteúdo do header */
+    /* Header tem padding-top de 1rem + safe-area, e o conteúdo fica centralizado verticalmente */
+    /* Altura aproximada do header: ~60px, então posicionar no meio seria ~30px do topo do header */
+    top: calc(1rem + env(safe-area-inset-top, 0px) + 0.5rem);
     right: 0.5rem;
-    transform: translateY(-50%);
-    z-index: 10000;
+    z-index: 10001;
     width: auto;
     height: auto;
     background: transparent !important;
     border: none;
     border-radius: 0;
     box-shadow: none;
-    color: white;
+    color: white !important;
     font-size: 24px;
     padding: 5px 10px;
     line-height: 1;
     margin: 0;
     transition: background 0.2s ease;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
   
   .chat-widget.fullscreen-mobile .chat-toggle:hover {
     background: rgba(255, 255, 255, 0.2) !important;
     border-radius: 4px;
-    transform: translateY(-50%);
   }
   
   /* Desabilitar scroll do body quando chat está aberto no mobile */
