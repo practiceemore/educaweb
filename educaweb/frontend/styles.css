@@ -183,17 +183,27 @@ body {
   display: none;
   flex-direction: column;
   justify-content: space-around;
-  width: 30px;
-  height: 30px;
-  background: transparent;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  background: #45C0A9;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
-  padding: 0;
+  padding: 10px;
   z-index: 1001;
+  box-shadow: 0 2px 8px rgba(69, 192, 169, 0.3);
+  transition: all 0.3s ease;
+}
+
+.hamburger-btn:hover {
+  background: #3AA890;
+  box-shadow: 0 4px 12px rgba(69, 192, 169, 0.4);
+  transform: translateY(-2px);
 }
 
 .hamburger-btn span {
-  width: 100%;
+  width: 22px;
   height: 3px;
   background: #fff;
   border-radius: 3px;
@@ -201,7 +211,7 @@ body {
 }
 
 .hamburger-btn:hover span {
-  background: rgba(69, 192, 169, 1);
+  background: #fff;
 }
 
 /* Menu Mobile Overlay */
@@ -231,7 +241,7 @@ body {
   width: 280px;
   max-width: 85%;
   height: 100%;
-  background: #3AA890;
+  background: white;
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   transition: right 0.3s ease;
@@ -247,7 +257,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #2d8f7a 0%, #3AA890 100%);
+  background: linear-gradient(135deg, #45C0A9 0%, #3AA890 100%);
   color: white;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -286,20 +296,20 @@ body {
   padding: 1rem 1.5rem;
   cursor: pointer;
   transition: background-color 0.2s;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
   font-weight: 500;
 }
 
 .mobile-nav-chip:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #f8f9fa;
 }
 
 .mobile-nav-chip.active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(69, 192, 169, 0.1);
+  color: #45C0A9;
   font-weight: 600;
-  border-left: 4px solid white;
+  border-left: 4px solid #45C0A9;
 }
 
 .user-info {
