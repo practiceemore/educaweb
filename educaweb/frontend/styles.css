@@ -2670,6 +2670,11 @@ body {
         z-index: 10000;
     }
     
+    /* Garantir que chat-panel fique oculto por padrão no mobile */
+    .chat-panel {
+        display: none !important;
+    }
+    
     .chat-panel.open {
         position: fixed !important;
         bottom: 0 !important;
