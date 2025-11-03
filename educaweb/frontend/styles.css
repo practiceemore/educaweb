@@ -2670,7 +2670,7 @@ body {
         z-index: 10000;
     }
     
-    .chat-panel {
+    .chat-panel.open {
         position: fixed !important;
         bottom: 0 !important;
         right: 0 !important;
