@@ -3095,7 +3095,7 @@ body {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  overflow: hidden;
+  overflow-x: auto;
   margin: 1rem 0;
 }
 
@@ -3103,7 +3103,7 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
-  min-width: 100%;
+  min-width: 600px;
 }
 
 .turmas-table th {
@@ -3268,22 +3268,18 @@ body {
     font-size: 0.85rem;
   }
   
-  .turmas-table th:nth-child(2),
-  .turmas-table td:nth-child(2),
+  /* Tabela de turmas agora tem scroll horizontal - todas as colunas visíveis */
+  
   .salas-table th:nth-child(2),
   .salas-table td:nth-child(2) {
-    display: none; /* Esconder colunas descrição em mobile */
+    display: none; /* Esconder colunas descrição em mobile para salas */
   }
   
-  .turmas-table th:nth-child(1),
-  .turmas-table td:nth-child(1),
   .salas-table th:nth-child(1),
   .salas-table td:nth-child(1) {
     width: 60%;
   }
   
-  .turmas-table th:nth-child(3),
-  .turmas-table td:nth-child(3),
   .salas-table th:nth-child(3),
   .salas-table td:nth-child(3) {
     width: 40%;
