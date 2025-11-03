@@ -187,10 +187,13 @@
             <div class="chat-panel" id="chatPanel">
                 <div class="chat-header">
                     <h3>💬 Edu</h3>
-                    <div class="chat-menu">
-                        <button class="chat-menu-toggle" onclick="toggleChatMenu()" title="Opções">⋮</button>
-                        <div class="chat-menu-dropdown" id="chatMenuDropdown">
-                            <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
+                    <div class="chat-header-actions">
+                        <button class="chat-close-mobile" onclick="toggleChat()" title="Fechar" aria-label="Fechar chat">✕</button>
+                        <div class="chat-menu">
+                            <button class="chat-menu-toggle" onclick="toggleChatMenu()" title="Opções">⋮</button>
+                            <div class="chat-menu-dropdown" id="chatMenuDropdown">
+                                <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
+                            </div>
                         </div>
                     </div>
                 </div>

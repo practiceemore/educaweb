@@ -423,6 +423,16 @@ body {
 }
 
 /* Menu de opções do chat */
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat-close-mobile {
+  display: none;
+}
+
 .chat-menu {
   position: relative;
 }
@@ -2674,6 +2684,31 @@ body {
         box-shadow: none !important;
         display: flex !important;
         flex-direction: column !important;
+    }
+    
+    .chat-close-mobile {
+        display: flex !important;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 8px 12px;
+        line-height: 1;
+        transition: background 0.2s ease;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        min-height: 40px;
+    }
+    
+    .chat-close-mobile:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .chat-close-mobile:active {
+        background: rgba(255, 255, 255, 0.3);
     }
     
     .chat-body {
