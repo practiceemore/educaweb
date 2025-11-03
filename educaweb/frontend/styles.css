@@ -2279,6 +2279,14 @@ body {
     font-size: 2.5rem;
 }
 
+.login-card .logo-img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 0 auto 20px auto;
+    display: block;
+}
+
 .login-card p {
     color: #666;
     margin-bottom: 30px;
