@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edu - Sistema de Gestão Educacional</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Bibliotecas para exportação -->
@@ -187,13 +187,10 @@
             <div class="chat-panel" id="chatPanel">
                 <div class="chat-header">
                     <h3>💬 Edu</h3>
-                    <div class="chat-header-actions">
-                        <button class="chat-close-mobile" onclick="toggleChat()" title="Fechar" aria-label="Fechar chat">✕</button>
-                        <div class="chat-menu">
-                            <button class="chat-menu-toggle" onclick="toggleChatMenu()" title="Opções">⋮</button>
-                            <div class="chat-menu-dropdown" id="chatMenuDropdown">
-                                <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
-                            </div>
+                    <div class="chat-menu">
+                        <button class="chat-menu-toggle" onclick="toggleChatMenu()" title="Opções">⋮</button>
+                        <div class="chat-menu-dropdown" id="chatMenuDropdown">
+                            <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
                         </div>
                     </div>
                 </div>
@@ -1423,10 +1420,6 @@
             if (chatPanel.classList.contains('open')) {
                 chatPanel.classList.remove('open');
                 chatToggle.innerHTML = '💬';
-                // Remover listener do teclado quando fechar
-                if (window.visualViewport) {
-                    window.visualViewport.removeEventListener('resize', handleKeyboardOpen);
-                }
             } else {
                 chatPanel.classList.add('open');
                 chatToggle.innerHTML = '✕';
@@ -1434,75 +1427,7 @@
                 setTimeout(() => {
                     const input = document.getElementById('chatInput');
                     if (input) input.focus();
-                    // Configurar ajuste de teclado para mobile
-                    setupKeyboardHandler();
                 }, 100);
-            }
-        }
-
-        function setupKeyboardHandler() {
-            // Verificar se é mobile
-            if (window.innerWidth <= 768) {
-                const chatInput = document.getElementById('chatInput');
-                const chatInputContainer = document.querySelector('.chat-input-container');
-                const chatBody = document.querySelector('.chat-body');
-                
-                if (!chatInput || !chatInputContainer || !chatBody) return;
-                
-                // Usar Visual Viewport API se disponível (melhor para mobile)
-                if (window.visualViewport) {
-                    function handleKeyboardOpen() {
-                        const viewport = window.visualViewport;
-                        const viewportHeight = viewport.height;
-                        const windowHeight = window.innerHeight;
-                        const keyboardHeight = windowHeight - viewportHeight;
-                        
-                        if (keyboardHeight > 150) {
-                            // Teclado está aberto
-                            chatInputContainer.style.paddingBottom = `${keyboardHeight + 12}px`;
-                            chatBody.style.maxHeight = `${viewportHeight - 200}px`;
-                            // Scroll para o fim das mensagens
-                            chatBody.scrollTop = chatBody.scrollHeight;
-                        } else {
-                            // Teclado fechado
-                            chatInputContainer.style.paddingBottom = '12px';
-                            chatBody.style.maxHeight = '';
-                        }
-                    }
-                    
-                    window.handleKeyboardOpen = handleKeyboardOpen;
-                    window.visualViewport.addEventListener('resize', handleKeyboardOpen);
-                    
-                    // Também usar eventos de focus/blur como fallback
-                    chatInput.addEventListener('focus', () => {
-                        setTimeout(() => {
-                            if (window.visualViewport) {
-                                handleKeyboardOpen();
-                            }
-                        }, 300);
-                    });
-                    
-                    chatInput.addEventListener('blur', () => {
-                        setTimeout(() => {
-                            chatInputContainer.style.paddingBottom = '12px';
-                            chatBody.style.maxHeight = '';
-                        }, 300);
-                    });
-                } else {
-                    // Fallback: usar eventos de focus/blur
-                    chatInput.addEventListener('focus', () => {
-                        setTimeout(() => {
-                            chatBody.style.maxHeight = '50vh';
-                            chatBody.scrollTop = chatBody.scrollHeight;
-                        }, 300);
-                    });
-                    
-                    chatInput.addEventListener('blur', () => {
-                        setTimeout(() => {
-                            chatBody.style.maxHeight = '';
-                        }, 300);
-                    });
-                }
             }
         }
 
