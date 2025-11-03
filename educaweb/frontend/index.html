@@ -389,10 +389,13 @@
         function showLoginScreen() {
             const mainContent = document.querySelector('main');
             if (mainContent) {
+                // Resolver caminho do logo baseado na URL atual
+                const logoPath = new URL('logo.png', window.location.href).href;
+                
                 mainContent.innerHTML = `
                     <div class="login-container">
                         <div class="login-card">
-                            <img src="logo.png" alt="" class="logo-img">
+                            <img src="${logoPath}" alt="" class="logo-img">
                             <p>Faça login para acessar o sistema</p>
                             <form id="loginForm">
                                 <div class="form-group">
