@@ -2280,11 +2280,12 @@ body {
 }
 
 .login-card .logo-img {
-    width: 100%;
-    max-width: 300px;
-    height: auto;
-    margin: 0 auto 20px auto;
+    width: 100% !important;
+    max-width: 280px !important;
+    height: auto !important;
+    margin: 0 auto 20px auto !important;
     display: block;
+    object-fit: contain;
 }
 
 .login-card p {
