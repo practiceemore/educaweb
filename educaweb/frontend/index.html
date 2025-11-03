@@ -183,6 +183,7 @@
         
         <!-- Chat Flutuante Global -->
         <div class="chat-widget" id="globalChatWidget" style="display: none;">
+            <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">💬</button>
             <div class="chat-panel" id="chatPanel">
                 <div class="chat-header">
                     <h3>💬 Edu</h3>
@@ -193,7 +194,7 @@
                                 <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
                             </div>
                         </div>
-                        <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">💬</button>
+                        <button class="chat-close-btn" onclick="toggleChat()" id="chatCloseBtn" title="Fechar">✕</button>
                     </div>
                 </div>
                 <div class="chat-body" id="chatMessages">
@@ -1429,7 +1430,11 @@
             if (chatPanel.classList.contains('open')) {
                 // Fechar chat
                 chatPanel.classList.remove('open');
-                chatToggle.innerHTML = '💬';
+                
+                // No desktop, mudar ícone do botão toggle
+                if (!isMobileDevice && chatToggle) {
+                    chatToggle.innerHTML = '💬';
+                }
                 
                 // Remover classes de fullscreen no mobile
                 if (isMobileDevice) {
@@ -1441,7 +1446,11 @@
             } else {
                 // Abrir chat
                 chatPanel.classList.add('open');
-                chatToggle.innerHTML = '✕';
+                
+                // No desktop, mudar ícone do botão toggle
+                if (!isMobileDevice && chatToggle) {
+                    chatToggle.innerHTML = '✕';
+                }
                 
                 // Aplicar fullscreen no mobile
                 if (isMobileDevice) {

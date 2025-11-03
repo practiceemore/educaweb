@@ -390,6 +390,47 @@ body {
   box-shadow: 0 6px 25px rgba(69, 192, 169, 0.4);
 }
 
+/* Esconder botão flutuante quando chat está aberto - apenas no mobile */
+@media (max-width: 768px) {
+  .chat-panel.open ~ .chat-toggle {
+    display: none !important;
+  }
+}
+
+/* Botão de fechar no header - apenas no mobile */
+.chat-close-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px 10px;
+  line-height: 1;
+  transition: background 0.2s ease;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mostrar botão de fechar quando chat está aberto - apenas no mobile */
+@media (max-width: 768px) {
+  .chat-panel.open .chat-close-btn {
+    display: flex;
+  }
+}
+
+/* No desktop, esconder sempre o botão de fechar */
+@media (min-width: 769px) {
+  .chat-close-btn {
+    display: none !important;
+  }
+}
+
+.chat-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
 .chat-panel {
   position: absolute;
   bottom: 80px;
@@ -644,8 +685,8 @@ body {
     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
   }
   
-  /* Botão toggle no mobile: estilo igual ao menu-toggle, sem balão circular */
-  .chat-widget.fullscreen-mobile .chat-toggle {
+  /* Botão de fechar no mobile: estilo igual ao menu-toggle, sem balão circular */
+  .chat-widget.fullscreen-mobile .chat-close-btn {
     background: transparent !important;
     border: none;
     border-radius: 0;
@@ -663,9 +704,14 @@ body {
     height: auto;
   }
   
-  .chat-widget.fullscreen-mobile .chat-toggle:hover {
+  .chat-widget.fullscreen-mobile .chat-close-btn:hover {
     background: rgba(255, 255, 255, 0.2) !important;
     border-radius: 4px;
+  }
+  
+  /* Esconder botão flutuante no mobile quando chat está aberto */
+  .chat-widget.fullscreen-mobile .chat-panel.open ~ .chat-toggle {
+    display: none;
   }
   
   /* Desabilitar scroll do body quando chat está aberto no mobile */
