@@ -388,6 +388,12 @@
 
         function showLoginScreen() {
             const mainContent = document.querySelector('main');
+            // Garantir que hamburger seja ocultado na tela de login
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            if (hamburgerBtn) {
+                hamburgerBtn.style.setProperty('display', 'none', 'important');
+            }
+            
             if (mainContent) {
                 // Pegar o src do logo que já funciona no header
                 const existingLogo = document.querySelector('#logo img');
@@ -504,7 +510,7 @@
             }
             
             if (hamburgerBtn) {
-                hamburgerBtn.style.display = 'none';
+                hamburgerBtn.style.setProperty('display', 'none', 'important');
             }
             
             // Fechar menu mobile se estiver aberto
