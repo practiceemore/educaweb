@@ -183,15 +183,17 @@
         
         <!-- Chat Flutuante Global -->
         <div class="chat-widget" id="globalChatWidget" style="display: none;">
-            <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">💬</button>
             <div class="chat-panel" id="chatPanel">
                 <div class="chat-header">
                     <h3>💬 Edu</h3>
-                    <div class="chat-menu">
-                        <button class="chat-menu-toggle" onclick="toggleChatMenu()" title="Opções">⋮</button>
-                        <div class="chat-menu-dropdown" id="chatMenuDropdown">
-                            <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
+                    <div class="chat-header-actions">
+                        <div class="chat-menu">
+                            <button class="chat-menu-toggle" onclick="toggleChatMenu()" title="Opções">⋮</button>
+                            <div class="chat-menu-dropdown" id="chatMenuDropdown">
+                                <button onclick="clearChatHistory(); toggleChatMenu();">🗑️ Limpar Chat</button>
+                            </div>
                         </div>
+                        <button class="chat-toggle" onclick="toggleChat()" id="chatToggle">💬</button>
                     </div>
                 </div>
                 <div class="chat-body" id="chatMessages">

@@ -422,6 +422,13 @@ body {
   font-size: 1.1rem;
 }
 
+/* Container para ações do header (menu e toggle) */
+.chat-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 /* Menu de opções do chat */
 .chat-menu {
   position: relative;
@@ -632,25 +639,13 @@ body {
     background: white;
   }
   
-  /* Header no mobile com padding para safe area e espaço para o botão */
+  /* Header no mobile com padding para safe area */
   .chat-widget.fullscreen-mobile .chat-header {
     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
-    padding-right: 50px; /* Espaço para o botão de fechar (agora menor sem fundo circular) */
   }
   
-  /* Botão toggle reposicionado dentro da área do header no mobile */
-  /* Estilo igual ao menu-toggle: sem fundo circular, transparente, mesmo tamanho */
-  /* Posicionado relativo ao chat-widget (que é fixed) */
+  /* Botão toggle no mobile: estilo igual ao menu-toggle, sem balão circular */
   .chat-widget.fullscreen-mobile .chat-toggle {
-    position: absolute;
-    /* Posicionar no topo, alinhado com o conteúdo do header */
-    /* Header tem padding-top de 1rem + safe-area, e o conteúdo fica centralizado verticalmente */
-    /* Altura aproximada do header: ~60px, então posicionar no meio seria ~30px do topo do header */
-    top: calc(1rem + env(safe-area-inset-top, 0px) + 0.5rem);
-    right: 0.5rem;
-    z-index: 10001;
-    width: auto;
-    height: auto;
     background: transparent !important;
     border: none;
     border-radius: 0;
@@ -661,11 +656,11 @@ body {
     line-height: 1;
     margin: 0;
     transition: background 0.2s ease;
-    display: flex !important;
+    display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 1 !important;
-    visibility: visible !important;
+    width: auto;
+    height: auto;
   }
   
   .chat-widget.fullscreen-mobile .chat-toggle:hover {
