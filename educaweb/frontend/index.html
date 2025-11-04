@@ -526,8 +526,16 @@
             const overlay = document.getElementById('mobileMenuOverlay');
             
             if (menu && overlay) {
+                const isActive = menu.classList.contains('active');
                 menu.classList.toggle('active');
                 overlay.classList.toggle('active');
+                
+                // Adicionar/remover classe no body para controlar visibilidade do hamburger
+                if (!isActive) {
+                    document.body.classList.add('mobile-menu-open');
+                } else {
+                    document.body.classList.remove('mobile-menu-open');
+                }
             }
         }
 
@@ -538,6 +546,7 @@
             if (menu && overlay) {
                 menu.classList.remove('active');
                 overlay.classList.remove('active');
+                document.body.classList.remove('mobile-menu-open');
             }
         }
 

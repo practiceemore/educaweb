@@ -252,6 +252,11 @@ body {
   right: 0;
 }
 
+/* Esconder hamburger quando menu mobile está aberto */
+body.mobile-menu-open .header .hamburger-btn {
+  display: none !important;
+}
+
 .mobile-menu-header {
   display: flex;
   justify-content: space-between;
