@@ -290,6 +290,22 @@
             if (modal) {
                 modal.remove();
             }
+            // Verificar se ainda há modais abertos
+            updateHamburgerVisibility();
+        }
+
+        // Função para atualizar visibilidade do hamburger baseado em modais abertos
+        function updateHamburgerVisibility() {
+            const hasOpenModal = document.querySelector('.modal-overlay') !== null;
+            if (hasOpenModal) {
+                document.body.classList.add('mobile-menu-open');
+            } else {
+                // Só remover a classe se o menu mobile também não estiver aberto
+                const menu = document.getElementById('mobileMenu');
+                if (!menu || !menu.classList.contains('active')) {
+                    document.body.classList.remove('mobile-menu-open');
+                }
+            }
         }
 
         // ===== FUNÇÕES DE API =====
@@ -1529,6 +1545,7 @@
             `;
             modal.id = 'addDisciplinaModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         function showAddProfessorModal() {
@@ -1566,6 +1583,7 @@
             `;
             modal.id = 'addProfessorModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         function showAddTurmaModal() {
@@ -1612,6 +1630,7 @@
             `;
             modal.id = 'addTurmaModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         function showAddSalaModal() {
@@ -1656,6 +1675,7 @@
             `;
             modal.id = 'addSalaModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         function showAddAulaModal() {
@@ -1720,6 +1740,7 @@
             `;
             modal.id = 'editDisciplinaModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         async function handleEditDisciplina(event, id) {
@@ -1825,6 +1846,7 @@
             `;
             modal.id = 'editProfessorModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         async function handleEditProfessor(event, id) {
@@ -1966,6 +1988,7 @@
             `;
             modal.id = 'editTurmaModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         async function handleEditTurma(event, id) {
@@ -2094,6 +2117,7 @@
             `;
             modal.id = 'editSalaModal';
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         async function handleEditSala(event, id) {
@@ -2289,6 +2313,7 @@
 
             document.body.appendChild(modal);
             modal.style.display = "block";
+            updateHamburgerVisibility();
 
             // Fechar modal ao clicar fora dele
             modal.onclick = function(event) {
@@ -2733,6 +2758,7 @@
 
             document.body.appendChild(modal);
             modal.style.display = "block";
+            updateHamburgerVisibility();
 
             modal.onclick = function(event) {
                 if (event.target === modal) {
@@ -2840,6 +2866,7 @@
                 </div>
             `;
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         async function handleAddAula(event, turmaId, diaSemana, horarioInicio) {
@@ -2958,6 +2985,7 @@
                 </div>
             `;
             document.body.appendChild(modal);
+            updateHamburgerVisibility();
         }
 
         // NOVA FUNÇÃO: para processar o envio do formulário e SALVAR AS ALTERAÇÕES da aula
