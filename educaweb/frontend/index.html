@@ -308,6 +308,131 @@
             }
         }
 
+        // Função para mostrar modal de debug da grade gerada
+        function showGradeDebugModal(responseData) {
+            // Remover modal anterior se existir
+            const existingModal = document.getElementById('gradeDebugModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'gradeDebugModal';
+            
+            const iaResponse = responseData.iaResponseRaw || 'Não disponível';
+            const gradeData = responseData.gradeData || null;
+            const gradeDebug = responseData.gradeDebug || null;
+            
+            // Função para escapar HTML
+            const escapeHTML = (str) => {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            };
+            
+            // Formatar JSON para exibição
+            const formatJSON = (obj) => {
+                if (!obj) return 'N/A';
+                try {
+                    return JSON.stringify(obj, null, 2);
+                } catch (e) {
+                    return String(obj);
+                }
+            };
+            
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+                    <div class="modal-header">
+                        <h3>🔍 Debug - Geração de Grade Horária</h3>
+                        <button class="close-btn" onclick="closeModal('gradeDebugModal')">&times;</button>
+                    </div>
+                    <div style="padding: 20px; overflow-y: auto;">
+                        ${gradeDebug ? `
+                            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #2FAE78;">
+                                <h4 style="margin: 0 0 10px 0; color: #2FAE78;">📊 Estatísticas</h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                                    <div>
+                                        <strong>Processadas:</strong> ${gradeDebug.totalAulasProcessadas || 0}
+                                    </div>
+                                    <div>
+                                        <strong>Criadas:</strong> <span style="color: #28a745;">${gradeDebug.totalAulasCriadas || 0}</span>
+                                    </div>
+                                    <div>
+                                        <strong>Falhadas:</strong> <span style="color: #dc3545;">${gradeDebug.totalAulasFalhadas || 0}</span>
+                                    </div>
+                                </div>
+                                ${gradeDebug.aulasFalhadas && gradeDebug.aulasFalhadas.length > 0 ? `
+                                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                                        <strong>Erros encontrados:</strong>
+                                        <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                                            ${gradeDebug.aulasFalhadas.map(f => `<li>${escapeHTML(f.motivo)}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="margin: 0 0 10px 0;">📝 Resposta Completa da IA</h4>
+                            <textarea readonly style="width: 100%; height: 200px; padding: 10px; font-family: monospace; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" id="iaResponseText">${escapeHTML(iaResponse)}</textarea>
+                            <button onclick="copyToClipboard('iaResponseText')" style="margin-top: 5px; padding: 5px 10px; background: #2FAE78; color: white; border: none; border-radius: 4px; cursor: pointer;">📋 Copiar</button>
+                        </div>
+                        
+                        ${gradeData ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin: 0 0 10px 0;">📦 JSON Extraído (gradeData)</h4>
+                                <textarea readonly style="width: 100%; height: 300px; padding: 10px; font-family: monospace; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" id="gradeDataText">${escapeHTML(formatJSON(gradeData))}</textarea>
+                                <button onclick="copyToClipboard('gradeDataText')" style="margin-top: 5px; padding: 5px 10px; background: #2FAE78; color: white; border: none; border-radius: 4px; cursor: pointer;">📋 Copiar</button>
+                            </div>
+                        ` : `
+                            <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+                                <strong>⚠️ Atenção:</strong> Nenhum JSON de grade foi extraído da resposta da IA.
+                            </div>
+                        `}
+                        
+                        <div style="text-align: right; margin-top: 20px;">
+                            <button onclick="closeModal('gradeDebugModal')" class="btn-primary">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            updateHamburgerVisibility();
+            
+            // Scroll para o topo do modal
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.scrollTop = 0;
+            }
+        }
+        
+        // Função auxiliar para copiar texto para clipboard
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.select();
+                element.setSelectionRange(0, 99999); // Para mobile
+                try {
+                    document.execCommand('copy');
+                    // Mostrar feedback visual
+                    const button = event.target;
+                    const originalText = button.textContent;
+                    button.textContent = '✓ Copiado!';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#2FAE78';
+                    }, 2000);
+                } catch (err) {
+                    console.error('Erro ao copiar:', err);
+                    alert('Erro ao copiar texto. Por favor, selecione e copie manualmente.');
+                }
+            }
+        }
+
         // ===== FUNÇÕES DE API =====
 
         async function apiRequest(endpoint, method = 'GET', data = null) {
@@ -3146,6 +3271,9 @@
                     if (response.data.gradeGenerated) {
                         // NÃO processar resposta da IA, apenas confirmar
                         addChatMessage('✅ Grade horária gerada com sucesso! Você pode visualizá-la na aba "Grade Horária".', 'assistant');
+                        
+                        // Mostrar modal de debug com informações detalhadas
+                        showGradeDebugModal(response.data);
                         
                         // Recarregar grade automaticamente em background
                         await loadGradeHoraria();

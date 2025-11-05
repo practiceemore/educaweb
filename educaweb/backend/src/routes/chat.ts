@@ -421,6 +421,14 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
       const result = await model.generateContent(context);
       const response = await result.response;
       resposta = response.text();
+      
+      // LOG: Resposta completa da IA
+      console.log('========================================');
+      console.log('[GRADE DEBUG] Resposta completa da IA:');
+      console.log('========================================');
+      console.log(resposta);
+      console.log('========================================');
+      
     } catch (error) {
       console.error('Erro ao gerar resposta com Gemini:', error);
       resposta = `Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente em alguns instantes.`;
@@ -429,16 +437,40 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
     // Verificar se a resposta contém dados de grade horária
     let gradeData = null;
     try {
+      console.log('[GRADE DEBUG] Iniciando extração de JSON da resposta...');
+      
       // Tentar extrair JSON da resposta
       const jsonMatch = resposta.match(/\{[\s\S]*"action":\s*"generate_grade"[\s\S]*\}/);
+      
       if (jsonMatch) {
         const jsonStr = jsonMatch[0];
+        console.log('[GRADE DEBUG] JSON extraído (raw string):');
+        console.log(jsonStr);
+        console.log('========================================');
+        
         const parsed = JSON.parse(jsonStr);
+        console.log('[GRADE DEBUG] JSON parseado (objeto):');
+        console.log(JSON.stringify(parsed, null, 2));
+        console.log('========================================');
+        
         if (parsed.action === 'generate_grade' && parsed.data) {
           gradeData = parsed.data;
+          console.log('[GRADE DEBUG] gradeData encontrado e válido!');
+          console.log(`[GRADE DEBUG] Número de turmas: ${gradeData.turmas?.length || 0}`);
+        } else {
+          console.log('[GRADE DEBUG] JSON encontrado mas action ou data inválidos');
+          console.log(`[GRADE DEBUG] parsed.action: ${parsed.action}`);
+          console.log(`[GRADE DEBUG] parsed.data existe: ${!!parsed.data}`);
         }
+      } else {
+        console.log('[GRADE DEBUG] Nenhum JSON encontrado na resposta com match pattern');
+        console.log('[GRADE DEBUG] Tentando buscar por "generate_grade" no texto...');
+        const hasGenerateGrade = resposta.includes('generate_grade');
+        console.log(`[GRADE DEBUG] Contém "generate_grade": ${hasGenerateGrade}`);
       }
     } catch (error) {
+      console.error('[GRADE DEBUG] Erro ao processar JSON de grade horária:', error);
+      console.error('[GRADE DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A');
       console.log('Resposta não contém dados de grade horária ou JSON inválido');
     }
 
@@ -529,54 +561,154 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
 
     // Processar dados da grade horária se encontrados
     let gradeGenerated = false;
+    let totalAulasProcessadas = 0;
+    let totalAulasCriadas = 0;
+    let totalAulasFalhadas = 0;
+    const aulasFalhadas: Array<{ motivo: string; dados: any }> = [];
+    
     if (gradeData && gradeData.turmas) {
+      console.log('[GRADE DEBUG] ========================================');
+      console.log('[GRADE DEBUG] Iniciando processamento da grade horária');
+      console.log('[GRADE DEBUG] ========================================');
+      console.log(`[GRADE DEBUG] Total de turmas a processar: ${gradeData.turmas.length}`);
+      
       gradeGenerated = true;
       try {
         // Limpar grade existente para as turmas
         const turmaIds = gradeData.turmas.map((t: any) => t.turmaId);
-        await prisma.gradeHoraria.deleteMany({
+        console.log(`[GRADE DEBUG] Limpando grade existente para turmas: ${turmaIds.join(', ')}`);
+        
+        const deleteResult = await prisma.gradeHoraria.deleteMany({
           where: {
             turmaId: { in: turmaIds },
             userId
           }
         });
+        
+        console.log(`[GRADE DEBUG] Aulas deletadas: ${deleteResult.count}`);
 
         // Criar novas entradas na grade horária
         for (const turmaData of gradeData.turmas) {
+          console.log(`[GRADE DEBUG] ----------------------------------------`);
+          console.log(`[GRADE DEBUG] Processando turma: ${turmaData.turmaNome || turmaData.turmaId}`);
+          console.log(`[GRADE DEBUG] Turma ID: ${turmaData.turmaId}`);
+          console.log(`[GRADE DEBUG] Total de aulas na turma: ${turmaData.grade?.length || 0}`);
+          
+          if (!turmaData.grade || !Array.isArray(turmaData.grade)) {
+            console.log(`[GRADE DEBUG] ERRO: turmaData.grade não é um array válido!`);
+            console.log(`[GRADE DEBUG] turmaData.grade:`, turmaData.grade);
+            continue;
+          }
+          
           for (const aula of turmaData.grade) {
+            totalAulasProcessadas++;
+            
+            console.log(`[GRADE DEBUG] --- Processando aula ${totalAulasProcessadas} ---`);
+            console.log(`[GRADE DEBUG] Disciplina (nome): ${aula.disciplina}`);
+            console.log(`[GRADE DEBUG] Professor (nome): ${aula.professor}`);
+            console.log(`[GRADE DEBUG] Sala (nome): ${aula.sala}`);
+            console.log(`[GRADE DEBUG] Dia: ${aula.diaSemana}, Horário: ${aula.horarioInicio}-${aula.horarioFim}`);
+            
             // Buscar IDs dos objetos por nome
             const disciplina = await prisma.disciplina.findFirst({
               where: { nome: aula.disciplina, userId }
             });
+            
+            if (!disciplina) {
+              console.log(`[GRADE DEBUG] ❌ Disciplina "${aula.disciplina}" NÃO encontrada no banco`);
+              totalAulasFalhadas++;
+              aulasFalhadas.push({
+                motivo: `Disciplina "${aula.disciplina}" não encontrada`,
+                dados: aula
+              });
+              continue;
+            }
+            console.log(`[GRADE DEBUG] ✅ Disciplina encontrada: ID ${disciplina.id}`);
+            
             const professor = await prisma.professor.findFirst({
               where: { nome: aula.professor, userId }
             });
+            
+            if (!professor) {
+              console.log(`[GRADE DEBUG] ❌ Professor "${aula.professor}" NÃO encontrado no banco`);
+              totalAulasFalhadas++;
+              aulasFalhadas.push({
+                motivo: `Professor "${aula.professor}" não encontrado`,
+                dados: aula
+              });
+              continue;
+            }
+            console.log(`[GRADE DEBUG] ✅ Professor encontrado: ID ${professor.id}`);
+            
             const sala = await prisma.sala.findFirst({
               where: { nome: aula.sala, userId }
             });
+            
+            if (!sala) {
+              console.log(`[GRADE DEBUG] ❌ Sala "${aula.sala}" NÃO encontrada no banco`);
+              totalAulasFalhadas++;
+              aulasFalhadas.push({
+                motivo: `Sala "${aula.sala}" não encontrada`,
+                dados: aula
+              });
+              continue;
+            }
+            console.log(`[GRADE DEBUG] ✅ Sala encontrada: ID ${sala.id}`);
 
             if (disciplina && professor && sala) {
-              await prisma.gradeHoraria.create({
-                data: {
-                  turmaId: turmaData.turmaId,
-                  disciplinaId: disciplina.id,
-                  professorId: professor.id,
-                  salaId: sala.id,
-                  diaSemana: aula.diaSemana,
-                  horarioInicio: aula.horarioInicio,
-                  horarioFim: aula.horarioFim,
-                  ativa: true,
-                  userId
-                }
-              });
+              try {
+                const aulaCriada = await prisma.gradeHoraria.create({
+                  data: {
+                    turmaId: turmaData.turmaId,
+                    disciplinaId: disciplina.id,
+                    professorId: professor.id,
+                    salaId: sala.id,
+                    diaSemana: aula.diaSemana,
+                    horarioInicio: aula.horarioInicio,
+                    horarioFim: aula.horarioFim,
+                    ativa: true,
+                    userId
+                  }
+                });
+                
+                totalAulasCriadas++;
+                console.log(`[GRADE DEBUG] ✅ Aula criada com sucesso! ID: ${aulaCriada.id}`);
+              } catch (createError) {
+                totalAulasFalhadas++;
+                console.error(`[GRADE DEBUG] ❌ Erro ao criar aula no banco:`, createError);
+                console.error(`[GRADE DEBUG] Stack trace:`, createError instanceof Error ? createError.stack : 'N/A');
+                aulasFalhadas.push({
+                  motivo: `Erro ao criar no banco: ${createError instanceof Error ? createError.message : 'Erro desconhecido'}`,
+                  dados: aula
+                });
+              }
             }
           }
         }
+        
+        console.log('[GRADE DEBUG] ========================================');
+        console.log('[GRADE DEBUG] RESUMO DO PROCESSAMENTO:');
+        console.log(`[GRADE DEBUG] Total de aulas processadas: ${totalAulasProcessadas}`);
+        console.log(`[GRADE DEBUG] Total de aulas criadas: ${totalAulasCriadas}`);
+        console.log(`[GRADE DEBUG] Total de aulas falhadas: ${totalAulasFalhadas}`);
+        if (aulasFalhadas.length > 0) {
+          console.log('[GRADE DEBUG] Aulas que falharam:');
+          aulasFalhadas.forEach((falha, index) => {
+            console.log(`[GRADE DEBUG] ${index + 1}. ${falha.motivo}`);
+            console.log(`[GRADE DEBUG]    Dados:`, JSON.stringify(falha.dados, null, 2));
+          });
+        }
+        console.log('[GRADE DEBUG] ========================================');
 
       } catch (error) {
-        console.error('Erro ao processar grade horária:', error);
+        console.error('[GRADE DEBUG] Erro geral ao processar grade horária:', error);
+        console.error('[GRADE DEBUG] Stack trace:', error instanceof Error ? error.stack : 'N/A');
         resposta += '\n\n⚠️ Grade horária gerada, mas houve erro ao salvar no banco de dados.';
       }
+    } else {
+      console.log('[GRADE DEBUG] gradeData não encontrado ou inválido');
+      console.log(`[GRADE DEBUG] gradeData existe: ${!!gradeData}`);
+      console.log(`[GRADE DEBUG] gradeData.turmas existe: ${!!(gradeData && gradeData.turmas)}`);
     }
 
     // Atualizar mensagem com resposta
@@ -598,15 +730,30 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
       timestamp: messageWithResponse.timestamp.toISOString()
     };
 
+    // Incluir dados de debug na resposta
+    const responseData = {
+      ...response,
+      gradeGenerated,
+      gradeData: gradeGenerated ? gradeData : undefined,
+      reportGenerated: !!reportData,
+      reportData: reportData || undefined
+    };
+    
+    if (gradeGenerated) {
+      (responseData as any).gradeDebug = {
+        totalAulasProcessadas,
+        totalAulasCriadas,
+        totalAulasFalhadas,
+        aulasFalhadas: aulasFalhadas.slice(0, 10) // Limitar a 10 para não sobrecarregar
+      };
+    }
+    
+    // Incluir resposta completa da IA para debug
+    (responseData as any).iaResponseRaw = resposta;
+    
     res.json({
       success: true,
-      data: {
-        ...response,
-        gradeGenerated,
-        gradeData: gradeGenerated ? gradeData : undefined,
-        reportGenerated: !!reportData,
-        reportData: reportData || undefined
-      }
+      data: responseData
     });
 
   } catch (error) {
