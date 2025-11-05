@@ -417,10 +417,14 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
 
     // Gerar resposta com Gemini
     let resposta: string;
+    let respostaOriginal: string = ''; // Preservar resposta original para debug
     try {
       const result = await model.generateContent(context);
       const response = await result.response;
       resposta = response.text();
+      
+      // PRESERVAR resposta original antes de qualquer modificação
+      respostaOriginal = resposta;
       
       // LOG: Resposta completa da IA
       console.log('========================================');
@@ -428,10 +432,12 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
       console.log('========================================');
       console.log(resposta);
       console.log('========================================');
+      console.log('[GRADE DEBUG] Resposta original preservada para debug');
       
     } catch (error) {
       console.error('Erro ao gerar resposta com Gemini:', error);
       resposta = `Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente em alguns instantes.`;
+      respostaOriginal = resposta; // Preservar mesmo em caso de erro
     }
 
     // Verificar se a resposta contém dados de grade horária
@@ -748,8 +754,10 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
       };
     }
     
-    // Incluir resposta completa da IA para debug
-    (responseData as any).iaResponseRaw = resposta;
+    // Incluir resposta completa da IA para debug (usar versão preservada)
+    (responseData as any).iaResponseRaw = respostaOriginal || resposta;
+    console.log('[GRADE DEBUG] Resposta original preservada:', respostaOriginal ? 'Sim' : 'Não');
+    console.log('[GRADE DEBUG] Tamanho da resposta original:', respostaOriginal?.length || 0);
     
     res.json({
       success: true,
