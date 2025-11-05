@@ -2726,26 +2726,61 @@
             });
 
             // 3. Agora, iteramos sobre TODAS as turmas existentes no sistema.
-            // CORRIGIDO: Tentar encontrar aulas por ID primeiro, depois por nome como fallback
+            // CORRIGIDO: Buscar aulas usando turmaId das próprias aulas, não o ID da turma no sistema
             let html = '';
-            turmas.forEach(turma => {
-                // Tentar encontrar aulas por ID primeiro
-                let aulasDaTurma = aulasPorTurma[turma.id] || [];
+            
+            // Criar mapeamento reverso: turmaId das aulas -> turma no sistema
+            // Isso resolve o problema de IDs diferentes entre turmas e aulas
+            const turmaPorId = {};
+            turmas.forEach(t => {
+                turmaPorId[t.id] = t;
+            });
+            
+            // Função auxiliar para normalizar nome de turma (extrair letra final)
+            const normalizarNomeTurma = (nome) => {
+                if (!nome) return '';
+                // Remove espaços e pega a última palavra (letra da turma)
+                const partes = nome.trim().split(/\s+/);
+                return partes[partes.length - 1].toUpperCase();
+            };
+            
+            // Primeiro, renderizar turmas que têm aulas (usando turmaId das aulas)
+            const turmasComAulas = new Set(); // Armazena IDs das turmas no sistema que já foram renderizadas
+            Object.keys(aulasPorTurma).forEach(turmaIdStr => {
+                const turmaIdAulas = parseInt(turmaIdStr); // ID das aulas (1, 2)
+                const turma = turmaPorId[turmaIdAulas];
+                const aulasDaTurma = aulasPorTurma[turmaIdAulas] || [];
                 
-                // Se não encontrou por ID, tentar por nome como fallback
-                if (aulasDaTurma.length === 0) {
-                    aulasDaTurma = aulasPorTurmaNome[turma.nome] || [];
+                if (turma) {
+                    // Turma encontrada diretamente por ID
+                    turmasComAulas.add(turma.id); // Usar ID da turma no sistema
+                    console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}, turmaId nas aulas: ${turmaIdAulas}) com ${aulasDaTurma.length} aulas`);
+                    html += renderGradeTurma(turma, aulasDaTurma);
+                } else {
+                    // Turma não encontrada no sistema, tentar por nome
+                    console.log(`[RENDER DEBUG] ⚠️ Turma com ID ${turmaIdAulas} não encontrada no sistema, tentando por nome...`);
                     if (aulasDaTurma.length > 0) {
-                        console.log(`[RENDER DEBUG] ⚠️ Aulas encontradas por nome (fallback) para turma ${turma.nome}`);
+                        const nomeAula = aulasDaTurma[0].turma?.nome;
+                        // Procurar turma por correspondência de nome
+                        turmas.forEach(t => {
+                            const nomeNormalizadoTurma = normalizarNomeTurma(t.nome);
+                            const nomeNormalizadoAula = normalizarNomeTurma(nomeAula);
+                            if (nomeNormalizadoTurma === nomeNormalizadoAula && !turmasComAulas.has(t.id)) {
+                                turmasComAulas.add(t.id);
+                                console.log(`[RENDER DEBUG] ✅ Correspondência por nome: turma "${t.nome}" (ID: ${t.id}) corresponde a aulas com turmaId ${turmaIdAulas} (nome: "${nomeAula}")`);
+                                html += renderGradeTurma(t, aulasDaTurma);
+                            }
+                        });
                     }
                 }
-                
-                console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}, turmaId nas aulas: ${aulasDaTurma[0]?.turmaId || aulasDaTurma[0]?.turma?.id || 'N/A'}) com ${aulasDaTurma.length} aulas`);
-                
-                // Chamamos a função para renderizar a grade da turma, passando
-                // a turma e suas aulas (que podem estar vazias).
-                // A sua função renderGradeTurma já sabe como criar uma grade vazia com '+'.
-                html += renderGradeTurma(turma, aulasDaTurma);
+            });
+            
+            // Depois, renderizar turmas sem aulas (para permitir adicionar manualmente)
+            turmas.forEach(turma => {
+                if (!turmasComAulas.has(turma.id)) {
+                    console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}) sem aulas`);
+                    html += renderGradeTurma(turma, []);
+                }
             });
 
             // 4. Inserimos o HTML gerado no container.
