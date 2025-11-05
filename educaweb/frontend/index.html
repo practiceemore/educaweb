@@ -2632,16 +2632,36 @@
         // Função para carregar grade horária
         async function loadGradeHoraria() {
             try {
+                console.log('[RENDER DEBUG] Carregando grade horária...');
                 const response = await apiRequest('/grade-horaria', 'GET');
                 if (response.success) {
                     gradeHoraria = response.data;
+                    console.log('[RENDER DEBUG] ========================================');
+                    console.log('[RENDER DEBUG] Total de aulas carregadas:', gradeHoraria.length);
+                    console.log('[RENDER DEBUG] Estrutura da primeira aula:', gradeHoraria[0] ? JSON.stringify(gradeHoraria[0], null, 2) : 'Nenhuma aula');
+                    
+                    if (gradeHoraria.length > 0) {
+                        console.log('[RENDER DEBUG] Exemplo de aula:');
+                        const exemplo = gradeHoraria[0];
+                        console.log('[RENDER DEBUG] - turma.id:', exemplo.turma?.id);
+                        console.log('[RENDER DEBUG] - turma.nome:', exemplo.turma?.nome);
+                        console.log('[RENDER DEBUG] - diaSemana:', exemplo.diaSemana);
+                        console.log('[RENDER DEBUG] - horarioInicio:', exemplo.horarioInicio);
+                        console.log('[RENDER DEBUG] - horarioFim:', exemplo.horarioFim);
+                        console.log('[RENDER DEBUG] - disciplina.nome:', exemplo.disciplina?.nome);
+                        console.log('[RENDER DEBUG] - professor.nome:', exemplo.professor?.nome);
+                        console.log('[RENDER DEBUG] - sala.nome:', exemplo.sala?.nome);
+                    }
+                    
                     turmasGrade = [...new Set(gradeHoraria.map(g => g.turma.id))];
+                    console.log('[RENDER DEBUG] Turmas encontradas:', turmasGrade);
+                    console.log('[RENDER DEBUG] ========================================');
                     renderGradeHoraria();
                 } else {
                     throw new Error(response.error || 'Erro ao carregar grade horária');
                 }
             } catch (error) {
-                console.error('Erro ao carregar grade horária:', error);
+                console.error('[RENDER DEBUG] Erro ao carregar grade horária:', error);
                 showNotification('Erro ao carregar grade horária', 'error');
                 document.getElementById('gradeContainer').innerHTML = '<div class="error">Erro ao carregar grade horária</div>';
             }
@@ -2652,9 +2672,15 @@
         function renderGradeHoraria() {
             const container = document.getElementById('gradeContainer');
 
+            console.log('[RENDER DEBUG] ========================================');
+            console.log('[RENDER DEBUG] Iniciando renderização da grade horária');
+            console.log('[RENDER DEBUG] Total de turmas no sistema:', turmas?.length || 0);
+            console.log('[RENDER DEBUG] Total de aulas na gradeHoraria:', gradeHoraria?.length || 0);
+
             // 1. Primeiro, verificamos se existe alguma turma cadastrada.
             // Se não houver turmas, não há como montar uma grade.
             if (!turmas || turmas.length === 0) {
+                console.log('[RENDER DEBUG] Nenhuma turma cadastrada');
                 container.innerHTML = `
                     <div class="empty-state">
                         <h3>🏫 Nenhuma turma cadastrada</h3>
@@ -2676,6 +2702,11 @@
                 aulasPorTurma[turmaId].push(aula);
             });
 
+            console.log('[RENDER DEBUG] Aulas agrupadas por turma:');
+            Object.keys(aulasPorTurma).forEach(turmaId => {
+                console.log(`[RENDER DEBUG] - Turma ID ${turmaId}: ${aulasPorTurma[turmaId].length} aulas`);
+            });
+
             // 3. Agora, iteramos sobre TODAS as turmas existentes no sistema.
             // Esta é a mudança principal: a fonte de verdade agora é a lista de turmas.
             let html = '';
@@ -2683,6 +2714,7 @@
                 // Para cada turma, pegamos suas aulas correspondentes do objeto que criamos.
                 // Se não houver aulas para essa turma, 'aulasDaTurma' será um array vazio.
                 const aulasDaTurma = aulasPorTurma[turma.id] || [];
+                console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}) com ${aulasDaTurma.length} aulas`);
                 
                 // Chamamos a função para renderizar a grade da turma, passando
                 // a turma e suas aulas (que podem estar vazias).
@@ -2692,6 +2724,8 @@
 
             // 4. Inserimos o HTML gerado no container.
             container.innerHTML = html;
+            console.log('[RENDER DEBUG] Renderização concluída');
+            console.log('[RENDER DEBUG] ========================================');
         }
 
         // // Função para renderizar grade de uma turma específica
@@ -2771,15 +2805,19 @@
         function renderGradeTurma(turma, aulas) {
             const diasSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta'];
             
-            // MANTEMOS este array para a lógica interna
-            const horarios = ['07:00', '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00'];
+            // CORRIGIDO: Adicionado "12:00" que estava faltando
+            const horarios = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'];
             
             // NOVO: Adicionamos este array para exibir os nomes na coluna
             // A quantidade de itens aqui deve ser a mesma do array 'horarios' acima.
             const labelsAulas = [
                 '1ª Aula', '2ª Aula', '3ª Aula', '4ª Aula', '5ª Aula', 
-                '6ª Aula', '7ª Aula', '8ª Aula'
+                '6ª Aula', '7ª Aula', '8ª Aula', '9ª Aula'
             ];
+            
+            console.log(`[RENDER DEBUG] --- Renderizando turma ${turma.nome} ---`);
+            console.log(`[RENDER DEBUG] Total de aulas recebidas: ${aulas.length}`);
+            console.log(`[RENDER DEBUG] Horários disponíveis:`, horarios);
             
             // Criar matriz de grade
             const grade = {};
@@ -2791,11 +2829,36 @@
             });
 
             // Preencher com aulas existentes
+            let aulasAdicionadas = 0;
+            let aulasIgnoradas = 0;
             aulas.forEach(aula => {
-                if (grade[aula.diaSemana] && grade[aula.diaSemana][aula.horarioInicio] === null) {
+                console.log(`[RENDER DEBUG] Processando aula: dia=${aula.diaSemana}, horario=${aula.horarioInicio}, disciplina=${aula.disciplina?.nome}`);
+                
+                if (!grade[aula.diaSemana]) {
+                    console.log(`[RENDER DEBUG] ❌ Dia da semana não encontrado: ${aula.diaSemana}`);
+                    aulasIgnoradas++;
+                    return;
+                }
+                
+                if (!grade[aula.diaSemana][aula.horarioInicio] && grade[aula.diaSemana][aula.horarioInicio] !== null) {
+                    console.log(`[RENDER DEBUG] ❌ Horário não encontrado no array: ${aula.horarioInicio}`);
+                    aulasIgnoradas++;
+                    return;
+                }
+                
+                if (grade[aula.diaSemana][aula.horarioInicio] === null) {
                     grade[aula.diaSemana][aula.horarioInicio] = aula;
+                    aulasAdicionadas++;
+                    console.log(`[RENDER DEBUG] ✅ Aula adicionada à grade: ${aula.disciplina?.nome} em ${aula.diaSemana} às ${aula.horarioInicio}`);
+                } else {
+                    console.log(`[RENDER DEBUG] ⚠️ Já existe aula neste horário: ${aula.diaSemana} ${aula.horarioInicio}`);
+                    aulasIgnoradas++;
                 }
             });
+            
+            console.log(`[RENDER DEBUG] Aulas adicionadas à grade: ${aulasAdicionadas}`);
+            console.log(`[RENDER DEBUG] Aulas ignoradas: ${aulasIgnoradas}`);
+            console.log(`[RENDER DEBUG] --- Fim renderização turma ${turma.nome} ---`);
 
             let html = `
                 <div class="grade-turma">
