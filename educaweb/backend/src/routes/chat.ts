@@ -436,7 +436,16 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
       console.log('[GRADE DEBUG] Resposta original preservada para debug');
       
     } catch (error) {
-      console.error('Erro ao gerar resposta com Gemini:', error);
+      console.error('[IA ERROR] ========================================');
+      console.error('[IA ERROR] Erro ao gerar resposta com Gemini');
+      console.error('[IA ERROR] Tipo do erro:', error?.constructor?.name || typeof error);
+      console.error('[IA ERROR] Mensagem:', error instanceof Error ? error.message : String(error));
+      console.error('[IA ERROR] Stack:', error instanceof Error ? error.stack : 'N/A');
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('[IA ERROR] Response status:', (error as any).response?.status);
+        console.error('[IA ERROR] Response data:', (error as any).response?.data);
+      }
+      console.error('[IA ERROR] ========================================');
       resposta = `Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente em alguns instantes.`;
       respostaOriginal = resposta; // Preservar mesmo em caso de erro
     }
@@ -766,7 +775,12 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
     });
 
   } catch (error) {
-    console.error('Erro ao enviar mensagem:', error);
+    console.error('[CHAT ERROR] ========================================');
+    console.error('[CHAT ERROR] Erro geral ao enviar mensagem');
+    console.error('[CHAT ERROR] Tipo do erro:', error?.constructor?.name || typeof error);
+    console.error('[CHAT ERROR] Mensagem:', error instanceof Error ? error.message : String(error));
+    console.error('[CHAT ERROR] Stack:', error instanceof Error ? error.stack : 'N/A');
+    console.error('[CHAT ERROR] ========================================');
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'

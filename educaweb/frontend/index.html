@@ -2692,29 +2692,55 @@
             }
 
             // 2. Agrupamos as aulas existentes por ID da turma para facilitar a busca.
-            // Esta parte da lógica é similar à anterior, mas otimizada.
+            // CORRIGIDO: Usar turmaId diretamente da aula (campo do banco) e também criar mapeamento por nome
             const aulasPorTurma = {};
+            const aulasPorTurmaNome = {}; // Mapeamento alternativo por nome da turma
             gradeHoraria.forEach(aula => {
-                const turmaId = aula.turma.id;
-                if (!aulasPorTurma[turmaId]) {
-                    aulasPorTurma[turmaId] = [];
+                // Usar turmaId do banco (campo direto) ou turma.id (do relacionamento)
+                const turmaId = aula.turmaId || aula.turma?.id;
+                const turmaNome = aula.turma?.nome;
+                
+                if (turmaId) {
+                    if (!aulasPorTurma[turmaId]) {
+                        aulasPorTurma[turmaId] = [];
+                    }
+                    aulasPorTurma[turmaId].push(aula);
                 }
-                aulasPorTurma[turmaId].push(aula);
+                
+                // Também agrupar por nome como fallback
+                if (turmaNome) {
+                    if (!aulasPorTurmaNome[turmaNome]) {
+                        aulasPorTurmaNome[turmaNome] = [];
+                    }
+                    aulasPorTurmaNome[turmaNome].push(aula);
+                }
             });
 
             console.log('[RENDER DEBUG] Aulas agrupadas por turma:');
             Object.keys(aulasPorTurma).forEach(turmaId => {
                 console.log(`[RENDER DEBUG] - Turma ID ${turmaId}: ${aulasPorTurma[turmaId].length} aulas`);
             });
+            console.log('[RENDER DEBUG] Aulas agrupadas por nome de turma:');
+            Object.keys(aulasPorTurmaNome).forEach(turmaNome => {
+                console.log(`[RENDER DEBUG] - Turma "${turmaNome}": ${aulasPorTurmaNome[turmaNome].length} aulas`);
+            });
 
             // 3. Agora, iteramos sobre TODAS as turmas existentes no sistema.
-            // Esta é a mudança principal: a fonte de verdade agora é a lista de turmas.
+            // CORRIGIDO: Tentar encontrar aulas por ID primeiro, depois por nome como fallback
             let html = '';
             turmas.forEach(turma => {
-                // Para cada turma, pegamos suas aulas correspondentes do objeto que criamos.
-                // Se não houver aulas para essa turma, 'aulasDaTurma' será um array vazio.
-                const aulasDaTurma = aulasPorTurma[turma.id] || [];
-                console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}) com ${aulasDaTurma.length} aulas`);
+                // Tentar encontrar aulas por ID primeiro
+                let aulasDaTurma = aulasPorTurma[turma.id] || [];
+                
+                // Se não encontrou por ID, tentar por nome como fallback
+                if (aulasDaTurma.length === 0) {
+                    aulasDaTurma = aulasPorTurmaNome[turma.nome] || [];
+                    if (aulasDaTurma.length > 0) {
+                        console.log(`[RENDER DEBUG] ⚠️ Aulas encontradas por nome (fallback) para turma ${turma.nome}`);
+                    }
+                }
+                
+                console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}, turmaId nas aulas: ${aulasDaTurma[0]?.turmaId || aulasDaTurma[0]?.turma?.id || 'N/A'}) com ${aulasDaTurma.length} aulas`);
                 
                 // Chamamos a função para renderizar a grade da turma, passando
                 // a turma e suas aulas (que podem estar vazias).
