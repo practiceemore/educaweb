@@ -2693,18 +2693,21 @@
 
             // 2. Agrupamos as aulas existentes por ID da turma para facilitar a busca.
             // CORRIGIDO: Usar turmaId diretamente da aula (campo do banco) e também criar mapeamento por nome
+            // Agrupar aulas pelo ID real da turma (turma.id do join do Prisma)
+            // Isso garante que usamos o ID correto da turma no banco
             const aulasPorTurma = {};
             const aulasPorTurmaNome = {}; // Mapeamento alternativo por nome da turma
             gradeHoraria.forEach(aula => {
-                // Usar turmaId do banco (campo direto) ou turma.id (do relacionamento)
-                const turmaId = aula.turmaId || aula.turma?.id;
+                // Usar turma.id (do join do Prisma) como chave principal, pois é o ID real da turma no banco
+                // O turmaId pode estar errado (do JSON da IA), mas o turma.id do join sempre será o correto
+                const turmaIdReal = aula.turma?.id || aula.turmaId;
                 const turmaNome = aula.turma?.nome;
                 
-                if (turmaId) {
-                    if (!aulasPorTurma[turmaId]) {
-                        aulasPorTurma[turmaId] = [];
+                if (turmaIdReal) {
+                    if (!aulasPorTurma[turmaIdReal]) {
+                        aulasPorTurma[turmaIdReal] = [];
                     }
-                    aulasPorTurma[turmaId].push(aula);
+                    aulasPorTurma[turmaIdReal].push(aula);
                 }
                 
                 // Também agrupar por nome como fallback
@@ -2744,21 +2747,22 @@
                 return partes[partes.length - 1].toUpperCase();
             };
             
-            // Primeiro, renderizar turmas que têm aulas (usando turmaId das aulas)
+            // Primeiro, renderizar turmas que têm aulas (usando turma.id real das aulas)
             const turmasComAulas = new Set(); // Armazena IDs das turmas no sistema que já foram renderizadas
             Object.keys(aulasPorTurma).forEach(turmaIdStr => {
-                const turmaIdAulas = parseInt(turmaIdStr); // ID das aulas (1, 2)
-                const turma = turmaPorId[turmaIdAulas];
-                const aulasDaTurma = aulasPorTurma[turmaIdAulas] || [];
+                const turmaIdReal = parseInt(turmaIdStr); // ID real da turma do banco (do join do Prisma)
+                const turma = turmaPorId[turmaIdReal];
+                const aulasDaTurma = aulasPorTurma[turmaIdReal] || [];
                 
                 if (turma) {
-                    // Turma encontrada diretamente por ID
-                    turmasComAulas.add(turma.id); // Usar ID da turma no sistema
-                    console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}, turmaId nas aulas: ${turmaIdAulas}) com ${aulasDaTurma.length} aulas`);
+                    // Turma encontrada diretamente por ID real
+                    turmasComAulas.add(turma.id);
+                    console.log(`[RENDER DEBUG] ✅ Turma encontrada por ID: ${turma.nome} (ID: ${turma.id}) com ${aulasDaTurma.length} aulas`);
                     html += renderGradeTurma(turma, aulasDaTurma);
                 } else {
-                    // Turma não encontrada no sistema, tentar por série + nome
-                    console.log(`[RENDER DEBUG] ⚠️ Turma com ID ${turmaIdAulas} não encontrada no sistema, tentando por série + nome...`);
+                    // Turma não encontrada - isso não deveria acontecer se o join do Prisma estiver correto
+                    // Mas vamos tentar encontrar por série + nome como fallback
+                    console.log(`[RENDER DEBUG] ⚠️ Turma com ID ${turmaIdReal} não encontrada no sistema (join falhou?), tentando por série + nome...`);
                     if (aulasDaTurma.length > 0) {
                         const primeiraAula = aulasDaTurma[0];
                         const serieAula = primeiraAula.turma?.serie;
@@ -2771,19 +2775,23 @@
                             // Verificar se a série corresponde
                             const serieCorresponde = t.serie && serieAula && String(t.serie) === String(serieAula);
                             
-                            // Verificar se o nome corresponde (normalizado ou contém)
+                            if (!serieCorresponde) {
+                                return; // Série não corresponde, pular
+                            }
+                            
+                            // Verificar correspondência de nome
                             const nomeNormalizadoTurma = normalizarNomeTurma(t.nome);
                             const nomeNormalizadoAula = normalizarNomeTurma(nomeAula);
-                            const nomeCorresponde = nomeNormalizadoTurma === nomeNormalizadoAula || 
-                                                   t.nome.includes(nomeAula) || 
-                                                   nomeAula && t.nome.toUpperCase().includes(nomeAula.toUpperCase());
                             
-                            if (serieCorresponde && nomeCorresponde && !turmasComAulas.has(t.id)) {
+                            const nomeCorresponde = 
+                                nomeNormalizadoTurma === nomeNormalizadoAula || // Normalização igual (última letra)
+                                t.nome.toUpperCase().includes(nomeAula.toUpperCase()) || // Turma contém nome da aula
+                                (nomeAula && nomeNormalizadoTurma && nomeAula.toUpperCase().includes(nomeNormalizadoTurma)); // Nome da aula contém letra normalizada
+                            
+                            if (nomeCorresponde && !turmasComAulas.has(t.id)) {
                                 turmasComAulas.add(t.id);
-                                console.log(`[RENDER DEBUG] ✅ Correspondência por série + nome: turma "${t.nome}" (ID: ${t.id}, série: ${t.serie}) corresponde a aulas com turmaId ${turmaIdAulas} (série: ${serieAula}, nome: "${nomeAula}")`);
+                                console.log(`[RENDER DEBUG] ✅ Correspondência por série + nome: turma "${t.nome}" (ID: ${t.id}, série: ${t.serie}) corresponde a aulas com turmaId ${turmaIdReal} (série: ${serieAula}, nome: "${nomeAula}")`);
                                 html += renderGradeTurma(t, aulasDaTurma);
-                            } else {
-                                console.log(`[RENDER DEBUG] ⚠️ Turma "${t.nome}" não corresponde: série=${serieCorresponde}, nome=${nomeCorresponde}`);
                             }
                         });
                     }
