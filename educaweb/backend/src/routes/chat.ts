@@ -590,13 +590,54 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
       
       gradeGenerated = true;
       try {
-        // Limpar grade existente para as turmas
-        const turmaIds = gradeData.turmas.map((t: any) => t.turmaId);
-        console.log(`[GRADE DEBUG] Limpando grade existente para turmas: ${turmaIds.join(', ')}`);
+        // Primeiro, encontrar todas as turmas reais no banco
+        // Isso é necessário porque o turmaId do JSON pode não corresponder ao ID real
+        const turmasReaisMap = new Map<number, any>(); // Mapeia turmaId do JSON -> turma real
+        
+        for (const turmaData of gradeData.turmas) {
+          if (turmaData.turmaNome) {
+            let turmaReal = await prisma.turma.findFirst({
+              where: {
+                nome: turmaData.turmaNome,
+                userId
+              }
+            });
+            
+            // Se não encontrou por nome exato, tentar por série + nome parcial
+            if (!turmaReal && turmaData.turmaNome) {
+              const partesNome = turmaData.turmaNome.trim().split(/\s+/);
+              if (partesNome.length >= 2) {
+                const seriePossivel = partesNome[0];
+                const nomePossivel = partesNome[partesNome.length - 1].toUpperCase();
+                
+                const todasTurmas = await prisma.turma.findMany({
+                  where: {
+                    serie: seriePossivel,
+                    userId
+                  }
+                });
+                
+                turmaReal = todasTurmas.find(t => 
+                  t.nome.toUpperCase().includes(nomePossivel) || 
+                  t.nome.toUpperCase() === nomePossivel
+                ) || null;
+              }
+            }
+            
+            if (turmaReal) {
+              turmasReaisMap.set(turmaData.turmaId, turmaReal);
+              console.log(`[GRADE DEBUG] Turma "${turmaData.turmaNome}" mapeada: JSON turmaId ${turmaData.turmaId} -> ID real ${turmaReal.id}`);
+            }
+          }
+        }
+
+        // Limpar grade existente para as turmas reais encontradas
+        const turmaIdsReais = Array.from(turmasReaisMap.values()).map(t => t.id);
+        console.log(`[GRADE DEBUG] Limpando grade existente para turmas (IDs reais): ${turmaIdsReais.join(', ')}`);
         
         const deleteResult = await prisma.gradeHoraria.deleteMany({
           where: {
-            turmaId: { in: turmaIds },
+            turmaId: { in: turmaIdsReais },
             userId
           }
         });
@@ -607,7 +648,7 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
         for (const turmaData of gradeData.turmas) {
           console.log(`[GRADE DEBUG] ----------------------------------------`);
           console.log(`[GRADE DEBUG] Processando turma: ${turmaData.turmaNome || turmaData.turmaId}`);
-          console.log(`[GRADE DEBUG] Turma ID: ${turmaData.turmaId}`);
+          console.log(`[GRADE DEBUG] Turma ID do JSON: ${turmaData.turmaId}`);
           console.log(`[GRADE DEBUG] Total de aulas na turma: ${turmaData.grade?.length || 0}`);
           
           if (!turmaData.grade || !Array.isArray(turmaData.grade)) {
@@ -615,6 +656,22 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
             console.log(`[GRADE DEBUG] turmaData.grade:`, turmaData.grade);
             continue;
           }
+
+          // Usar a turma real já encontrada no mapeamento anterior
+          const turmaReal = turmasReaisMap.get(turmaData.turmaId);
+
+          if (!turmaReal) {
+            console.log(`[GRADE DEBUG] ❌ Turma "${turmaData.turmaNome}" NÃO encontrada no banco de dados`);
+            console.log(`[GRADE DEBUG] Pulando todas as aulas desta turma`);
+            totalAulasFalhadas += turmaData.grade.length;
+            aulasFalhadas.push({
+              motivo: `Turma "${turmaData.turmaNome}" não encontrada no banco`,
+              dados: { turmaData }
+            });
+            continue;
+          }
+
+          console.log(`[GRADE DEBUG] ✅ Usando turma real: "${turmaReal.nome}" (ID: ${turmaReal.id}, série: ${turmaReal.serie})`);
           
           for (const aula of turmaData.grade) {
             totalAulasProcessadas++;
@@ -671,11 +728,11 @@ REGRAS PARA GERAÇÃO DE RELATÓRIOS:
             }
             console.log(`[GRADE DEBUG] ✅ Sala encontrada: ID ${sala.id}`);
 
-            if (disciplina && professor && sala) {
+            if (disciplina && professor && sala && turmaReal) {
               try {
                 const aulaCriada = await prisma.gradeHoraria.create({
                   data: {
-                    turmaId: turmaData.turmaId,
+                    turmaId: turmaReal.id, // Usar ID real da turma encontrada no banco
                     disciplinaId: disciplina.id,
                     professorId: professor.id,
                     salaId: sala.id,
