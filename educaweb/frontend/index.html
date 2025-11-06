@@ -2757,18 +2757,33 @@
                     console.log(`[RENDER DEBUG] Renderizando turma ${turma.nome} (ID: ${turma.id}, turmaId nas aulas: ${turmaIdAulas}) com ${aulasDaTurma.length} aulas`);
                     html += renderGradeTurma(turma, aulasDaTurma);
                 } else {
-                    // Turma não encontrada no sistema, tentar por nome
-                    console.log(`[RENDER DEBUG] ⚠️ Turma com ID ${turmaIdAulas} não encontrada no sistema, tentando por nome...`);
+                    // Turma não encontrada no sistema, tentar por série + nome
+                    console.log(`[RENDER DEBUG] ⚠️ Turma com ID ${turmaIdAulas} não encontrada no sistema, tentando por série + nome...`);
                     if (aulasDaTurma.length > 0) {
-                        const nomeAula = aulasDaTurma[0].turma?.nome;
-                        // Procurar turma por correspondência de nome
+                        const primeiraAula = aulasDaTurma[0];
+                        const serieAula = primeiraAula.turma?.serie;
+                        const nomeAula = primeiraAula.turma?.nome;
+                        
+                        console.log(`[RENDER DEBUG] Buscando turma com série "${serieAula}" e nome contém "${nomeAula}"`);
+                        
+                        // Procurar turma por correspondência de série + nome
                         turmas.forEach(t => {
+                            // Verificar se a série corresponde
+                            const serieCorresponde = t.serie && serieAula && String(t.serie) === String(serieAula);
+                            
+                            // Verificar se o nome corresponde (normalizado ou contém)
                             const nomeNormalizadoTurma = normalizarNomeTurma(t.nome);
                             const nomeNormalizadoAula = normalizarNomeTurma(nomeAula);
-                            if (nomeNormalizadoTurma === nomeNormalizadoAula && !turmasComAulas.has(t.id)) {
+                            const nomeCorresponde = nomeNormalizadoTurma === nomeNormalizadoAula || 
+                                                   t.nome.includes(nomeAula) || 
+                                                   nomeAula && t.nome.toUpperCase().includes(nomeAula.toUpperCase());
+                            
+                            if (serieCorresponde && nomeCorresponde && !turmasComAulas.has(t.id)) {
                                 turmasComAulas.add(t.id);
-                                console.log(`[RENDER DEBUG] ✅ Correspondência por nome: turma "${t.nome}" (ID: ${t.id}) corresponde a aulas com turmaId ${turmaIdAulas} (nome: "${nomeAula}")`);
+                                console.log(`[RENDER DEBUG] ✅ Correspondência por série + nome: turma "${t.nome}" (ID: ${t.id}, série: ${t.serie}) corresponde a aulas com turmaId ${turmaIdAulas} (série: ${serieAula}, nome: "${nomeAula}")`);
                                 html += renderGradeTurma(t, aulasDaTurma);
+                            } else {
+                                console.log(`[RENDER DEBUG] ⚠️ Turma "${t.nome}" não corresponde: série=${serieCorresponde}, nome=${nomeCorresponde}`);
                             }
                         });
                     }
