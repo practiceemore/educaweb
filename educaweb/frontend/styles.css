@@ -1075,7 +1075,7 @@ body.mobile-menu-open .header .hamburger-btn {
     flex-direction: row;
     gap: 1rem;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
   }
   
   .logo {
@@ -1087,6 +1087,7 @@ body.mobile-menu-open .header .hamburger-btn {
     display: flex !important;
     margin-left: auto;
     flex-shrink: 0;
+    align-self: flex-end;
   }
   
   .nav-items {
