@@ -1088,7 +1088,7 @@ body.mobile-menu-open .header .hamburger-btn {
     margin-left: auto;
     flex-shrink: 0;
     align-self: flex-end;
-    margin-bottom: 9px;
+    margin-bottom: 10px;
   }
   
   .nav-items {
