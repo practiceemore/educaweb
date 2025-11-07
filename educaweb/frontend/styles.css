@@ -186,32 +186,29 @@ body {
   align-items: center;
   width: 44px;
   height: 44px;
-  background: #38761D;
+  background: transparent;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
   padding: 10px;
   z-index: 1001;
-  box-shadow: 0 2px 8px rgba(56, 118, 29, 0.3);
   transition: all 0.3s ease;
 }
 
 .hamburger-btn:hover {
-  background: #2d5a16;
-  box-shadow: 0 4px 12px rgba(56, 118, 29, 0.4);
+  background: transparent;
   transform: translateY(-2px);
 }
 
 .hamburger-btn span {
   width: 22px;
   height: 3px;
-  background: #fff;
+  background: #38761D;
   border-radius: 3px;
   transition: all 0.3s ease;
 }
 
 .hamburger-btn:hover span {
-  background: #fff;
+  background: #2d5a16;
 }
 
 /* Menu Mobile Overlay */
