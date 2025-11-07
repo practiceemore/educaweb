@@ -186,19 +186,19 @@ body {
   align-items: center;
   width: 44px;
   height: 44px;
-  background: #2FAE78;
+  background: #38761D;
   border: none;
   border-radius: 50%;
   cursor: pointer;
   padding: 10px;
   z-index: 1001;
-  box-shadow: 0 2px 8px rgba(47, 174, 120, 0.3);
+  box-shadow: 0 2px 8px rgba(56, 118, 29, 0.3);
   transition: all 0.3s ease;
 }
 
 .hamburger-btn:hover {
-  background: #269A68;
-  box-shadow: 0 4px 12px rgba(47, 174, 120, 0.4);
+  background: #2d5a16;
+  box-shadow: 0 4px 12px rgba(56, 118, 29, 0.4);
   transform: translateY(-2px);
 }
 
